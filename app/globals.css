@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #eef1f5;
+  --color-panel: #f5f6f8;
+  --color-card: #ffffff;
+  --color-ink: #10131a;
+  --color-subink: #414652;
+  --color-muted: #737884;
+  --color-line: #e7e9ee;
+  --color-line-soft: #eef0f4;
+  --color-brand: #2f66ff;
+  --color-brand-ink: #1e4fd6;
+  --color-brand-soft: #e9effe;
+  --color-good: #16a06a;
+  --color-good-soft: #e6f6ee;
+  --color-warn: #d9822b;
+  --color-warn-soft: #fbf0e2;
+  --color-bad: #dc3d43;
+  --color-bad-soft: #fcecec;
+  --color-violet: #6b53d6;
+  --color-violet-soft: #efecfb;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+html,
+body,
+#__next {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Hide scrollbars until scrolling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:hover {
+  scrollbar-color: #cdd1d9 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 8px;
+}
+*:hover::-webkit-scrollbar-thumb {
+  background: #cdd1d9;
+}
+
+@keyframes bpFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bp-fade {
+  animation: bpFade 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}

@@ -1,0 +1,10 @@
+{
+  "description": "This web application offers users a streamlined financial management platform with intuitive navigation, enabling efficient tracking and analysis of personal finances.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
