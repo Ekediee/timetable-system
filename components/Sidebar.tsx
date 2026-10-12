@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -39,30 +41,30 @@ export type View =
   | "hodReview"
   | "deanReview";
 
-type NavItem = { id: View; label: string; icon: typeof Users };
+type NavItem = { id: View; label: string; href: string; icon: typeof Users };
 
 const navByRole: Record<UserRole, NavItem[]> = {
   deptTO: [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "allocations", label: "Allocations", icon: Users },
-    { id: "venues", label: "Venues & Timeslots", icon: Building2 },
-    { id: "constraints", label: "Constraints", icon: SlidersHorizontal },
-    { id: "generate", label: "Timetable", icon: Sparkles },
-    { id: "history", label: "Status & History", icon: History },
+    { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { id: "allocations", label: "Allocations", href: "/allocations", icon: Users },
+    { id: "venues", label: "Venues & Timeslots", href: "/venues", icon: Building2 },
+    { id: "constraints", label: "Constraints", href: "/constraints", icon: SlidersHorizontal },
+    { id: "generate", label: "Timetable", href: "/generate", icon: Sparkles },
+    { id: "history", label: "Status & History", href: "/history", icon: History },
   ],
   hod: [
-    { id: "hodReview", label: "Submissions", icon: Inbox },
+    { id: "hodReview", label: "Submissions", href: "/hod-review", icon: Inbox },
   ],
   dean: [
-    { id: "deanReview", label: "School Submissions", icon: GraduationCap },
+    { id: "deanReview", label: "School Submissions", href: "/dean-review", icon: GraduationCap },
   ],
   acadPlanningTO: [
-    { id: "acadPlanning", label: "Review Queue", icon: ClipboardCheck },
-    { id: "acadPublished", label: "Published Timetables", icon: Globe },
-    { id: "acadConstraints", label: "Constraints", icon: ShieldCheck },
-    { id: "acadClashes", label: "Venue Clashes", icon: AlertTriangle },
-    { id: "acadAnalytics", label: "Analytics", icon: BarChart2 },
-    { id: "acadAudit", label: "Audit Log", icon: ScrollText },
+    { id: "acadPlanning", label: "Review Queue", href: "/academic-planning", icon: ClipboardCheck },
+    { id: "acadPublished", label: "Published Timetables", href: "/academic-planning/published", icon: Globe },
+    { id: "acadConstraints", label: "Constraints", href: "/academic-planning/constraints", icon: ShieldCheck },
+    { id: "acadClashes", label: "Venue Clashes", href: "/academic-planning/clashes", icon: AlertTriangle },
+    { id: "acadAnalytics", label: "Analytics", href: "/academic-planning/analytics", icon: BarChart2 },
+    { id: "acadAudit", label: "Audit Log", href: "/academic-planning/audit", icon: ScrollText },
   ],
 };
 
@@ -95,23 +97,20 @@ export default function Sidebar({
   isOpen,
   onClose,
 }: {
-  view: View;
-  setView: (v: View) => void;
+  view?: View;
+  setView?: (v: View) => void;
   currentUser: UserAccount | null;
   onLogout: () => void;
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const pathname = usePathname();
+
   if (!currentUser) return null;
 
   const navItems = navByRole[currentUser.role];
   const activeClass = activeColorByRole[currentUser.role];
   const activeIconClass = activeIconByRole[currentUser.role];
-
-  function navigate(v: View) {
-    setView(v);
-    onClose();
-  }
 
   return (
     <>
@@ -156,12 +155,19 @@ export default function Sidebar({
           <p className="px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
             {sectionLabel[currentUser.role]}
           </p>
-          {navItems.map(({ id, label, icon: Icon }) => {
-            const active = view === id;
+          {navItems.map(({ id, label, href, icon: Icon }) => {
+            const active = view ? view === id : (pathname === href || (href !== "/" && pathname?.startsWith(href + "/")));
             return (
-              <button
+              <Link
                 key={id}
-                onClick={() => navigate(id)}
+                href={href}
+                onClick={(e) => {
+                  if (setView) {
+                    e.preventDefault();
+                    setView(id);
+                  }
+                  onClose();
+                }}
                 className={`group mb-0.5 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-colors ${
                   active ? activeClass : "text-subink hover:bg-line-soft"
                 }`}
@@ -174,7 +180,7 @@ export default function Sidebar({
                   }
                 />
                 {label}
-              </button>
+              </Link>
             );
           })}
 

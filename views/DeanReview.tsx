@@ -14,20 +14,22 @@ import {
 } from "lucide-react";
 import { Card, CardHead, Pill, Button } from "../components/ui";
 import { allocations, department, type Status, type Session, type TimelineStep } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
-export default function DeanReview({
-  status,
-  setStatus,
-  localSessions,
-  localTimeline,
-  setLocalTimeline,
-}: {
-  status: Status;
-  setStatus: (s: Status) => void;
-  localSessions: Session[];
-  localTimeline: TimelineStep[];
-  setLocalTimeline: (t: TimelineStep[]) => void;
+export default function DeanReview(props?: {
+  status?: Status;
+  setStatus?: (s: Status) => void;
+  localSessions?: Session[];
+  localTimeline?: TimelineStep[];
+  setLocalTimeline?: (t: TimelineStep[]) => void;
 }) {
+  const context = useApp();
+
+  const status = props?.status ?? context.status;
+  const setStatus = props?.setStatus ?? context.setStatus;
+  const localSessions = props?.localSessions ?? context.localSessions;
+  const localTimeline = props?.localTimeline ?? context.localTimeline;
+  const setLocalTimeline = props?.setLocalTimeline ?? context.setLocalTimeline;
   const [returnNote, setReturnNote] = useState("");
   const [mode, setMode] = useState<"idle" | "returning">("idle");
   const [confirmed, setConfirmed] = useState(false);

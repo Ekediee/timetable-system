@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Card, CardHead, Pill } from "../components/ui";
 import { type AuditEntry, type DeptSubmission } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
 type AuditFilter = "all" | "approved" | "returned" | "published";
 
@@ -19,13 +20,13 @@ const actionConfig = {
   returned: { label: "Returned", tone: "bad", Icon: RotateCcw },
 };
 
-export default function AcademicPlanningAudit({
-  submissions,
-  auditEntries,
-}: {
-  submissions: DeptSubmission[];
-  auditEntries: AuditEntry[];
+export default function AcademicPlanningAudit(props?: {
+  submissions?: DeptSubmission[];
+  auditEntries?: AuditEntry[];
 }) {
+  const context = useApp();
+  const submissions = props?.submissions ?? context.deptSubs;
+  const auditEntries = props?.auditEntries ?? context.auditEntries;
   const [filter, setFilter] = useState<AuditFilter>("all");
 
   if (!submissions || !auditEntries) return null;

@@ -21,6 +21,7 @@ import {
 import { Card, CardHead, Pill, Button } from "../components/ui";
 import TimetableModal from "../components/TimetableModal";
 import { type DeptSubmission, type AuditEntry } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
 type FilterTab = "all" | "pending" | "approved" | "returned" | "published";
 
@@ -338,15 +339,17 @@ function ReviewPanel({
   );
 }
 
-export default function AcademicPlanning({
-  submissions,
-  setSubmissions,
-  onAuditEntry,
-}: {
-  submissions: DeptSubmission[];
-  setSubmissions: React.Dispatch<React.SetStateAction<DeptSubmission[]>>;
-  onAuditEntry: (entry: Omit<AuditEntry, "id" | "actor" | "at">) => void;
+export default function AcademicPlanning(props?: {
+  submissions?: DeptSubmission[];
+  setSubmissions?: React.Dispatch<React.SetStateAction<DeptSubmission[]>>;
+  onAuditEntry?: (entry: Omit<AuditEntry, "id" | "actor" | "at">) => void;
 }) {
+  const context = useApp();
+
+  const submissions = props?.submissions ?? context.deptSubs;
+  const setSubmissions = props?.setSubmissions ?? context.setDeptSubs;
+  const onAuditEntry = props?.onAuditEntry ?? context.addAuditEntry;
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterTab, setFilterTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");

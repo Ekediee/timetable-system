@@ -14,6 +14,7 @@ import {
 import { Card, CardHead, Pill, Button } from "../components/ui";
 import TimetableModal, { exportTimetable } from "../components/TimetableModal";
 import { type DeptSubmission, type AuditEntry } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
 function stamp() {
   const d = new Date();
@@ -24,15 +25,17 @@ function stamp() {
   return `${month} ${day}, ${h}:${m}`;
 }
 
-export default function AcademicPlanningPublished({
-  submissions,
-  setSubmissions,
-  onAuditEntry,
-}: {
-  submissions: DeptSubmission[];
-  setSubmissions: React.Dispatch<React.SetStateAction<DeptSubmission[]>>;
-  onAuditEntry: (entry: Omit<AuditEntry, "id" | "actor" | "at">) => void;
+export default function AcademicPlanningPublished(props?: {
+  submissions?: DeptSubmission[];
+  setSubmissions?: React.Dispatch<React.SetStateAction<DeptSubmission[]>>;
+  onAuditEntry?: (entry: Omit<AuditEntry, "id" | "actor" | "at">) => void;
 }) {
+  const context = useApp();
+
+  const submissions = props?.submissions ?? context.deptSubs;
+  const setSubmissions = props?.setSubmissions ?? context.setDeptSubs;
+  const onAuditEntry = props?.onAuditEntry ?? context.addAuditEntry;
+
   const [viewSub, setViewSub] = useState<DeptSubmission | null>(null);
   const [search, setSearch] = useState("");
 

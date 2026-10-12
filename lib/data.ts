@@ -1,3 +1,5 @@
+
+
 // BU Pulse — Timetabling seed data for the Department of Computer Science
 
 export type Status =
@@ -25,31 +27,70 @@ export type Allocation = {
   units: number;
   size: number;
   type: "Core" | "Elective" | "GST";
+  group?: string; // "Group A", "Group B", "Group C", "Group D", "All", or undefined for unified classes
+  level?: string; // "100 Level", "200 Level", etc.
+  isVirtual?: boolean; // True for online/virtual classes (e.g. GST)
 };
 
 export const allocations: Allocation[] = [
-  { code: "COSC 204", title: "Object Oriented Software Development", lecturer: "Maitanmi S.O", units: 2, size: 142, type: "Core" },
-  { code: "COSC 202", title: "Advanced Database Management Systems", lecturer: "Johnson R.T", units: 3, size: 138, type: "Core" },
-  { code: "COSC 200", title: "Web Application Development", lecturer: "Adams P.L", units: 3, size: 140, type: "Core" },
-  { code: "BU-GST 201", title: "Artificial Intelligence Principles", lecturer: "Nguyen A.K", units: 4, size: 210, type: "GST" },
-  { code: "COSC 268", title: "Mobile Application Development", lecturer: "Peterson J.E", units: 3, size: 96, type: "Elective" },
-  { code: "BU-GST 205", title: "Software Engineering", lecturer: "Williams H.J", units: 4, size: 205, type: "GST" },
-  { code: "SENG 270", title: "Computer Networks", lecturer: "Rodriguez T.F", units: 3, size: 118, type: "Core" },
-  { code: "ITGY 271", title: "Human-Computer Interaction", lecturer: "Lee M.N", units: 3, size: 88, type: "Elective" },
-  { code: "COSC 872", title: "Data Structures and Algorithms", lecturer: "Singh R.V", units: 2, size: 150, type: "Core" },
+  // 100 Level
+  { code: "COSC 101", title: "Introduction to Computer Science", lecturer: "Adams P.L", units: 3, size: 60, type: "Core", group: "Group A", level: "100 Level" },
+  { code: "COSC 102", title: "Problem Solving & Programming", lecturer: "Maitanmi S.O", units: 3, size: 60, type: "Core", group: "Group B", level: "100 Level" },
+  { code: "BU-GST 101", title: "Use of English & Communication", lecturer: "Ibrahim T.A", units: 2, size: 120, type: "GST", group: "All", level: "100 Level", isVirtual: true },
+
+  // 200 Level
+  { code: "COSC 204", title: "Object Oriented Software Development", lecturer: "Maitanmi S.O", units: 2, size: 50, type: "Core", group: "Group A", level: "200 Level" },
+  { code: "COSC 202", title: "Advanced Database Management Systems", lecturer: "Johnson R.T", units: 3, size: 50, type: "Core", group: "Group B", level: "200 Level" },
+  { code: "COSC 200", title: "Web Application Development", lecturer: "Adams P.L", units: 3, size: 50, type: "Core", group: "Group C", level: "200 Level" },
+  { code: "BU-GST 201", title: "Artificial Intelligence Principles", lecturer: "Nguyen A.K", units: 4, size: 210, type: "GST", group: "All", level: "200 Level", isVirtual: true },
+  { code: "COSC 268", title: "Mobile Application Development", lecturer: "Peterson J.E", units: 3, size: 50, type: "Elective", group: "Group D", level: "200 Level" },
+  { code: "BU-GST 205", title: "Software Engineering", lecturer: "Williams H.J", units: 4, size: 205, type: "GST", group: "All", level: "200 Level", isVirtual: true },
+  { code: "SENG 270", title: "Computer Networks", lecturer: "Rodriguez T.F", units: 3, size: 50, type: "Core", group: "Group A", level: "200 Level" },
+  { code: "ITGY 271", title: "Human-Computer Interaction", lecturer: "Lee M.N", units: 3, size: 50, type: "Elective", group: "Group B", level: "200 Level" },
+  { code: "COSC 872", title: "Data Structures and Algorithms", lecturer: "Singh R.V", units: 2, size: 50, type: "Core", group: "Group C", level: "200 Level" },
+
+  // 300 Level
+  { code: "COSC 301", title: "Operating Systems", lecturer: "Johnson R.T", units: 3, size: 55, type: "Core", group: "Group A", level: "300 Level" },
+  { code: "COSC 305", title: "Computer Architecture", lecturer: "Rodriguez T.F", units: 3, size: 55, type: "Core", group: "Group B", level: "300 Level" },
+  { code: "BU-GST 301", title: "Entrepreneurship & Innovation", lecturer: "Ibrahim T.A", units: 2, size: 110, type: "GST", group: "All", level: "300 Level", isVirtual: true },
+
+  // 400 Level
+  { code: "COSC 401", title: "Compiler Construction", lecturer: "Singh R.V", units: 3, size: 45, type: "Core", group: "Group A", level: "400 Level" },
+  { code: "COSC 402", title: "Expert Systems & AI", lecturer: "Lee M.N", units: 3, size: 45, type: "Core", group: "Group B", level: "400 Level" },
+  { code: "COSC 499", title: "Final Year Research Project", lecturer: "Maitanmi S.O", units: 4, size: 90, type: "Core", group: "All", level: "400 Level" },
 ];
 
-export type Venue = { name: string; capacity: number; block: string };
+export type Venue = {
+  name: string;
+  capacity: number;
+  block: string;
+  floor?: string | null;
+  spaceType?: "shared" | "exclusive";
+  isVirtual?: boolean;
+};
 export const venues: Venue[] = [
-  { name: "CST Hall A", capacity: 240, block: "College of Science & Tech" },
-  { name: "CST Hall B", capacity: 160, block: "College of Science & Tech" },
-  { name: "Lab 3 — Software", capacity: 60, block: "CS Building" },
-  { name: "Lab 5 — Networks", capacity: 60, block: "CS Building" },
-  { name: "LT 12", capacity: 120, block: "Central Lecture Complex" },
+  { name: "CST Hall A", capacity: 240, block: "College of Science & Tech", floor: "Ground Floor", spaceType: "exclusive" },
+  { name: "CST Hall B", capacity: 160, block: "College of Science & Tech", floor: "Ground Floor", spaceType: "exclusive" },
+  { name: "Lab 3 — Software", capacity: 60, block: "CS Building", floor: "1st Floor", spaceType: "exclusive" },
+  { name: "Lab 5 — Networks", capacity: 60, block: "CS Building", floor: "1st Floor", spaceType: "exclusive" },
+  { name: "LT 12", capacity: 120, block: "Central Lecture Complex", floor: "2nd Floor", spaceType: "shared" },
+  { name: "Virtual / LMS", capacity: 5000, block: "Online / E-Learning", floor: "Virtual", spaceType: "shared", isVirtual: true },
 ];
 
 export const days = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
-export const slots = ["08:00", "10:00", "12:00", "14:00", "16:00"] as const;
+export const slots = [
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+] as const;
 
 export type Session = {
   code: string;
@@ -57,7 +98,11 @@ export type Session = {
   venue: string;
   day: (typeof days)[number];
   slot: (typeof slots)[number];
-  conflict?: "venue" | "capacity" | "lecturer";
+  duration?: number;
+  group?: string;
+  level?: string;
+  isVirtual?: boolean;
+  conflict?: "venue" | "capacity" | "lecturer" | "availability";
 };
 
 export const sessions: Session[] = [
@@ -437,6 +482,9 @@ export type VenueRecord = {
   type: "Lecture Hall" | "Seminar Room" | "Lab" | "Auditorium";
   assignedDept: string | null;
   school: string | null;
+  floor?: string | null;
+  spaceType?: "shared" | "exclusive";
+  isVirtual?: boolean;
 };
 
 export type AdjunctRecord = {
@@ -468,36 +516,37 @@ export type GlobalStudyLeave = {
 };
 
 export const venueRecords: VenueRecord[] = [
-  { id: "v1", name: "CST Hall A", capacity: 240, type: "Lecture Hall", assignedDept: "Computer Science", school: "School of Computing & Engineering" },
-  { id: "v2", name: "CST Hall B", capacity: 160, type: "Lecture Hall", assignedDept: "Computer Science", school: "School of Computing & Engineering" },
-  { id: "v3", name: "Lab 3 — Software", capacity: 60, type: "Lab", assignedDept: "Computer Science", school: "School of Computing & Engineering" },
-  { id: "v4", name: "Lab 5 — Networks", capacity: 60, type: "Lab", assignedDept: "Computer Science", school: "School of Computing & Engineering" },
-  { id: "v5", name: "Eng Hall A", capacity: 200, type: "Lecture Hall", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering" },
-  { id: "v6", name: "Eng Hall B", capacity: 180, type: "Lecture Hall", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering" },
-  { id: "v7", name: "Lab 7 — Electronics", capacity: 50, type: "Lab", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering" },
-  { id: "v8", name: "Eng Hall C", capacity: 200, type: "Lecture Hall", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering" },
-  { id: "v9", name: "Eng Hall D", capacity: 160, type: "Lecture Hall", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering" },
-  { id: "v10", name: "Lab 8 — Mech", capacity: 45, type: "Lab", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering" },
-  { id: "v11", name: "Art Hall A", capacity: 150, type: "Lecture Hall", assignedDept: "Mass Communication", school: "School of Social Sciences" },
-  { id: "v12", name: "Art Hall B", capacity: 120, type: "Lecture Hall", assignedDept: "Mass Communication", school: "School of Social Sciences" },
-  { id: "v13", name: "Studio 1", capacity: 30, type: "Seminar Room", assignedDept: "Mass Communication", school: "School of Social Sciences" },
-  { id: "v14", name: "Mgt Hall A", capacity: 180, type: "Lecture Hall", assignedDept: "Business Administration", school: "School of Management Sciences" },
-  { id: "v15", name: "Mgt Hall B", capacity: 160, type: "Lecture Hall", assignedDept: "Business Administration", school: "School of Management Sciences" },
-  { id: "v16", name: "Mgt Hall C", capacity: 180, type: "Lecture Hall", assignedDept: "Accounting", school: "School of Management Sciences" },
-  { id: "v17", name: "Mgt Hall D", capacity: 140, type: "Lecture Hall", assignedDept: "Accounting", school: "School of Management Sciences" },
-  { id: "v18", name: "Law Hall A", capacity: 120, type: "Lecture Hall", assignedDept: "Law", school: "School of Law" },
-  { id: "v19", name: "Law Hall B", capacity: 100, type: "Seminar Room", assignedDept: "Law", school: "School of Law" },
-  { id: "v20", name: "Health Sci Hall", capacity: 220, type: "Lecture Hall", assignedDept: "Nursing Science", school: "College of Health Sciences" },
-  { id: "v21", name: "Lab 9 — Clinical", capacity: 40, type: "Lab", assignedDept: "Nursing Science", school: "College of Health Sciences" },
-  { id: "v22", name: "LT 5", capacity: 300, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v23", name: "LT 8", capacity: 280, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v24", name: "LT 10", capacity: 300, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v25", name: "LT 11", capacity: 280, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v26", name: "LT 12", capacity: 260, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v27", name: "LT 15", capacity: 320, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v28", name: "LT 16", capacity: 300, type: "Lecture Hall", assignedDept: null, school: null },
-  { id: "v29", name: "Main Auditorium", capacity: 1200, type: "Auditorium", assignedDept: null, school: null },
-  { id: "v30", name: "Seminar Room A", capacity: 40, type: "Seminar Room", assignedDept: null, school: null },
+  { id: "v1", name: "CST Hall A", capacity: 240, type: "Lecture Hall", assignedDept: "Computer Science", school: "School of Computing & Engineering", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v2", name: "CST Hall B", capacity: 160, type: "Lecture Hall", assignedDept: "Computer Science", school: "School of Computing & Engineering", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v3", name: "Lab 3 — Software", capacity: 60, type: "Lab", assignedDept: "Computer Science", school: "School of Computing & Engineering", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v4", name: "Lab 5 — Networks", capacity: 60, type: "Lab", assignedDept: "Computer Science", school: "School of Computing & Engineering", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v5", name: "Eng Hall A", capacity: 200, type: "Lecture Hall", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v6", name: "Eng Hall B", capacity: 180, type: "Lecture Hall", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v7", name: "Lab 7 — Electronics", capacity: 50, type: "Lab", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering", floor: "2nd Floor", spaceType: "exclusive" },
+  { id: "v8", name: "Eng Hall C", capacity: 200, type: "Lecture Hall", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v9", name: "Eng Hall D", capacity: 160, type: "Lecture Hall", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v10", name: "Lab 8 — Mech", capacity: 45, type: "Lab", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering", floor: "Basement", spaceType: "exclusive" },
+  { id: "v11", name: "Art Hall A", capacity: 150, type: "Lecture Hall", assignedDept: "Mass Communication", school: "School of Social Sciences", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v12", name: "Art Hall B", capacity: 120, type: "Lecture Hall", assignedDept: "Mass Communication", school: "School of Social Sciences", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v13", name: "Studio 1", capacity: 30, type: "Seminar Room", assignedDept: "Mass Communication", school: "School of Social Sciences", floor: "2nd Floor", spaceType: "exclusive" },
+  { id: "v14", name: "Mgt Hall A", capacity: 180, type: "Lecture Hall", assignedDept: "Business Administration", school: "School of Management Sciences", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v15", name: "Mgt Hall B", capacity: 160, type: "Lecture Hall", assignedDept: "Business Administration", school: "School of Management Sciences", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v16", name: "Mgt Hall C", capacity: 180, type: "Lecture Hall", assignedDept: "Accounting", school: "School of Management Sciences", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v17", name: "Mgt Hall D", capacity: 140, type: "Lecture Hall", assignedDept: "Accounting", school: "School of Management Sciences", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v18", name: "Law Hall A", capacity: 120, type: "Lecture Hall", assignedDept: "Law", school: "School of Law", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v19", name: "Law Hall B", capacity: 100, type: "Seminar Room", assignedDept: "Law", school: "School of Law", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v20", name: "Health Sci Hall", capacity: 220, type: "Lecture Hall", assignedDept: "Nursing Science", school: "College of Health Sciences", floor: "Ground Floor", spaceType: "exclusive" },
+  { id: "v21", name: "Lab 9 — Clinical", capacity: 40, type: "Lab", assignedDept: "Nursing Science", school: "College of Health Sciences", floor: "1st Floor", spaceType: "exclusive" },
+  { id: "v22", name: "LT 5", capacity: 300, type: "Lecture Hall", assignedDept: "Nursing Science", school: "College of Health Sciences", floor: "Ground Floor", spaceType: "shared" },
+  { id: "v23", name: "LT 8", capacity: 280, type: "Lecture Hall", assignedDept: "Law", school: "School of Law", floor: "Ground Floor", spaceType: "shared" },
+  { id: "v24", name: "LT 10", capacity: 300, type: "Lecture Hall", assignedDept: "Business Administration", school: "School of Management Sciences", floor: "1st Floor", spaceType: "shared" },
+  { id: "v25", name: "LT 11", capacity: 280, type: "Lecture Hall", assignedDept: "Mass Communication", school: "School of Social Sciences", floor: "1st Floor", spaceType: "shared" },
+  { id: "v26", name: "LT 12", capacity: 260, type: "Lecture Hall", assignedDept: "Computer Science", school: "School of Computing & Engineering", floor: "2nd Floor", spaceType: "shared" },
+  { id: "v27", name: "LT 15", capacity: 320, type: "Lecture Hall", assignedDept: "Electrical Engineering", school: "School of Computing & Engineering", floor: "Ground Floor", spaceType: "shared" },
+  { id: "v28", name: "LT 16", capacity: 300, type: "Lecture Hall", assignedDept: "Accounting", school: "School of Management Sciences", floor: "1st Floor", spaceType: "shared" },
+  { id: "v29", name: "Main Auditorium", capacity: 1200, type: "Auditorium", assignedDept: "Central Administration", school: "University Central Services", floor: "Ground Floor", spaceType: "shared" },
+  { id: "v30", name: "Seminar Room A", capacity: 40, type: "Seminar Room", assignedDept: "Mechanical Engineering", school: "School of Computing & Engineering", floor: "2nd Floor", spaceType: "shared" },
+  { id: "v31", name: "Virtual / LMS", capacity: 5000, type: "Lecture Hall", assignedDept: "Academic Planning Office", school: "Vice-Chancellor's Office", floor: "Online", spaceType: "shared", isVirtual: true },
 ];
 
 export const adjunctRecords: AdjunctRecord[] = [

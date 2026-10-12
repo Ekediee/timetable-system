@@ -4,16 +4,27 @@ import { CheckCircle2, XCircle, Clock, MessageSquare, ArrowLeft, Download } from
 import { Card, CardHead, Pill, Button } from "../components/ui";
 import { type Status, type TimelineStep } from "../lib/data";
 import type { View } from "../components/Sidebar";
+import { useRouter } from "next/navigation";
+import { useApp } from "../lib/AppContext";
 
-export default function History({
-  status,
-  localTimeline,
-  setView,
-}: {
-  status: Status;
-  localTimeline: TimelineStep[];
-  setView: (v: View) => void;
+export default function History(props?: {
+  status?: Status;
+  localTimeline?: TimelineStep[];
+  setView?: (v: View) => void;
 }) {
+  const router = useRouter();
+  const context = useApp();
+
+  const status = props?.status ?? context.status;
+  const localTimeline = props?.localTimeline ?? context.localTimeline;
+
+  function navigateToGenerate() {
+    if (props?.setView) {
+      props.setView("generate");
+    } else {
+      router.push("/generate");
+    }
+  }
   const rejection = localTimeline.find((t) => t.state === "rejected");
 
   const isSubmitted =
@@ -134,7 +145,7 @@ export default function History({
             {!isSubmitted && (
               <Button
                 className="mt-3 w-full"
-                onClick={() => setView("generate")}
+                onClick={navigateToGenerate}
               >
                 <ArrowLeft size={15} /> Back to timetable
               </Button>
@@ -155,7 +166,7 @@ export default function History({
               </p>
               {!isSubmitted && (
                 <button
-                  onClick={() => setView("generate")}
+                  onClick={navigateToGenerate}
                   className="mt-3 text-[12.5px] font-semibold text-brand hover:underline"
                 >
                   Revise timetable →

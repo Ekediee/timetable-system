@@ -3,15 +3,16 @@
 import { BarChart2, CalendarDays, Building2, TrendingUp } from "lucide-react";
 import { Card, CardHead, Pill } from "../components/ui";
 import { type DeptSubmission } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 const SLOTS = ["08:00", "10:00", "12:00", "14:00", "16:00"] as const;
 
-export default function AcademicPlanningAnalytics({
-  submissions,
-}: {
-  submissions: DeptSubmission[];
+export default function AcademicPlanningAnalytics(props?: {
+  submissions?: DeptSubmission[];
 }) {
+  const context = useApp();
+  const submissions = props?.submissions ?? context.deptSubs;
   if (!submissions) return null;
 
   const pipeline = {

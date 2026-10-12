@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Building2,
@@ -22,7 +24,7 @@ import {
   type Constraint,
   type TimelineStep,
 } from "../lib/data";
-import type { View } from "../components/Sidebar";
+import { useApp } from "../lib/AppContext";
 
 function Stat({
   label,
@@ -48,21 +50,23 @@ function Stat({
   );
 }
 
-export default function Dashboard({
-  setView,
-  status,
-  localSessions,
-  localConstraints,
-  constraintsComplete,
-  localTimeline,
-}: {
-  setView: (v: View) => void;
-  status: Status;
-  localSessions: Session[];
-  localConstraints: Constraint[];
-  constraintsComplete: boolean;
-  localTimeline: TimelineStep[];
+export default function Dashboard(props?: {
+  setView?: (v: any) => void;
+  status?: Status;
+  localSessions?: Session[];
+  localConstraints?: Constraint[];
+  constraintsComplete?: boolean;
+  localTimeline?: TimelineStep[];
 }) {
+  const router = useRouter();
+  const context = useApp();
+
+  const status = props?.status ?? context.status;
+  const localSessions = props?.localSessions ?? context.localSessions;
+  const localConstraints = props?.localConstraints ?? context.localConstraints;
+  const constraintsComplete = props?.constraintsComplete ?? context.constraintsComplete;
+  const localTimeline = props?.localTimeline ?? context.localTimeline;
+
   const conflicts = localSessions.filter((s) => s.conflict);
   const rejection = localTimeline.find((t) => t.state === "rejected");
   const submitted =
@@ -91,7 +95,7 @@ export default function Dashboard({
                   <Send size={12} /> Submitted
                 </Pill>
               ) : (
-                <Button onClick={() => setView("generate")}>
+                <Button onClick={() => (props?.setView ? props.setView("generate") : router.push("/generate"))}>
                   <Sparkles size={16} /> Open draft
                 </Button>
               )
@@ -145,7 +149,7 @@ export default function Dashboard({
                 <Button
                   variant="outline"
                   className="mt-3"
-                  onClick={() => setView("generate")}
+                  onClick={() => (props?.setView ? props.setView("generate") : router.push("/generate"))}
                 >
                   Revise timetable <ArrowUpRight size={15} />
                 </Button>
@@ -170,7 +174,7 @@ export default function Dashboard({
                 <Button
                   variant="outline"
                   className="mt-3"
-                  onClick={() => setView("history")}
+                  onClick={() => (props?.setView ? props.setView("history") : router.push("/history"))}
                 >
                   View submission status <ArrowUpRight size={15} />
                 </Button>
@@ -183,14 +187,14 @@ export default function Dashboard({
           <CardHead title="Quick actions" sub="Jump back into your workflow" />
           <div className="grid grid-cols-2 gap-3 px-5 pb-5 sm:grid-cols-4">
             {[
-              { label: "Allocations", icon: Users, v: "allocations" as View },
-              { label: "Venues", icon: Building2, v: "venues" as View },
-              { label: "Constraints", icon: SlidersHorizontal, v: "constraints" as View },
-              { label: "Generate", icon: Sparkles, v: "generate" as View },
-            ].map(({ label, icon: Icon, v }) => (
+              { label: "Allocations", icon: Users, href: "/allocations", id: "allocations" as const },
+              { label: "Venues", icon: Building2, href: "/venues", id: "venues" as const },
+              { label: "Constraints", icon: SlidersHorizontal, href: "/constraints", id: "constraints" as const },
+              { label: "Generate", icon: Sparkles, href: "/generate", id: "generate" as const },
+            ].map(({ label, icon: Icon, href, id }) => (
               <button
                 key={label}
-                onClick={() => setView(v)}
+                onClick={() => (props?.setView ? props.setView(id) : router.push(href))}
                 className="flex flex-col items-center gap-2.5 rounded-xl border border-line bg-panel/60 px-3 py-5 transition hover:-translate-y-0.5 hover:border-brand/40 hover:bg-brand-soft/40"
               >
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-card text-brand border border-line">

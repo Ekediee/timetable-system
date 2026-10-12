@@ -1,9 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarOff, Plane, UserCog, Plus, Check, Trash2, X } from "lucide-react";
+import {
+  CalendarOff,
+  Plane,
+  UserCog,
+  Plus,
+  Check,
+  Trash2,
+  X,
+} from "lucide-react";
 import { Card, CardHead, Pill, Button } from "../components/ui";
 import { type Constraint, type ConstraintKind } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
 const tabs: { kind: ConstraintKind; icon: typeof Plane; tone: string }[] = [
   { kind: "Study Leave", icon: Plane, tone: "violet" },
@@ -26,7 +35,12 @@ function AddModal({
 
   function submit() {
     if (!lecturer.trim() || !detail.trim() || !range.trim()) return;
-    onAdd({ kind, lecturer: lecturer.trim(), detail: detail.trim(), range: range.trim() });
+    onAdd({
+      kind,
+      lecturer: lecturer.trim(),
+      detail: detail.trim(),
+      range: range.trim(),
+    });
     onClose();
   }
 
@@ -102,17 +116,25 @@ function AddModal({
   );
 }
 
-export default function Constraints({
-  localConstraints,
-  setLocalConstraints,
-  constraintsComplete,
-  setConstraintsComplete,
-}: {
-  localConstraints: Constraint[];
-  setLocalConstraints: (c: Constraint[]) => void;
-  constraintsComplete: boolean;
-  setConstraintsComplete: (v: boolean) => void;
+export default function Constraints(props?: {
+  localConstraints?: Constraint[];
+  setLocalConstraints?:
+    | React.Dispatch<React.SetStateAction<Constraint[]>>
+    | ((c: Constraint[]) => void);
+  constraintsComplete?: boolean;
+  setConstraintsComplete?:
+    | React.Dispatch<React.SetStateAction<boolean>>
+    | ((v: boolean) => void);
 }) {
+  const context = useApp();
+
+  const localConstraints = props?.localConstraints ?? context.localConstraints;
+  const setLocalConstraints =
+    props?.setLocalConstraints ?? context.setLocalConstraints;
+  const constraintsComplete =
+    props?.constraintsComplete ?? context.constraintsComplete;
+  const setConstraintsComplete =
+    props?.setConstraintsComplete ?? context.setConstraintsComplete;
   const [tab, setTab] = useState<ConstraintKind>("Study Leave");
   const [showAdd, setShowAdd] = useState(false);
   const rows = localConstraints.filter((c) => c.kind === tab);
@@ -139,7 +161,9 @@ export default function Constraints({
                   key={kind}
                   onClick={() => setTab(kind)}
                   className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-semibold transition ${
-                    on ? "bg-brand-soft text-brand-ink" : "text-muted hover:bg-panel"
+                    on
+                      ? "bg-brand-soft text-brand-ink"
+                      : "text-muted hover:bg-panel"
                   }`}
                 >
                   <Icon size={15} className={on ? "text-brand" : ""} />
@@ -162,32 +186,41 @@ export default function Constraints({
                 No {tab.toLowerCase()} records yet.
               </p>
             )}
-            {rows.map((c) => (
-              <div
-                key={c.id}
-                className="group flex items-center gap-3 rounded-xl px-3 py-3.5 transition hover:bg-panel"
-              >
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-${active.tone}-soft text-${active.tone}`}
+            {rows.map((c) => {
+              const toneClass =
+                active.tone === "violet"
+                  ? "bg-violet-soft text-violet"
+                  : active.tone === "warn"
+                    ? "bg-warn-soft text-warn"
+                    : "bg-brand-soft text-brand-ink";
+
+              return (
+                <div
+                  key={c.id}
+                  className="group flex items-center gap-3 rounded-xl px-3 py-3.5 transition hover:bg-panel"
                 >
-                  <active.icon size={16} />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-semibold text-ink">
-                    {c.lecturer}
-                  </p>
-                  <p className="text-[12.5px] text-muted">{c.detail}</p>
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClass}`}
+                  >
+                    <active.icon size={16} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13.5px] font-semibold text-ink">
+                      {c.lecturer}
+                    </p>
+                    <p className="text-[12.5px] text-muted">{c.detail}</p>
+                  </div>
+                  <Pill tone="neutral">{c.range}</Pill>
+                  <button
+                    onClick={() => deleteConstraint(c.id)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted opacity-0 transition hover:bg-bad-soft hover:text-bad group-hover:opacity-100"
+                    title="Delete record"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
-                <Pill tone="neutral">{c.range}</Pill>
-                <button
-                  onClick={() => deleteConstraint(c.id)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted opacity-0 transition hover:bg-bad-soft hover:text-bad group-hover:opacity-100"
-                  title="Delete record"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="border-t border-line p-3">
@@ -223,15 +256,21 @@ export default function Constraints({
                   constraintsComplete ? "text-good" : "text-subink"
                 }`}
               >
-                {constraintsComplete ? "Constraints complete" : "Mark constraints complete"}
+                {constraintsComplete
+                  ? "Constraints complete"
+                  : "Mark constraints complete"}
               </span>
               <span
                 className={`flex h-6 w-11 items-center rounded-full p-0.5 transition ${
-                  constraintsComplete ? "bg-good justify-end" : "bg-line justify-start"
+                  constraintsComplete
+                    ? "bg-good justify-end"
+                    : "bg-line justify-start"
                 }`}
               >
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white shadow">
-                  {constraintsComplete && <Check size={12} className="text-good" />}
+                  {constraintsComplete && (
+                    <Check size={12} className="text-good" />
+                  )}
                 </span>
               </span>
             </button>
@@ -244,7 +283,8 @@ export default function Constraints({
                 >
                   <span className="text-muted">{kind}</span>
                   <span className="font-semibold text-ink">
-                    {localConstraints.filter((c) => c.kind === kind).length} records
+                    {localConstraints.filter((c) => c.kind === kind).length}{" "}
+                    records
                   </span>
                 </div>
               ))}

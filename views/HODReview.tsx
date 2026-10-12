@@ -21,20 +21,22 @@ import {
   type Session,
   type TimelineStep,
 } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
-export default function HODReview({
-  status,
-  setStatus,
-  localSessions,
-  localTimeline,
-  setLocalTimeline,
-}: {
-  status: Status;
-  setStatus: (s: Status) => void;
-  localSessions: Session[];
-  localTimeline: TimelineStep[];
-  setLocalTimeline: (t: TimelineStep[]) => void;
+export default function HODReview(props?: {
+  status?: Status;
+  setStatus?: (s: Status) => void;
+  localSessions?: Session[];
+  localTimeline?: TimelineStep[];
+  setLocalTimeline?: (t: TimelineStep[]) => void;
 }) {
+  const context = useApp();
+
+  const status = props?.status ?? context.status;
+  const setStatus = props?.setStatus ?? context.setStatus;
+  const localSessions = props?.localSessions ?? context.localSessions;
+  const localTimeline = props?.localTimeline ?? context.localTimeline;
+  const setLocalTimeline = props?.setLocalTimeline ?? context.setLocalTimeline;
   const [returnNote, setReturnNote] = useState("");
   const [mode, setMode] = useState<"idle" | "returning">("idle");
   const [confirmed, setConfirmed] = useState(false);
@@ -192,7 +194,13 @@ export default function HODReview({
                   className="flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3"
                 >
                   <Pill tone="bad">
-                    {c.conflict === "capacity" ? "Capacity" : "Venue clash"}
+                    {c.conflict === "capacity"
+                      ? "Capacity"
+                      : c.conflict === "lecturer"
+                        ? "Lecturer double-booking"
+                        : c.conflict === "availability"
+                          ? "Availability"
+                          : "Venue clash"}
                   </Pill>
                   <span className="text-[13.5px] font-semibold text-ink">{c.code}</span>
                   <span className="text-[13px] text-muted">

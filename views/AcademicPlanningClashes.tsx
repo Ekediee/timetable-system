@@ -3,6 +3,7 @@
 import { AlertTriangle, Building2, Clock, CheckCircle2, MapPin } from "lucide-react";
 import { Card, CardHead, Pill } from "../components/ui";
 import { type DeptSubmission } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
 type Booking = {
   dept: string;
@@ -74,11 +75,11 @@ function deptAbbr(name: string) {
     .toUpperCase();
 }
 
-export default function AcademicPlanningClashes({
-  submissions,
-}: {
-  submissions: DeptSubmission[];
+export default function AcademicPlanningClashes(props?: {
+  submissions?: DeptSubmission[];
 }) {
+  const context = useApp();
+  const submissions = props?.submissions ?? context.deptSubs;
   if (!submissions) return null;
 
   const clashes = detectClashes(submissions);

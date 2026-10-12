@@ -1,4 +1,4 @@
-// File: /workspaces/default/code/app/layout.tsx
+// File: /home/mighty/Documents/Github/Frontend/timetable-system/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
