@@ -14,7 +14,7 @@ export type Status =
 export const department = {
   name: "Computer Science",
   school: "School of Computing & Engineering",
-  session: "2025 / 2026",
+  session: "2026 / 2027",
   semester: "First Semester",
   level: "200 Level",
   status: "Draft generated" as Status,
@@ -27,38 +27,23 @@ export type Allocation = {
   units: number;
   size: number;
   type: "Core" | "Elective" | "GST";
-  group?: string; // "Group A", "Group B", "Group C", "Group D", "All", or undefined for unified classes
-  level?: string; // "100 Level", "200 Level", etc.
+  group?: string; // "Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "All", or undefined for unified classes
+  level?: string; // "100 Level", "200 Level", "300 Level", "400 Level"
   isVirtual?: boolean; // True for online/virtual classes (e.g. GST)
 };
 
-export const allocations: Allocation[] = [
-  // 100 Level
-  { code: "COSC 101", title: "Introduction to Computer Science", lecturer: "Adams P.L", units: 3, size: 60, type: "Core", group: "Group A", level: "100 Level" },
-  { code: "COSC 102", title: "Problem Solving & Programming", lecturer: "Maitanmi S.O", units: 3, size: 60, type: "Core", group: "Group B", level: "100 Level" },
-  { code: "BU-GST 101", title: "Use of English & Communication", lecturer: "Ibrahim T.A", units: 2, size: 120, type: "GST", group: "All", level: "100 Level", isVirtual: true },
+import universityAllocationsJson from "./university_allocations.json";
 
-  // 200 Level
-  { code: "COSC 204", title: "Object Oriented Software Development", lecturer: "Maitanmi S.O", units: 2, size: 50, type: "Core", group: "Group A", level: "200 Level" },
-  { code: "COSC 202", title: "Advanced Database Management Systems", lecturer: "Johnson R.T", units: 3, size: 50, type: "Core", group: "Group B", level: "200 Level" },
-  { code: "COSC 200", title: "Web Application Development", lecturer: "Adams P.L", units: 3, size: 50, type: "Core", group: "Group C", level: "200 Level" },
-  { code: "BU-GST 201", title: "Artificial Intelligence Principles", lecturer: "Nguyen A.K", units: 4, size: 210, type: "GST", group: "All", level: "200 Level", isVirtual: true },
-  { code: "COSC 268", title: "Mobile Application Development", lecturer: "Peterson J.E", units: 3, size: 50, type: "Elective", group: "Group D", level: "200 Level" },
-  { code: "BU-GST 205", title: "Software Engineering", lecturer: "Williams H.J", units: 4, size: 205, type: "GST", group: "All", level: "200 Level", isVirtual: true },
-  { code: "SENG 270", title: "Computer Networks", lecturer: "Rodriguez T.F", units: 3, size: 50, type: "Core", group: "Group A", level: "200 Level" },
-  { code: "ITGY 271", title: "Human-Computer Interaction", lecturer: "Lee M.N", units: 3, size: 50, type: "Elective", group: "Group B", level: "200 Level" },
-  { code: "COSC 872", title: "Data Structures and Algorithms", lecturer: "Singh R.V", units: 2, size: 50, type: "Core", group: "Group C", level: "200 Level" },
+export const universityAllocations = universityAllocationsJson as Record<
+  string,
+  Allocation[]
+>;
 
-  // 300 Level
-  { code: "COSC 301", title: "Operating Systems", lecturer: "Johnson R.T", units: 3, size: 55, type: "Core", group: "Group A", level: "300 Level" },
-  { code: "COSC 305", title: "Computer Architecture", lecturer: "Rodriguez T.F", units: 3, size: 55, type: "Core", group: "Group B", level: "300 Level" },
-  { code: "BU-GST 301", title: "Entrepreneurship & Innovation", lecturer: "Ibrahim T.A", units: 2, size: 110, type: "GST", group: "All", level: "300 Level", isVirtual: true },
+// Default to Computer Science allocations from 2026_2027_first_semester_allocation.xlsx (169 allocations)
+export const allocations: Allocation[] =
+  universityAllocations["Computer Science"] || [];
 
-  // 400 Level
-  { code: "COSC 401", title: "Compiler Construction", lecturer: "Singh R.V", units: 3, size: 45, type: "Core", group: "Group A", level: "400 Level" },
-  { code: "COSC 402", title: "Expert Systems & AI", lecturer: "Lee M.N", units: 3, size: 45, type: "Core", group: "Group B", level: "400 Level" },
-  { code: "COSC 499", title: "Final Year Research Project", lecturer: "Maitanmi S.O", units: 4, size: 90, type: "Core", group: "All", level: "400 Level" },
-];
+import universityVenuesData from "./university_venues.json";
 
 export type Venue = {
   name: string;
@@ -66,16 +51,36 @@ export type Venue = {
   block: string;
   floor?: string | null;
   spaceType?: "shared" | "exclusive";
+  deptOwners?: string[];
   isVirtual?: boolean;
 };
-export const venues: Venue[] = [
-  { name: "CST Hall A", capacity: 240, block: "College of Science & Tech", floor: "Ground Floor", spaceType: "exclusive" },
-  { name: "CST Hall B", capacity: 160, block: "College of Science & Tech", floor: "Ground Floor", spaceType: "exclusive" },
-  { name: "Lab 3 — Software", capacity: 60, block: "CS Building", floor: "1st Floor", spaceType: "exclusive" },
-  { name: "Lab 5 — Networks", capacity: 60, block: "CS Building", floor: "1st Floor", spaceType: "exclusive" },
-  { name: "LT 12", capacity: 120, block: "Central Lecture Complex", floor: "2nd Floor", spaceType: "shared" },
-  { name: "Virtual / LMS", capacity: 5000, block: "Online / E-Learning", floor: "Virtual", spaceType: "shared", isVirtual: true },
+
+export const allUniversityVenues: Venue[] = (universityVenuesData.all as unknown as Venue[]) || [];
+
+// Derive School of Computing / Computer Science venues from venu.csv
+const csVenueMap = new Map<string, Venue>();
+const targetDepts = [
+  "Computer Science",
+  "Computer Science, Software Engineering, Information Technology",
+  "School Of Computing (IT, CS, CS, And SE)",
+  "Software Engineering",
+  "Information Technology",
 ];
+
+targetDepts.forEach((dept) => {
+  const deptList = (universityVenuesData.byDepartment as Record<string, Venue[]>)[dept] || [];
+  deptList.forEach((v) => {
+    if (!csVenueMap.has(v.name)) {
+      csVenueMap.set(v.name, v);
+    }
+  });
+});
+
+export const venues: Venue[] = Array.from(csVenueMap.values()).sort((a, b) => {
+  if (a.isVirtual) return 1;
+  if (b.isVirtual) return -1;
+  return a.name.localeCompare(b.name);
+});
 
 export const days = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 export const slots = [
@@ -106,20 +111,20 @@ export type Session = {
 };
 
 export const sessions: Session[] = [
-  { code: "COSC 204", lecturer: "Maitanmi S.O", venue: "Lab 3 — Software", day: "Mon", slot: "08:00" },
-  { code: "COSC 200", lecturer: "Adams P.L", venue: "CST Hall B", day: "Mon", slot: "10:00" },
-  { code: "SENG 270", lecturer: "Rodriguez T.F", venue: "Lab 5 — Networks", day: "Mon", slot: "14:00" },
-  { code: "BU-GST 201", lecturer: "Nguyen A.K", venue: "CST Hall A", day: "Tue", slot: "08:00" },
-  { code: "COSC 202", lecturer: "Johnson R.T", venue: "LT 12", day: "Tue", slot: "12:00" },
-  { code: "ITGY 271", lecturer: "Lee M.N", venue: "Lab 3 — Software", day: "Tue", slot: "16:00" },
-  // Capacity conflict: BU-GST 205 has 205 students in LT 12 (cap 120)
-  { code: "BU-GST 205", lecturer: "Williams H.J", venue: "LT 12", day: "Wed", slot: "10:00", conflict: "capacity" },
-  { code: "COSC 268", lecturer: "Peterson J.E", venue: "Lab 3 — Software", day: "Wed", slot: "14:00" },
-  { code: "COSC 872", lecturer: "Singh R.V", venue: "CST Hall B", day: "Thu", slot: "08:00" },
-  // Venue double-booking: two classes in CST Hall A, Thu 12:00
-  { code: "COSC 204", lecturer: "Maitanmi S.O", venue: "CST Hall A", day: "Thu", slot: "12:00", conflict: "venue" },
-  { code: "SENG 270", lecturer: "Rodriguez T.F", venue: "CST Hall A", day: "Thu", slot: "12:00", conflict: "venue" },
-  { code: "BU-GST 201", lecturer: "Nguyen A.K", venue: "CST Hall A", day: "Fri", slot: "10:00" },
+  { code: "CSC 203", lecturer: "ADEGBENJO Aderonke", venue: "BUC_ROOM1", day: "Mon", slot: "08:00", duration: 2, level: "200 Level", group: "Group A" },
+  { code: "COS 201", lecturer: "Ayankoya Folashade", venue: "BUC_LAB1", day: "Mon", slot: "10:00", duration: 2, level: "200 Level", group: "Group A" },
+  { code: "SEN 201", lecturer: "Akande Oyebola", venue: "SAT_B006", day: "Mon", slot: "14:00", duration: 2, level: "200 Level", group: "Group A" },
+  { code: "BU-GST 221", lecturer: "Akintunde Adeyinka Oye", venue: "Virtual / LMS", day: "Tue", slot: "08:00", duration: 2, level: "200 Level", group: "Group A", isVirtual: true },
+  { code: "BU-COS 209", lecturer: "Bankole Oloruntobi", venue: "BUC_ROOM2", day: "Tue", slot: "10:00", duration: 2, level: "200 Level", group: "Group B" },
+  { code: "IFT 211", lecturer: "Fatade Oluwayemisi B", venue: "BUC_LAB2", day: "Tue", slot: "14:00", duration: 2, level: "200 Level", group: "Group B" },
+  // Capacity conflict: BU-GST 215 has 180 students in SAT_A008 (cap 92)
+  { code: "BU-GST 215", lecturer: "Dickson Theodore", venue: "SAT_A008", day: "Wed", slot: "10:00", duration: 2, level: "200 Level", group: "All", conflict: "capacity" },
+  { code: "BU-CSC 333", lecturer: "Idepefo Felix Olutokunbo", venue: "BUC_LAB1", day: "Wed", slot: "14:00", duration: 2, level: "300 Level", group: "Group D" },
+  { code: "CSC 301", lecturer: "UDOSEN Alfred Akpan", venue: "SAT_B106", day: "Thu", slot: "08:00", duration: 2, level: "300 Level", group: "Group C" },
+  // Venue double-booking: two classes in CIT, Thu 10:00
+  { code: "COSC111", lecturer: "Akande Oyebola", venue: "CIT", day: "Thu", slot: "10:00", duration: 2, level: "100 Level", group: "Group A", conflict: "venue" },
+  { code: "SENG400", lecturer: "Bamidele Oluwadoyinsola", venue: "CIT", day: "Thu", slot: "10:00", duration: 2, level: "400 Level", group: "Group A", conflict: "venue" },
+  { code: "INS 401", lecturer: "AWODELE SIMON", venue: "SAPHIRE_HALL1", day: "Fri", slot: "10:00", duration: 2, level: "400 Level", group: "Group A" },
 ];
 
 export type ConstraintKind = "Study Leave" | "Day Off" | "Adjunct";
@@ -132,12 +137,12 @@ export type Constraint = {
 };
 
 export const constraints: Constraint[] = [
-  { id: "c1", kind: "Study Leave", lecturer: "Adebayo F.O", detail: "Doctoral fieldwork", range: "12 Jan – 28 Feb" },
-  { id: "c2", kind: "Study Leave", lecturer: "Okafor C.M", detail: "Conference & sabbatical", range: "05 – 19 Feb" },
-  { id: "c3", kind: "Day Off", lecturer: "Johnson R.T", detail: "Recurring — Wednesdays", range: "Every Wed" },
-  { id: "c4", kind: "Day Off", lecturer: "Lee M.N", detail: "Clinic day", range: "Every Fri AM" },
-  { id: "c5", kind: "Adjunct", lecturer: "Nguyen A.K", detail: "Available Tue & Fri only", range: "Tue, Fri" },
-  { id: "c6", kind: "Adjunct", lecturer: "Peterson J.E", detail: "Industry — evenings only", range: "After 14:00" },
+  { id: "c1", kind: "Study Leave", lecturer: "Adebanjo Olawunmi Asake", detail: "Doctoral research fellowship (Substituted externally)", range: "12 Jan – 28 Feb" },
+  { id: "c2", kind: "Study Leave", lecturer: "DARAMOLA CHRISTIANA", detail: "International conference & sabbatical (Substituted externally)", range: "05 – 19 Feb" },
+  { id: "c3", kind: "Day Off", lecturer: "Akinwunmi Damilare Samuel", detail: "Recurring — Wednesdays", range: "Every Wed" },
+  { id: "c4", kind: "Day Off", lecturer: "Nzenwata Uchenna Jeremiah", detail: "Clinical / Research day", range: "Every Fri AM" },
+  { id: "c5", kind: "Adjunct", lecturer: "Adeoye Ayodele Olusegun", detail: "Industry practitioner — Tue & Fri only", range: "Tue, Fri" },
+  { id: "c6", kind: "Adjunct", lecturer: "Bamishile Olabode Oludare", detail: "Visiting faculty — evenings only", range: "After 14:00" },
 ];
 
 export type TimelineStep = {
@@ -550,22 +555,22 @@ export const venueRecords: VenueRecord[] = [
 ];
 
 export const adjunctRecords: AdjunctRecord[] = [
-  { id: "adj1", name: "Nguyen A.K", department: "Computer Science", school: "School of Computing & Engineering", courses: ["BU-GST 201"], availableDays: ["Tue", "Fri"], note: "Available Tue & Fri only — tech industry practitioner" },
-  { id: "adj2", name: "Peterson J.E", department: "Computer Science", school: "School of Computing & Engineering", courses: ["COSC 268"], availableDays: ["Wed"], note: "Industry practitioner — evenings only, after 14:00" },
+  { id: "adj1", name: "Adeoye Ayodele Olusegun", department: "Computer Science", school: "School of Computing & Engineering", courses: ["SEN 201"], availableDays: ["Tue", "Fri"], note: "Available Tue & Fri only — tech industry practitioner" },
+  { id: "adj2", name: "Bamishile Olabode Oludare", department: "Computer Science", school: "School of Computing & Engineering", courses: ["CSC 301"], availableDays: ["Wed"], note: "Industry practitioner — evenings only, after 14:00" },
   { id: "adj3", name: "Ibrahim T.A", department: "General Studies", school: "Cross-dept (GST)", courses: ["BU-GST 101", "BU-GST 201", "BU-GST 301"], availableDays: ["Mon", "Tue", "Thu", "Fri"], note: "GST lecturer shared across multiple departments — no Wednesdays" },
   { id: "adj4", name: "Balogun R.O", department: "General Studies", school: "Cross-dept (GST)", courses: ["BU-GST 202"], availableDays: ["Fri"], note: "Available Fridays only — part-time visiting" },
   { id: "adj5", name: "Osei A.T", department: "General Studies", school: "Cross-dept (GST)", courses: ["BU-GST 401"], availableDays: ["Mon", "Wed", "Fri"], note: "Morning slots preferred — not available after 14:00" },
 ];
 
 export const globalDaysOff: GlobalDayOff[] = [
-  { id: "do1", lecturer: "Johnson R.T", department: "Computer Science", date: "Every Wednesday", reason: "Research day — standing arrangement with department", recurring: true },
-  { id: "do2", lecturer: "Lee M.N", department: "Computer Science", date: "Every Friday AM", reason: "Clinic day — unavailable until 12:00 on Fridays", recurring: true },
+  { id: "do1", lecturer: "Akinwunmi Damilare Samuel", department: "Computer Science", date: "Every Wednesday", reason: "Research day — standing arrangement with department", recurring: true },
+  { id: "do2", lecturer: "Nzenwata Uchenna Jeremiah", department: "Computer Science", date: "Every Friday AM", reason: "Clinic day — unavailable until 12:00 on Fridays", recurring: true },
   { id: "do3", lecturer: "Adeyemi O.P", department: "Electrical Engineering", date: "Mar 15, 2026", reason: "External examiner duty at FUTA", recurring: false },
 ];
 
 export const globalStudyLeaves: GlobalStudyLeave[] = [
-  { id: "sl1", lecturer: "Adebayo F.O", department: "Computer Science", from: "12 Jan 2026", to: "28 Feb 2026", reason: "Doctoral fieldwork — University of Lagos" },
-  { id: "sl2", lecturer: "Okafor C.M", department: "Computer Science", from: "05 Feb 2026", to: "19 Feb 2026", reason: "Conference & sabbatical — IEEE ICCV 2026" },
+  { id: "sl1", lecturer: "Adebanjo Olawunmi Asake", department: "Computer Science", from: "12 Jan 2026", to: "28 Feb 2026", reason: "Doctoral research fellowship — University of Lagos (Substitute handled externally)" },
+  { id: "sl2", lecturer: "DARAMOLA CHRISTIANA", department: "Computer Science", from: "05 Feb 2026", to: "19 Feb 2026", reason: "Conference & sabbatical — IEEE ICCV 2026 (Substitute handled externally)" },
   { id: "sl3", lecturer: "Nwachukwu P.O", department: "Nursing Science", from: "10 Mar 2026", to: "14 Mar 2026", reason: "Clinical attachment — Lagos University Teaching Hospital" },
 ];
 

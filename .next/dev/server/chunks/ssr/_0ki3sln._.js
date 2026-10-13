@@ -149,7 +149,8 @@ function App() {
                         title: topBarTitleByView[view],
                         subtitle: topBarSubtitleByRole[currentUser.role],
                         status: showStatus,
-                        onMenuClick: ()=>setSidebarOpen(true)
+                        onMenuClick: ()=>setSidebarOpen(true),
+                        setView: setView
                     }, void 0, false, {
                         fileName: "[project]/App.tsx",
                         lineNumber: 130,
@@ -169,17 +170,17 @@ function App() {
                                     localTimeline: localTimeline
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 140,
+                                    lineNumber: 141,
                                     columnNumber: 15
                                 }, this),
                                 view === "allocations" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$Allocations$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 149,
+                                    lineNumber: 150,
                                     columnNumber: 40
                                 }, this),
                                 view === "venues" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$Venues$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 150,
+                                    lineNumber: 151,
                                     columnNumber: 35
                                 }, this),
                                 view === "constraints" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$Constraints$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -189,7 +190,7 @@ function App() {
                                     setConstraintsComplete: setConstraintsComplete
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 152,
+                                    lineNumber: 153,
                                     columnNumber: 15
                                 }, this),
                                 view === "generate" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$Generate$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -202,7 +203,7 @@ function App() {
                                     setView: setView
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 160,
+                                    lineNumber: 161,
                                     columnNumber: 15
                                 }, this),
                                 view === "history" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$History$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -211,7 +212,7 @@ function App() {
                                     setView: setView
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 171,
+                                    lineNumber: 172,
                                     columnNumber: 15
                                 }, this),
                                 view === "hodReview" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$HODReview$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -222,7 +223,7 @@ function App() {
                                     setLocalTimeline: setLocalTimeline
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 180,
+                                    lineNumber: 181,
                                     columnNumber: 15
                                 }, this),
                                 view === "deanReview" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$DeanReview$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -233,7 +234,7 @@ function App() {
                                     setLocalTimeline: setLocalTimeline
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 191,
+                                    lineNumber: 192,
                                     columnNumber: 15
                                 }, this),
                                 view === "acadPlanning" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$AcademicPlanning$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -242,7 +243,7 @@ function App() {
                                     onAuditEntry: addAuditEntry
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 202,
+                                    lineNumber: 203,
                                     columnNumber: 15
                                 }, this),
                                 view === "acadPublished" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$AcademicPlanningPublished$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -251,26 +252,26 @@ function App() {
                                     onAuditEntry: addAuditEntry
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 209,
+                                    lineNumber: 210,
                                     columnNumber: 15
                                 }, this),
                                 view === "acadClashes" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$AcademicPlanningClashes$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                     submissions: deptSubs
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 216,
+                                    lineNumber: 217,
                                     columnNumber: 15
                                 }, this),
                                 view === "acadAnalytics" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$AcademicPlanningAnalytics$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                     submissions: deptSubs
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 219,
+                                    lineNumber: 220,
                                     columnNumber: 15
                                 }, this),
                                 view === "acadConstraints" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$AcademicPlanningConstraints$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 221,
+                                    lineNumber: 222,
                                     columnNumber: 44
                                 }, this),
                                 view === "acadAudit" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$views$2f$AcademicPlanningAudit$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -278,18 +279,18 @@ function App() {
                                     auditEntries: auditEntries
                                 }, void 0, false, {
                                     fileName: "[project]/App.tsx",
-                                    lineNumber: 223,
+                                    lineNumber: 224,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/App.tsx",
-                            lineNumber: 137,
+                            lineNumber: 138,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/App.tsx",
-                        lineNumber: 136,
+                        lineNumber: 137,
                         columnNumber: 9
                     }, this)
                 ]

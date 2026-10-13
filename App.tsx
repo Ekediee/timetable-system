@@ -132,6 +132,7 @@ export default function App() {
           subtitle={topBarSubtitleByRole[currentUser.role]}
           status={showStatus}
           onMenuClick={() => setSidebarOpen(true)}
+          setView={setView}
         />
         <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
           <div className="mx-auto max-w-[1200px]">

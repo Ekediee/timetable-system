@@ -164,7 +164,7 @@ export default function HODReview(props?: {
           />
           <div className="flex gap-3 flex-wrap px-5 pb-5">
             {[
-              { label: "Courses", value: String(allocations.length), Icon: BookOpen },
+              { label: "Courses", value: String(context.localAllocations.length), Icon: BookOpen },
               { label: "Sessions", value: String(localSessions.length), Icon: Clock },
               { label: "Submitted by", value: "Yakubu Onome", Icon: Users },
             ].map(({ label, value, Icon }) => (

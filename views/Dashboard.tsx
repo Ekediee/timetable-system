@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Card, CardHead, Pill, Button } from "../components/ui";
 import {
-  allocations,
+  allocations as defaultAllocations,
   venues,
   department,
   type Status,
@@ -66,6 +66,7 @@ export default function Dashboard(props?: {
   const localConstraints = props?.localConstraints ?? context.localConstraints;
   const constraintsComplete = props?.constraintsComplete ?? context.constraintsComplete;
   const localTimeline = props?.localTimeline ?? context.localTimeline;
+  const allocations = context.localAllocations ?? defaultAllocations;
 
   const conflicts = localSessions.filter((s) => s.conflict);
   const rejection = localTimeline.find((t) => t.state === "rejected");
@@ -146,13 +147,33 @@ export default function Dashboard(props?: {
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-subink">
                   "{rejection.comment}"
                 </p>
-                <Button
-                  variant="outline"
-                  className="mt-3"
-                  onClick={() => (props?.setView ? props.setView("generate") : router.push("/generate"))}
-                >
-                  Revise timetable <ArrowUpRight size={15} />
-                </Button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => {
+                      context.setActiveRevisionTarget({ code: "BU-GST 205" });
+                      if (props?.setView) props.setView("generate");
+                      else router.push("/generate");
+                    }}
+                  >
+                    Fix BU-GST 205 <ArrowUpRight size={15} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      context.setActiveRevisionTarget({ code: "COSC 204", day: "Thu", slot: "10:00" });
+                      if (props?.setView) props.setView("generate");
+                      else router.push("/generate");
+                    }}
+                  >
+                    Fix Thu Clash <ArrowUpRight size={15} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => (props?.setView ? props.setView("history") : router.push("/history"))}
+                  >
+                    View audit trail
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>

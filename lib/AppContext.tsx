@@ -7,6 +7,8 @@ import {
   timeline,
   deptSubmissions,
   auditLog,
+  allocations,
+  venues,
   type Status,
   type Session,
   type Constraint,
@@ -14,7 +16,10 @@ import {
   type UserAccount,
   type DeptSubmission,
   type AuditEntry,
+  type Allocation,
+  type Venue,
 } from "./data";
+import { generateTimetable } from "./engine";
 
 function nowLabel() {
   const d = new Date();
@@ -36,6 +41,12 @@ interface AppContextType {
   setLocalSessions: React.Dispatch<React.SetStateAction<Session[]>>;
   localConstraints: Constraint[];
   setLocalConstraints: React.Dispatch<React.SetStateAction<Constraint[]>>;
+  localVenues: Venue[];
+  setLocalVenues: React.Dispatch<React.SetStateAction<Venue[]>>;
+  localAllocations: Allocation[];
+  setLocalAllocations: React.Dispatch<React.SetStateAction<Allocation[]>>;
+  currentProgram: string;
+  setCurrentProgram: React.Dispatch<React.SetStateAction<string>>;
   localTimeline: TimelineStep[];
   setLocalTimeline: React.Dispatch<React.SetStateAction<TimelineStep[]>>;
   deptSubs: DeptSubmission[];
@@ -44,6 +55,10 @@ interface AppContextType {
   setAuditEntries: React.Dispatch<React.SetStateAction<AuditEntry[]>>;
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  activeRevisionTarget: { code: string; day?: string; slot?: string } | null;
+  setActiveRevisionTarget: React.Dispatch<
+    React.SetStateAction<{ code: string; day?: string; slot?: string } | null>
+  >;
   addAuditEntry: (partial: Omit<AuditEntry, "id" | "actor" | "at">) => void;
   handleLogin: (account: UserAccount) => void;
   handleLogout: () => void;
@@ -54,10 +69,25 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeRevisionTarget, setActiveRevisionTarget] = useState<{
+    code: string;
+    day?: string;
+    slot?: string;
+  } | null>(null);
   const [status, setStatus] = useState<Status>("Draft generated");
   const [constraintsComplete, setConstraintsComplete] = useState(false);
-  const [localSessions, setLocalSessions] = useState<Session[]>(sessions);
   const [localConstraints, setLocalConstraints] = useState<Constraint[]>(constraints);
+  const [localVenues, setLocalVenues] = useState<Venue[]>(venues);
+  const [localAllocations, setLocalAllocations] = useState<Allocation[]>(allocations);
+  const [localSessions, setLocalSessions] = useState<Session[]>(() => {
+    try {
+      const res = generateTimetable(allocations, venues, constraints);
+      return res.sessions;
+    } catch {
+      return sessions;
+    }
+  });
+  const [currentProgram, setCurrentProgram] = useState<string>("Computer Science");
   const [localTimeline, setLocalTimeline] = useState<TimelineStep[]>(timeline);
   const [deptSubs, setDeptSubs] = useState<DeptSubmission[]>(deptSubmissions);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>(auditLog);
@@ -93,6 +123,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setLocalSessions,
         localConstraints,
         setLocalConstraints,
+        localVenues,
+        setLocalVenues,
+        localAllocations,
+        setLocalAllocations,
+        currentProgram,
+        setCurrentProgram,
         localTimeline,
         setLocalTimeline,
         deptSubs,
@@ -101,6 +137,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setAuditEntries,
         sidebarOpen,
         setSidebarOpen,
+        activeRevisionTarget,
+        setActiveRevisionTarget,
         addAuditEntry,
         handleLogin,
         handleLogout,
@@ -125,6 +163,12 @@ export function useApp(): AppContextType {
       setLocalSessions: () => {},
       localConstraints: constraints,
       setLocalConstraints: () => {},
+      localVenues: venues,
+      setLocalVenues: () => {},
+      localAllocations: allocations,
+      setLocalAllocations: () => {},
+      currentProgram: "Computer Science",
+      setCurrentProgram: () => {},
       localTimeline: timeline,
       setLocalTimeline: () => {},
       deptSubs: deptSubmissions,
@@ -133,6 +177,8 @@ export function useApp(): AppContextType {
       setAuditEntries: () => {},
       sidebarOpen: false,
       setSidebarOpen: () => {},
+      activeRevisionTarget: null,
+      setActiveRevisionTarget: () => {},
       addAuditEntry: () => {},
       handleLogin: () => {},
       handleLogout: () => {},

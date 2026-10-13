@@ -12,7 +12,9 @@ __turbopack_context__.s([
     "isSlotWithinOperatingHours",
     ()=>isSlotWithinOperatingHours,
     "scoreVenueFitness",
-    ()=>scoreVenueFitness
+    ()=>scoreVenueFitness,
+    "validateLiveSessions",
+    ()=>validateLiveSessions
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/data.ts [app-ssr] (ecmascript)");
 ;
@@ -355,6 +357,136 @@ function generateTimetable(allocations, availableVenues, activeConstraints, depa
         violations,
         success: violations.length === 0,
         score: 100 - violations.length * 15
+    };
+}
+function validateLiveSessions(rawSessions, allAllocations, allVenues, activeConstraints) {
+    const conflicts = [];
+    const updatedSessions = rawSessions.map((s)=>({
+            ...s
+        }));
+    for(let i = 0; i < updatedSessions.length; i++){
+        const s = updatedSessions[i];
+        const slotIdx = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["slots"].indexOf(s.slot);
+        const dur = s.duration ?? 1;
+        let conflictType = undefined;
+        let conflictTitle = "";
+        let conflictDesc = "";
+        // 1. Operating hours & locked lunch break check
+        if (!isSlotWithinOperatingHours(s.day, slotIdx, dur)) {
+            conflictType = "availability";
+            if (s.day === "Fri" && slotIdx + dur - 1 >= 6) {
+                conflictTitle = "Friday Institutional Off";
+                conflictDesc = `${s.code} is scheduled on Friday afternoon. Institutional policy ends Friday classes at 13:00.`;
+            } else if (s.day === "Wed" && slotIdx + dur - 1 >= 10) {
+                conflictTitle = "Wednesday 17:00 University Cutoff";
+                conflictDesc = `${s.code} extends past the Wednesday 17:00 university sports/chapel cutoff.`;
+            } else {
+                conflictTitle = "Mandatory Lunch Break (13:00 - 14:00)";
+                conflictDesc = `${s.code} collides with the locked institutional lunch break (13:00 - 14:00).`;
+            }
+        }
+        // 2. Lecturer active constraints (leave, day off, adjunct window)
+        if (!conflictType) {
+            const availCheck = isLecturerAvailableForSlot(s.lecturer, s.day, slotIdx, dur, activeConstraints);
+            if (!availCheck.available) {
+                conflictType = "availability";
+                conflictTitle = "Lecturer Constraint Conflict";
+                conflictDesc = `${s.lecturer} (${s.code}): ${availCheck.reason ?? "Unavailable for this slot"}.`;
+            }
+        }
+        // 3. Physical venue capacity check
+        if (!conflictType && !s.isVirtual && s.venue !== "Virtual / LMS") {
+            const alloc = allAllocations.find((a)=>a.code === s.code);
+            const v = allVenues.find((ven)=>ven.name === s.venue);
+            if (alloc && v && !("isVirtual" in v && v.isVirtual) && alloc.size > v.capacity) {
+                conflictType = "capacity";
+                conflictTitle = "Venue Capacity Exceeded";
+                conflictDesc = `${alloc.size} students enrolled in ${s.code} exceed ${s.venue} capacity of ${v.capacity} seats.`;
+            }
+        }
+        // 4. Venue double-booking check
+        if (!conflictType && !s.isVirtual && s.venue !== "Virtual / LMS") {
+            for(let j = 0; j < updatedSessions.length; j++){
+                if (i === j) continue;
+                const other = updatedSessions[j];
+                if (other.isVirtual || other.venue === "Virtual / LMS") continue;
+                if (other.venue === s.venue && other.day === s.day) {
+                    const otherStart = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["slots"].indexOf(other.slot);
+                    const otherDur = other.duration ?? 1;
+                    const otherEnd = otherStart + otherDur;
+                    const thisEnd = slotIdx + dur;
+                    if (slotIdx < otherEnd && otherStart < thisEnd) {
+                        conflictType = "venue";
+                        conflictTitle = "Venue Double-Booking";
+                        conflictDesc = `${s.venue} is double-booked on ${s.day} ${s.slot} with ${other.code} (${other.lecturer}).`;
+                        break;
+                    }
+                }
+            }
+        }
+        // 5. Lecturer double-booking check
+        if (!conflictType) {
+            for(let j = 0; j < updatedSessions.length; j++){
+                if (i === j) continue;
+                const other = updatedSessions[j];
+                if (other.lecturer === s.lecturer && other.day === s.day) {
+                    const otherStart = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["slots"].indexOf(other.slot);
+                    const otherDur = other.duration ?? 1;
+                    const otherEnd = otherStart + otherDur;
+                    const thisEnd = slotIdx + dur;
+                    if (slotIdx < otherEnd && otherStart < thisEnd) {
+                        conflictType = "lecturer";
+                        conflictTitle = "Lecturer Double-Booking";
+                        conflictDesc = `${s.lecturer} is booked simultaneously on ${s.day} ${s.slot} for both ${s.code} and ${other.code}.`;
+                        break;
+                    }
+                }
+            }
+        }
+        // 6. Cohort / Sub-group clash check
+        if (!conflictType && s.level) {
+            for(let j = 0; j < updatedSessions.length; j++){
+                if (i === j) continue;
+                const other = updatedSessions[j];
+                if (other.level === s.level && other.day === s.day) {
+                    const groupClash = !s.group || s.group === "All" || !other.group || other.group === "All" || s.group === other.group;
+                    if (groupClash) {
+                        const otherStart = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["slots"].indexOf(other.slot);
+                        const otherDur = other.duration ?? 1;
+                        const otherEnd = otherStart + otherDur;
+                        const thisEnd = slotIdx + dur;
+                        if (slotIdx < otherEnd && otherStart < thisEnd) {
+                            conflictType = "availability";
+                            conflictTitle = "Cohort Schedule Collision";
+                            conflictDesc = `${s.level} students (${s.group ?? "Cohort"}) have overlapping classes: ${s.code} and ${other.code} on ${s.day} ${s.slot}.`;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (conflictType) {
+            s.conflict = conflictType;
+            conflicts.push({
+                id: `conf-${i}-${s.code}-${s.day}-${s.slot}`,
+                sessionIndex: i,
+                code: s.code,
+                lecturer: s.lecturer,
+                venue: s.venue,
+                day: s.day,
+                slot: s.slot,
+                duration: dur,
+                type: conflictType,
+                title: conflictTitle,
+                description: conflictDesc
+            });
+        } else {
+            delete s.conflict;
+        }
+    }
+    return {
+        validatedSessions: updatedSessions,
+        conflicts
     };
 }
 }),

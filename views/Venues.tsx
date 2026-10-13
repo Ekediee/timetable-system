@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Building2,
   Clock,
@@ -8,19 +8,35 @@ import {
   Lock,
   Calendar,
   Info,
+  Search,
 } from "lucide-react";
 import { Card, CardHead, Pill } from "../components/ui";
-import { venues, days, slots, type Session } from "../lib/data";
+import { venues as defaultVenues, days, slots, type Session, type Venue } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 
 export default function Venues() {
-  const { localSessions } = useApp();
+  const { localSessions, localVenues } = useApp();
+  const venueList = localVenues?.length ? localVenues : defaultVenues;
   const [selectedVenue, setSelectedVenue] = useState<string>(
-    venues[0]?.name ?? "CST Hall A",
+    venueList[0]?.name ?? "BUC_LAB1",
   );
+  const [search, setSearch] = useState("");
+
+  const filteredVenues = useMemo(() => {
+    if (!search.trim()) return venueList;
+    const q = search.toLowerCase();
+    return venueList.filter(
+      (v) =>
+        v.name.toLowerCase().includes(q) ||
+        v.block.toLowerCase().includes(q) ||
+        (v.floor && v.floor.toLowerCase().includes(q)),
+    );
+  }, [venueList, search]);
 
   const currentVenue =
-    venues.find((v) => v.name === selectedVenue) ?? venues[0];
+    venueList.find((v) => v.name === selectedVenue) ??
+    filteredVenues[0] ??
+    venueList[0];
 
   // Helper to find session scheduled in selected venue at (day, slot) taking multi-hour duration into account
   function getSessionForCell(
@@ -55,7 +71,7 @@ export default function Venues() {
       const isSystemLocked = isBreak || isWedOff || isFriOff;
 
       if (!isSystemLocked) {
-        const session = getSessionForCell(currentVenue.name, d, s);
+        const session = getSessionForCell(currentVenue?.name ?? "", d, s);
         if (session) occupiedSlotsCount++;
         else freeSlotsCount++;
       }
@@ -70,32 +86,50 @@ export default function Venues() {
           <CardHead
             icon={<Building2 size={18} />}
             title="Department Venues"
-            sub="Mapped by Academic Planning (Read-only)"
+            sub={`Mapped by Academic Planning · ${venueList.length} venues`}
           />
-          <div className="space-y-2.5 px-5 pb-5">
-            {venues.map((v) => {
-              const active = selectedVenue === v.name;
+          <div className="px-5 pb-3">
+            <div className="relative">
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+              />
+              <input
+                type="text"
+                placeholder="Search venue name, block, floor…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-xl border border-line bg-panel/70 py-2 pl-9 pr-3 text-[12.5px] text-ink placeholder-muted outline-none transition focus:border-brand focus:bg-card"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 px-5 pb-5 max-h-[580px] overflow-y-auto">
+            {filteredVenues.map((v) => {
+              const active = currentVenue?.name === v.name;
               return (
                 <button
                   key={v.name}
                   onClick={() => setSelectedVenue(v.name)}
-                  className={`flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition ${
+                  className={`flex w-full items-center justify-between rounded-xl border px-3.5 py-3 text-left transition ${
                     active
                       ? "border-brand bg-brand-soft/50 shadow-sm ring-1 ring-brand/30"
                       : "border-line bg-panel/60 hover:border-brand/20 hover:bg-panel"
                   }`}
                 >
-                  <div>
+                  <div className="min-w-0 flex-1 pr-2">
                     <p
-                      className={`text-[13.5px] font-bold ${
+                      className={`text-[13px] font-bold truncate ${
                         active ? "text-brand-ink" : "text-ink"
                       }`}
                     >
                       {v.name}
                     </p>
-                    <p className="text-[12px] text-muted">{v.block}</p>
+                    <p className="text-[11.5px] text-muted truncate">
+                      {v.block} {v.floor ? `· ${v.floor}` : ""}
+                    </p>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex flex-col items-end gap-1 shrink-0">
                     <Pill tone={active ? "brand" : "neutral"}>
                       {v.capacity} seats
                     </Pill>
@@ -103,6 +137,11 @@ export default function Venues() {
                 </button>
               );
             })}
+            {filteredVenues.length === 0 && (
+              <div className="py-8 text-center text-[12.5px] text-muted">
+                No venues found matching &ldquo;{search}&rdquo;
+              </div>
+            )}
           </div>
 
           <div className="mx-5 mb-5 rounded-xl border border-line bg-panel/80 p-4 text-[12.5px] text-muted">

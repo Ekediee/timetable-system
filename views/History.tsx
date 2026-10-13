@@ -25,6 +25,11 @@ export default function History(props?: {
       router.push("/generate");
     }
   }
+
+  function handleReviseFlagged(code: string, day?: string, slot?: string) {
+    context.setActiveRevisionTarget({ code, day, slot });
+    navigateToGenerate();
+  }
   const rejection = localTimeline.find((t) => t.state === "rejected");
 
   const isSubmitted =
@@ -34,12 +39,57 @@ export default function History(props?: {
     status === "Published";
 
   return (
-    <div className="bp-fade grid grid-cols-1 gap-5 lg:grid-cols-3">
-      <div className="lg:col-span-2">
-        <Card>
-          <CardHead
-            title="Submission timeline"
-            sub="Full audit trail for this timetable"
+    <div className="bp-fade space-y-5">
+      {/* Pinned Rejection Banner at Top (Story A10 / Screen 10) */}
+      {rejection && !isSubmitted && (
+        <div className="rounded-2xl border-2 border-bad/30 bg-bad-soft/50 p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bad text-canvas shadow-sm">
+                <XCircle size={22} />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[12px] font-bold uppercase tracking-wider text-bad">
+                    Timetable Returned for Revision
+                  </span>
+                  <Pill tone="bad">Action Required</Pill>
+                </div>
+                <h3 className="mt-0.5 text-[15px] font-bold text-ink">
+                  Reviewer note from {rejection.actor} ({rejection.role})
+                </h3>
+                <div className="mt-2 rounded-xl border border-bad/20 bg-card/80 p-3 text-[13.5px] leading-relaxed text-subink shadow-xs">
+                  <span className="font-semibold text-bad">Feedback: </span>
+                  &ldquo;{rejection.comment}&rdquo;
+                </div>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+              <Button
+                onClick={() => handleReviseFlagged("BU-GST 205")}
+                className="w-full sm:w-auto text-[13px] bg-bad hover:bg-bad/90 text-white"
+              >
+                Revise BU-GST 205 →
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleReviseFlagged("COSC 204", "Thu", "10:00")}
+                className="w-full sm:w-auto text-[12.5px] border-bad/30 text-bad hover:bg-bad-soft"
+              >
+                Revise CST Hall A Clash →
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHead
+              title="Submission timeline"
+              sub="Full audit trail for this timetable"
             action={
               <Button
                 variant="outline"
@@ -166,10 +216,10 @@ export default function History(props?: {
               </p>
               {!isSubmitted && (
                 <button
-                  onClick={navigateToGenerate}
+                  onClick={() => handleReviseFlagged("BU-GST 205")}
                   className="mt-3 text-[12.5px] font-semibold text-brand hover:underline"
                 >
-                  Revise timetable →
+                  Revise timetable on flagged class →
                 </button>
               )}
             </div>
@@ -196,5 +246,6 @@ export default function History(props?: {
         </Card>
       </div>
     </div>
+  </div>
   );
 }

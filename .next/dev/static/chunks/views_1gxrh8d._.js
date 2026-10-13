@@ -5454,18 +5454,66 @@ function Dashboard(props) {
                                             lineNumber: 146,
                                             columnNumber: 17
                                         }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                            variant: "outline",
-                                            className: "mt-3",
-                                            onClick: ()=>props?.setView ? props.setView("generate") : router.push("/generate"),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "mt-3 flex flex-wrap gap-2",
                                             children: [
-                                                "Revise timetable ",
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUpRight$3e$__["ArrowUpRight"], {
-                                                    size: 15
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                    onClick: ()=>{
+                                                        context.setActiveRevisionTarget({
+                                                            code: "BU-GST 205"
+                                                        });
+                                                        if (props?.setView) props.setView("generate");
+                                                        else router.push("/generate");
+                                                    },
+                                                    children: [
+                                                        "Fix BU-GST 205 ",
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUpRight$3e$__["ArrowUpRight"], {
+                                                            size: 15
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/views/Dashboard.tsx",
+                                                            lineNumber: 157,
+                                                            columnNumber: 36
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/views/Dashboard.tsx",
+                                                    lineNumber: 150,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                    variant: "outline",
+                                                    onClick: ()=>{
+                                                        context.setActiveRevisionTarget({
+                                                            code: "COSC 204",
+                                                            day: "Thu",
+                                                            slot: "10:00"
+                                                        });
+                                                        if (props?.setView) props.setView("generate");
+                                                        else router.push("/generate");
+                                                    },
+                                                    children: [
+                                                        "Fix Thu Clash ",
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUpRight$3e$__["ArrowUpRight"], {
+                                                            size: 15
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/views/Dashboard.tsx",
+                                                            lineNumber: 167,
+                                                            columnNumber: 35
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/views/Dashboard.tsx",
+                                                    lineNumber: 159,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                    variant: "outline",
+                                                    onClick: ()=>props?.setView ? props.setView("history") : router.push("/history"),
+                                                    children: "View audit trail"
                                                 }, void 0, false, {
                                                     fileName: "[project]/views/Dashboard.tsx",
-                                                    lineNumber: 154,
-                                                    columnNumber: 36
+                                                    lineNumber: 169,
+                                                    columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
@@ -5501,12 +5549,12 @@ function Dashboard(props) {
                                         size: 18
                                     }, void 0, false, {
                                         fileName: "[project]/views/Dashboard.tsx",
-                                        lineNumber: 165,
+                                        lineNumber: 185,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/views/Dashboard.tsx",
-                                    lineNumber: 164,
+                                    lineNumber: 184,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5517,7 +5565,7 @@ function Dashboard(props) {
                                             children: "Timetable submitted to HOD"
                                         }, void 0, false, {
                                             fileName: "[project]/views/Dashboard.tsx",
-                                            lineNumber: 168,
+                                            lineNumber: 188,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5525,7 +5573,7 @@ function Dashboard(props) {
                                             children: "Awaiting review by Dr. A. Olumide. You will be notified of the decision."
                                         }, void 0, false, {
                                             fileName: "[project]/views/Dashboard.tsx",
-                                            lineNumber: 171,
+                                            lineNumber: 191,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -5538,30 +5586,30 @@ function Dashboard(props) {
                                                     size: 15
                                                 }, void 0, false, {
                                                     fileName: "[project]/views/Dashboard.tsx",
-                                                    lineNumber: 179,
+                                                    lineNumber: 199,
                                                     columnNumber: 42
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/views/Dashboard.tsx",
-                                            lineNumber: 174,
+                                            lineNumber: 194,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/views/Dashboard.tsx",
-                                    lineNumber: 167,
+                                    lineNumber: 187,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/views/Dashboard.tsx",
-                            lineNumber: 163,
+                            lineNumber: 183,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/views/Dashboard.tsx",
-                        lineNumber: 162,
+                        lineNumber: 182,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -5571,7 +5619,7 @@ function Dashboard(props) {
                                 sub: "Jump back into your workflow"
                             }, void 0, false, {
                                 fileName: "[project]/views/Dashboard.tsx",
-                                lineNumber: 187,
+                                lineNumber: 207,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5611,12 +5659,12 @@ function Dashboard(props) {
                                                     size: 19
                                                 }, void 0, false, {
                                                     fileName: "[project]/views/Dashboard.tsx",
-                                                    lineNumber: 201,
+                                                    lineNumber: 221,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/views/Dashboard.tsx",
-                                                lineNumber: 200,
+                                                lineNumber: 220,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5624,24 +5672,24 @@ function Dashboard(props) {
                                                 children: label
                                             }, void 0, false, {
                                                 fileName: "[project]/views/Dashboard.tsx",
-                                                lineNumber: 203,
+                                                lineNumber: 223,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, label, true, {
                                         fileName: "[project]/views/Dashboard.tsx",
-                                        lineNumber: 195,
+                                        lineNumber: 215,
                                         columnNumber: 15
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/views/Dashboard.tsx",
-                                lineNumber: 188,
+                                lineNumber: 208,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/views/Dashboard.tsx",
-                        lineNumber: 186,
+                        lineNumber: 206,
                         columnNumber: 9
                     }, this)
                 ]
@@ -5660,7 +5708,7 @@ function Dashboard(props) {
                                 sub: "Live status of this submission"
                             }, void 0, false, {
                                 fileName: "[project]/views/Dashboard.tsx",
-                                lineNumber: 215,
+                                lineNumber: 235,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5679,25 +5727,25 @@ function Dashboard(props) {
                                                             size: 14
                                                         }, void 0, false, {
                                                             fileName: "[project]/views/Dashboard.tsx",
-                                                            lineNumber: 233,
+                                                            lineNumber: 253,
                                                             columnNumber: 25
                                                         }, this) : i + 1
                                                     }, void 0, false, {
                                                         fileName: "[project]/views/Dashboard.tsx",
-                                                        lineNumber: 229,
+                                                        lineNumber: 249,
                                                         columnNumber: 21
                                                     }, this),
                                                     i < localTimeline.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         className: "my-0.5 w-px flex-1 bg-line"
                                                     }, void 0, false, {
                                                         fileName: "[project]/views/Dashboard.tsx",
-                                                        lineNumber: 239,
+                                                        lineNumber: 259,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/views/Dashboard.tsx",
-                                                lineNumber: 228,
+                                                lineNumber: 248,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5708,7 +5756,7 @@ function Dashboard(props) {
                                                         children: s.action
                                                     }, void 0, false, {
                                                         fileName: "[project]/views/Dashboard.tsx",
-                                                        lineNumber: 243,
+                                                        lineNumber: 263,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5720,31 +5768,31 @@ function Dashboard(props) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/views/Dashboard.tsx",
-                                                        lineNumber: 246,
+                                                        lineNumber: 266,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/views/Dashboard.tsx",
-                                                lineNumber: 242,
+                                                lineNumber: 262,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, i, true, {
                                         fileName: "[project]/views/Dashboard.tsx",
-                                        lineNumber: 227,
+                                        lineNumber: 247,
                                         columnNumber: 17
                                     }, this);
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/views/Dashboard.tsx",
-                                lineNumber: 216,
+                                lineNumber: 236,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/views/Dashboard.tsx",
-                        lineNumber: 214,
+                        lineNumber: 234,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -5753,7 +5801,7 @@ function Dashboard(props) {
                                 title: "Resource snapshot"
                             }, void 0, false, {
                                 fileName: "[project]/views/Dashboard.tsx",
-                                lineNumber: 257,
+                                lineNumber: 277,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5783,7 +5831,7 @@ function Dashboard(props) {
                                                 children: k
                                             }, void 0, false, {
                                                 fileName: "[project]/views/Dashboard.tsx",
-                                                lineNumber: 269,
+                                                lineNumber: 289,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5791,24 +5839,24 @@ function Dashboard(props) {
                                                 children: v
                                             }, void 0, false, {
                                                 fileName: "[project]/views/Dashboard.tsx",
-                                                lineNumber: 270,
+                                                lineNumber: 290,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, k, true, {
                                         fileName: "[project]/views/Dashboard.tsx",
-                                        lineNumber: 265,
+                                        lineNumber: 285,
                                         columnNumber: 15
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/views/Dashboard.tsx",
-                                lineNumber: 258,
+                                lineNumber: 278,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/views/Dashboard.tsx",
-                        lineNumber: 256,
+                        lineNumber: 276,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -5821,7 +5869,7 @@ function Dashboard(props) {
                                     className: "shrink-0 text-brand"
                                 }, void 0, false, {
                                     fileName: "[project]/views/Dashboard.tsx",
-                                    lineNumber: 278,
+                                    lineNumber: 298,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5829,24 +5877,24 @@ function Dashboard(props) {
                                     children: "The constraint engine re-checks at every approval gate. Clear all hard blocks before resubmitting to the HOD."
                                 }, void 0, false, {
                                     fileName: "[project]/views/Dashboard.tsx",
-                                    lineNumber: 279,
+                                    lineNumber: 299,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/views/Dashboard.tsx",
-                            lineNumber: 277,
+                            lineNumber: 297,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/views/Dashboard.tsx",
-                        lineNumber: 276,
+                        lineNumber: 296,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/views/Dashboard.tsx",
-                lineNumber: 213,
+                lineNumber: 233,
                 columnNumber: 7
             }, this)
         ]
@@ -7636,401 +7684,552 @@ function History(props) {
             router.push("/generate");
         }
     }
+    function handleReviseFlagged(code, day, slot) {
+        context.setActiveRevisionTarget({
+            code,
+            day,
+            slot
+        });
+        navigateToGenerate();
+    }
     const rejection = localTimeline.find((t)=>t.state === "rejected");
     const isSubmitted = status === "Submitted to HOD" || status === "Submitted to Dean" || status === "Submitted to Acad Pl. T.O" || status === "Published";
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "bp-fade grid grid-cols-1 gap-5 lg:grid-cols-3",
+        className: "bp-fade space-y-5",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "lg:col-span-2",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+            rejection && !isSubmitted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "rounded-2xl border-2 border-bad/30 bg-bad-soft/50 p-4 shadow-sm sm:p-5",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
                     children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
-                            title: "Submission timeline",
-                            sub: "Full audit trail for this timetable",
-                            action: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                variant: "outline",
-                                className: "text-[12px] px-3 py-2",
-                                onClick: ()=>{
-                                    const rows = localTimeline.map((t)=>`${t.at}\t${t.role}\t${t.actor}\t${t.action}${t.comment ? `\t"${t.comment}"` : ""}`);
-                                    const blob = new Blob([
-                                        "Date\tRole\tActor\tAction\tComment\n" + rows.join("\n")
-                                    ], {
-                                        type: "text/plain"
-                                    });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement("a");
-                                    a.href = url;
-                                    a.download = "BUPulse-timeline.txt";
-                                    a.click();
-                                    URL.revokeObjectURL(url);
-                                },
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$download$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Download$3e$__["Download"], {
-                                        size: 13
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex items-start gap-3.5",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bad text-canvas shadow-sm",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__XCircle$3e$__["XCircle"], {
+                                        size: 22
                                     }, void 0, false, {
                                         fileName: "[project]/views/History.tsx",
-                                        lineNumber: 63,
+                                        lineNumber: 49,
                                         columnNumber: 17
-                                    }, this),
-                                    " Export"
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/views/History.tsx",
-                                lineNumber: 44,
-                                columnNumber: 15
-                            }, this)
-                        }, void 0, false, {
-                            fileName: "[project]/views/History.tsx",
-                            lineNumber: 40,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "px-5 pb-6",
-                            children: localTimeline.map((s, i)=>{
-                                const Icon = s.state === "done" ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle2$3e$__["CheckCircle2"] : s.state === "rejected" ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__XCircle$3e$__["XCircle"] : __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clock$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Clock$3e$__["Clock"];
-                                const color = s.state === "done" ? "text-good bg-good-soft" : s.state === "rejected" ? "text-bad bg-bad-soft" : s.state === "current" ? "text-brand bg-brand-soft" : "text-muted bg-panel";
-                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex gap-4",
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/views/History.tsx",
+                                    lineNumber: 48,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex flex-col items-center",
+                                            className: "flex flex-wrap items-center gap-2",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: `flex h-9 w-9 items-center justify-center rounded-xl ${color}`,
-                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Icon, {
-                                                        size: 17
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/views/History.tsx",
-                                                        lineNumber: 89,
-                                                        columnNumber: 23
-                                                    }, this)
+                                                    className: "text-[12px] font-bold uppercase tracking-wider text-bad",
+                                                    children: "Timetable Returned for Revision"
                                                 }, void 0, false, {
                                                     fileName: "[project]/views/History.tsx",
-                                                    lineNumber: 86,
-                                                    columnNumber: 21
+                                                    lineNumber: 53,
+                                                    columnNumber: 19
                                                 }, this),
-                                                i < localTimeline.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "my-1 w-px flex-1 bg-line"
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Pill"], {
+                                                    tone: "bad",
+                                                    children: "Action Required"
                                                 }, void 0, false, {
                                                     fileName: "[project]/views/History.tsx",
-                                                    lineNumber: 92,
-                                                    columnNumber: 23
+                                                    lineNumber: 56,
+                                                    columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/views/History.tsx",
-                                            lineNumber: 85,
-                                            columnNumber: 19
+                                            lineNumber: 52,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                            className: "mt-0.5 text-[15px] font-bold text-ink",
+                                            children: [
+                                                "Reviewer note from ",
+                                                rejection.actor,
+                                                " (",
+                                                rejection.role,
+                                                ")"
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/views/History.tsx",
+                                            lineNumber: 58,
+                                            columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex-1 pb-6",
+                                            className: "mt-2 rounded-xl border border-bad/20 bg-card/80 p-3 text-[13.5px] leading-relaxed text-subink shadow-xs",
                                             children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "flex flex-wrap items-center gap-2",
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                            className: "text-[14px] font-semibold text-ink",
-                                                            children: s.action
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/views/History.tsx",
-                                                            lineNumber: 97,
-                                                            columnNumber: 23
-                                                        }, this),
-                                                        s.state === "current" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Pill"], {
-                                                            tone: "brand",
-                                                            children: "Now"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/views/History.tsx",
-                                                            lineNumber: 100,
-                                                            columnNumber: 49
-                                                        }, this)
-                                                    ]
-                                                }, void 0, true, {
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    className: "font-semibold text-bad",
+                                                    children: "Feedback: "
+                                                }, void 0, false, {
                                                     fileName: "[project]/views/History.tsx",
-                                                    lineNumber: 96,
-                                                    columnNumber: 21
+                                                    lineNumber: 62,
+                                                    columnNumber: 19
                                                 }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "mt-0.5 text-[12.5px] text-muted",
-                                                    children: [
-                                                        s.actor,
-                                                        " · ",
-                                                        s.role,
-                                                        " · ",
-                                                        s.at
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/views/History.tsx",
-                                                    lineNumber: 102,
-                                                    columnNumber: 21
-                                                }, this),
-                                                s.comment && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "mt-2.5 flex gap-2 rounded-xl border border-bad/20 bg-bad-soft/40 px-3.5 py-3",
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquare$3e$__["MessageSquare"], {
-                                                            size: 15,
-                                                            className: "mt-0.5 shrink-0 text-bad"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/views/History.tsx",
-                                                            lineNumber: 107,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                            className: "text-[13px] leading-relaxed text-subink",
-                                                            children: s.comment
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/views/History.tsx",
-                                                            lineNumber: 108,
-                                                            columnNumber: 25
-                                                        }, this)
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/views/History.tsx",
-                                                    lineNumber: 106,
-                                                    columnNumber: 23
-                                                }, this)
+                                                "“",
+                                                rejection.comment,
+                                                "”"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/views/History.tsx",
-                                            lineNumber: 95,
-                                            columnNumber: 19
+                                            lineNumber: 61,
+                                            columnNumber: 17
                                         }, this)
                                     ]
-                                }, i, true, {
+                                }, void 0, true, {
                                     fileName: "[project]/views/History.tsx",
-                                    lineNumber: 84,
-                                    columnNumber: 17
-                                }, this);
-                            })
-                        }, void 0, false, {
+                                    lineNumber: 51,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
                             fileName: "[project]/views/History.tsx",
-                            lineNumber: 67,
-                            columnNumber: 11
+                            lineNumber: 47,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-end",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    onClick: ()=>handleReviseFlagged("BU-GST 205"),
+                                    className: "w-full sm:w-auto text-[13px] bg-bad hover:bg-bad/90 text-white",
+                                    children: "Revise BU-GST 205 →"
+                                }, void 0, false, {
+                                    fileName: "[project]/views/History.tsx",
+                                    lineNumber: 69,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    variant: "outline",
+                                    onClick: ()=>handleReviseFlagged("COSC 204", "Thu", "10:00"),
+                                    className: "w-full sm:w-auto text-[12.5px] border-bad/30 text-bad hover:bg-bad-soft",
+                                    children: "Revise CST Hall A Clash →"
+                                }, void 0, false, {
+                                    fileName: "[project]/views/History.tsx",
+                                    lineNumber: 75,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/views/History.tsx",
+                            lineNumber: 68,
+                            columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/views/History.tsx",
-                    lineNumber: 39,
-                    columnNumber: 9
+                    lineNumber: 46,
+                    columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/views/History.tsx",
-                lineNumber: 38,
-                columnNumber: 7
+                lineNumber: 45,
+                columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "lg:col-span-1 flex flex-col gap-5",
+                className: "grid grid-cols-1 gap-5 lg:grid-cols-3",
                 children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
-                                title: "Current status"
-                            }, void 0, false, {
-                                fileName: "[project]/views/History.tsx",
-                                lineNumber: 123,
-                                columnNumber: 11
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "px-5 pb-5",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: `rounded-xl px-4 py-3.5 ${isSubmitted ? "bg-brand-soft" : "bg-panel"}`,
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "lg:col-span-2",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
+                                    title: "Submission timeline",
+                                    sub: "Full audit trail for this timetable",
+                                    action: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                        variant: "outline",
+                                        className: "text-[12px] px-3 py-2",
+                                        onClick: ()=>{
+                                            const rows = localTimeline.map((t)=>`${t.at}\t${t.role}\t${t.actor}\t${t.action}${t.comment ? `\t"${t.comment}"` : ""}`);
+                                            const blob = new Blob([
+                                                "Date\tRole\tActor\tAction\tComment\n" + rows.join("\n")
+                                            ], {
+                                                type: "text/plain"
+                                            });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement("a");
+                                            a.href = url;
+                                            a.download = "BUPulse-timeline.txt";
+                                            a.click();
+                                            URL.revokeObjectURL(url);
+                                        },
                                         children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                className: `text-[14px] font-bold ${isSubmitted ? "text-brand-ink" : "text-ink"}`,
-                                                children: status
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$download$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Download$3e$__["Download"], {
+                                                size: 13
                                             }, void 0, false, {
                                                 fileName: "[project]/views/History.tsx",
-                                                lineNumber: 132,
-                                                columnNumber: 15
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                className: "mt-0.5 text-[12px] text-muted",
-                                                children: isSubmitted ? "Awaiting HOD decision" : "Draft in progress — resolve conflicts to submit"
-                                            }, void 0, false, {
-                                                fileName: "[project]/views/History.tsx",
-                                                lineNumber: 139,
-                                                columnNumber: 15
-                                            }, this)
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/views/History.tsx",
-                                        lineNumber: 125,
-                                        columnNumber: 13
-                                    }, this),
-                                    !isSubmitted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                        className: "mt-3 w-full",
-                                        onClick: navigateToGenerate,
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__["ArrowLeft"], {
-                                                size: 15
-                                            }, void 0, false, {
-                                                fileName: "[project]/views/History.tsx",
-                                                lineNumber: 150,
+                                                lineNumber: 113,
                                                 columnNumber: 17
                                             }, this),
-                                            " Back to timetable"
+                                            " Export"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/views/History.tsx",
-                                        lineNumber: 146,
+                                        lineNumber: 94,
                                         columnNumber: 15
                                     }, this)
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/views/History.tsx",
-                                lineNumber: 124,
-                                columnNumber: 11
-                            }, this)
-                        ]
-                    }, void 0, true, {
+                                }, void 0, false, {
+                                    fileName: "[project]/views/History.tsx",
+                                    lineNumber: 90,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "px-5 pb-6",
+                                    children: localTimeline.map((s, i)=>{
+                                        const Icon = s.state === "done" ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle2$3e$__["CheckCircle2"] : s.state === "rejected" ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__XCircle$3e$__["XCircle"] : __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clock$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Clock$3e$__["Clock"];
+                                        const color = s.state === "done" ? "text-good bg-good-soft" : s.state === "rejected" ? "text-bad bg-bad-soft" : s.state === "current" ? "text-brand bg-brand-soft" : "text-muted bg-panel";
+                                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "flex gap-4",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "flex flex-col items-center",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: `flex h-9 w-9 items-center justify-center rounded-xl ${color}`,
+                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Icon, {
+                                                                size: 17
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/views/History.tsx",
+                                                                lineNumber: 139,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/views/History.tsx",
+                                                            lineNumber: 136,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        i < localTimeline.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "my-1 w-px flex-1 bg-line"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/views/History.tsx",
+                                                            lineNumber: 142,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/views/History.tsx",
+                                                    lineNumber: 135,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "flex-1 pb-6",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "flex flex-wrap items-center gap-2",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "text-[14px] font-semibold text-ink",
+                                                                    children: s.action
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/views/History.tsx",
+                                                                    lineNumber: 147,
+                                                                    columnNumber: 23
+                                                                }, this),
+                                                                s.state === "current" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Pill"], {
+                                                                    tone: "brand",
+                                                                    children: "Now"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/views/History.tsx",
+                                                                    lineNumber: 150,
+                                                                    columnNumber: 49
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/views/History.tsx",
+                                                            lineNumber: 146,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            className: "mt-0.5 text-[12.5px] text-muted",
+                                                            children: [
+                                                                s.actor,
+                                                                " · ",
+                                                                s.role,
+                                                                " · ",
+                                                                s.at
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/views/History.tsx",
+                                                            lineNumber: 152,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        s.comment && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "mt-2.5 flex gap-2 rounded-xl border border-bad/20 bg-bad-soft/40 px-3.5 py-3",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquare$3e$__["MessageSquare"], {
+                                                                    size: 15,
+                                                                    className: "mt-0.5 shrink-0 text-bad"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/views/History.tsx",
+                                                                    lineNumber: 157,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "text-[13px] leading-relaxed text-subink",
+                                                                    children: s.comment
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/views/History.tsx",
+                                                                    lineNumber: 158,
+                                                                    columnNumber: 25
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/views/History.tsx",
+                                                            lineNumber: 156,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/views/History.tsx",
+                                                    lineNumber: 145,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, i, true, {
+                                            fileName: "[project]/views/History.tsx",
+                                            lineNumber: 134,
+                                            columnNumber: 17
+                                        }, this);
+                                    })
+                                }, void 0, false, {
+                                    fileName: "[project]/views/History.tsx",
+                                    lineNumber: 117,
+                                    columnNumber: 11
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/views/History.tsx",
+                            lineNumber: 89,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
                         fileName: "[project]/views/History.tsx",
-                        lineNumber: 122,
+                        lineNumber: 88,
                         columnNumber: 9
                     }, this),
-                    rejection && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
-                        className: "border-bad/30",
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "lg:col-span-1 flex flex-col gap-5",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
-                                title: "Latest reviewer note"
-                            }, void 0, false, {
-                                fileName: "[project]/views/History.tsx",
-                                lineNumber: 158,
-                                columnNumber: 13
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "px-5 pb-5",
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
                                 children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "text-[13px] font-semibold text-ink",
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
+                                        title: "Current status"
+                                    }, void 0, false, {
+                                        fileName: "[project]/views/History.tsx",
+                                        lineNumber: 173,
+                                        columnNumber: 11
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "px-5 pb-5",
                                         children: [
-                                            rejection.actor,
-                                            " ",
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "font-normal text-muted",
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: `rounded-xl px-4 py-3.5 ${isSubmitted ? "bg-brand-soft" : "bg-panel"}`,
                                                 children: [
-                                                    "· ",
-                                                    rejection.role
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        className: `text-[14px] font-bold ${isSubmitted ? "text-brand-ink" : "text-ink"}`,
+                                                        children: status
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/views/History.tsx",
+                                                        lineNumber: 182,
+                                                        columnNumber: 15
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        className: "mt-0.5 text-[12px] text-muted",
+                                                        children: isSubmitted ? "Awaiting HOD decision" : "Draft in progress — resolve conflicts to submit"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/views/History.tsx",
+                                                        lineNumber: 189,
+                                                        columnNumber: 15
+                                                    }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/views/History.tsx",
-                                                lineNumber: 162,
-                                                columnNumber: 17
+                                                lineNumber: 175,
+                                                columnNumber: 13
+                                            }, this),
+                                            !isSubmitted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                className: "mt-3 w-full",
+                                                onClick: navigateToGenerate,
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__["ArrowLeft"], {
+                                                        size: 15
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/views/History.tsx",
+                                                        lineNumber: 200,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    " Back to timetable"
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/views/History.tsx",
+                                                lineNumber: 196,
+                                                columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/views/History.tsx",
-                                        lineNumber: 160,
-                                        columnNumber: 15
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "mt-2 text-[13.5px] leading-relaxed text-subink",
-                                        children: [
-                                            '"',
-                                            rejection.comment,
-                                            '"'
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/views/History.tsx",
-                                        lineNumber: 164,
-                                        columnNumber: 15
-                                    }, this),
-                                    !isSubmitted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                        onClick: navigateToGenerate,
-                                        className: "mt-3 text-[12.5px] font-semibold text-brand hover:underline",
-                                        children: "Revise timetable →"
-                                    }, void 0, false, {
-                                        fileName: "[project]/views/History.tsx",
-                                        lineNumber: 168,
-                                        columnNumber: 17
+                                        lineNumber: 174,
+                                        columnNumber: 11
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/views/History.tsx",
-                                lineNumber: 159,
-                                columnNumber: 13
-                            }, this)
-                        ]
-                    }, void 0, true, {
-                        fileName: "[project]/views/History.tsx",
-                        lineNumber: 157,
-                        columnNumber: 11
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
-                                title: "Rejection routing",
-                                sub: "Where a bounce-back lands"
-                            }, void 0, false, {
-                                fileName: "[project]/views/History.tsx",
-                                lineNumber: 180,
-                                columnNumber: 11
+                                lineNumber: 172,
+                                columnNumber: 9
                             }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "space-y-2.5 px-5 pb-5 text-[13px]",
+                            rejection && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+                                className: "border-bad/30",
                                 children: [
-                                    [
-                                        "HOD rejects",
-                                        "→ Dept T.O",
-                                        "brand"
-                                    ],
-                                    [
-                                        "Dean rejects",
-                                        "→ HOD",
-                                        "warn"
-                                    ],
-                                    [
-                                        "Acad Pl. T.O rejects",
-                                        "→ HOD",
-                                        "violet"
-                                    ]
-                                ].map(([a, b, tone])=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex items-center justify-between border-b border-line-soft pb-2.5 last:border-0 last:pb-0",
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
+                                        title: "Latest reviewer note"
+                                    }, void 0, false, {
+                                        fileName: "[project]/views/History.tsx",
+                                        lineNumber: 208,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "px-5 pb-5",
                                         children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "text-muted",
-                                                children: a
-                                            }, void 0, false, {
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-[13px] font-semibold text-ink",
+                                                children: [
+                                                    rejection.actor,
+                                                    " ",
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "font-normal text-muted",
+                                                        children: [
+                                                            "· ",
+                                                            rejection.role
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/views/History.tsx",
+                                                        lineNumber: 212,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
                                                 fileName: "[project]/views/History.tsx",
-                                                lineNumber: 191,
-                                                columnNumber: 17
+                                                lineNumber: 210,
+                                                columnNumber: 15
                                             }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Pill"], {
-                                                tone: tone,
-                                                children: b
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "mt-2 text-[13.5px] leading-relaxed text-subink",
+                                                children: [
+                                                    '"',
+                                                    rejection.comment,
+                                                    '"'
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/views/History.tsx",
+                                                lineNumber: 214,
+                                                columnNumber: 15
+                                            }, this),
+                                            !isSubmitted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>handleReviseFlagged("BU-GST 205"),
+                                                className: "mt-3 text-[12.5px] font-semibold text-brand hover:underline",
+                                                children: "Revise timetable on flagged class →"
                                             }, void 0, false, {
                                                 fileName: "[project]/views/History.tsx",
-                                                lineNumber: 192,
+                                                lineNumber: 218,
                                                 columnNumber: 17
                                             }, this)
                                         ]
-                                    }, a, true, {
+                                    }, void 0, true, {
                                         fileName: "[project]/views/History.tsx",
-                                        lineNumber: 187,
-                                        columnNumber: 15
-                                    }, this))
-                            }, void 0, false, {
+                                        lineNumber: 209,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/views/History.tsx",
-                                lineNumber: 181,
+                                lineNumber: 207,
                                 columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHead"], {
+                                        title: "Rejection routing",
+                                        sub: "Where a bounce-back lands"
+                                    }, void 0, false, {
+                                        fileName: "[project]/views/History.tsx",
+                                        lineNumber: 230,
+                                        columnNumber: 11
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "space-y-2.5 px-5 pb-5 text-[13px]",
+                                        children: [
+                                            [
+                                                "HOD rejects",
+                                                "→ Dept T.O",
+                                                "brand"
+                                            ],
+                                            [
+                                                "Dean rejects",
+                                                "→ HOD",
+                                                "warn"
+                                            ],
+                                            [
+                                                "Acad Pl. T.O rejects",
+                                                "→ HOD",
+                                                "violet"
+                                            ]
+                                        ].map(([a, b, tone])=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "flex items-center justify-between border-b border-line-soft pb-2.5 last:border-0 last:pb-0",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "text-muted",
+                                                        children: a
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/views/History.tsx",
+                                                        lineNumber: 241,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Pill"], {
+                                                        tone: tone,
+                                                        children: b
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/views/History.tsx",
+                                                        lineNumber: 242,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, a, true, {
+                                                fileName: "[project]/views/History.tsx",
+                                                lineNumber: 237,
+                                                columnNumber: 15
+                                            }, this))
+                                    }, void 0, false, {
+                                        fileName: "[project]/views/History.tsx",
+                                        lineNumber: 231,
+                                        columnNumber: 11
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/views/History.tsx",
+                                lineNumber: 229,
+                                columnNumber: 9
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/views/History.tsx",
-                        lineNumber: 179,
-                        columnNumber: 9
+                        lineNumber: 171,
+                        columnNumber: 7
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/views/History.tsx",
-                lineNumber: 121,
+                lineNumber: 87,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/views/History.tsx",
-        lineNumber: 37,
+        lineNumber: 42,
         columnNumber: 5
     }, this);
 }

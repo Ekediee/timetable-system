@@ -155,7 +155,7 @@ export default function DeanReview(props?: {
           />
           <div className="flex gap-3 flex-wrap px-5 pb-5">
             {[
-              { label: "Courses", value: String(allocations.length), Icon: BookOpen },
+              { label: "Courses", value: String(context.localAllocations.length), Icon: BookOpen },
               { label: "Sessions", value: String(localSessions.length), Icon: Clock },
               { label: "Dept T.O", value: "Yakubu Onome", Icon: Users },
               { label: "HOD", value: "Dr. A. Olumide", Icon: Building2 },

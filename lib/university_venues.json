@@ -1,0 +1,6719 @@
+{
+  "all": [
+    {
+      "name": "BBS_AUD2A",
+      "capacity": 96,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_AUDB2",
+      "capacity": 96,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C102",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C105",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BETHEL_SPENDOR",
+      "capacity": 100,
+      "block": "Accounting Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C103",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting",
+        "Social Work"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EMERALD_HALL 1",
+      "capacity": 150,
+      "block": "Emerald Hall",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting",
+        "Social Work"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Marigold",
+      "capacity": 250,
+      "block": "Accounting Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAPHIRE",
+      "capacity": 528,
+      "block": "Saphire Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting",
+        "Business Administration",
+        "Economics",
+        "Finance",
+        "Information Resources Management",
+        "Marketing",
+        "Mass Communication",
+        "Microbiology",
+        "Political Science",
+        "Public Administration",
+        "Social Work"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS 102",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS 103",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting",
+        "Social Work"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS AUD 2",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Bethel Splendor",
+      "capacity": 100,
+      "block": "Accounting Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Accounting"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "FAD",
+      "capacity": 70,
+      "block": "Administration Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Administration",
+        "Conflict Resolution",
+        "ILD",
+        "ILD Public",
+        "Peace Studies",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH / College of Medicine Building",
+      "capacity": 100,
+      "block": "BUTH College of Medicine",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Anatomy",
+        "Biochemistry",
+        "Medicine"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_SCLT",
+      "capacity": 300,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Science",
+        "Microbiology",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Emerald Main Hall",
+      "capacity": 384,
+      "block": "Emerald Hall",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "A006",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences",
+        "Medical Laboratory Science",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "A008",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "B006",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "B007",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "B106",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "B107",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences",
+        "Medical Laboratory Science",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SCLT",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences",
+        "Microbiology",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "WRA",
+      "capacity": 100,
+      "block": "Basic Sciences Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Basic Sciences",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EMERALD_MAIN HALL",
+      "capacity": 384,
+      "block": "Emerald Hall",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons",
+        "Social Work"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_A006",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Mathematics",
+        "Physics With Electrons",
+        "Public Health",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_A008",
+      "capacity": 92,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Mathematics",
+        "Physics With Electrons",
+        "Public Health",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_B107",
+      "capacity": 130,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Mathematics",
+        "Physics With Electrons",
+        "Public Health",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_D004",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_D007",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_D104",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_D107",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_E001",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_MATHLAB",
+      "capacity": 6,
+      "block": "SAT Complex",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_WRA",
+      "capacity": 666,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics With Electrons",
+        "Public Health"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS C302",
+      "capacity": 48,
+      "block": "BBS Complex",
+      "floor": "Second Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Business Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAMUEL_AKANDE",
+      "capacity": 120,
+      "block": "Business Administration Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Business Administration",
+        "Marketing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUC_LAB1",
+      "capacity": 147,
+      "block": "BUC Complex",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUC_LAB2",
+      "capacity": 156,
+      "block": "BUC Complex",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUC_ROOM1",
+      "capacity": 200,
+      "block": "BUC Complex",
+      "floor": "Third Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUC_ROOM2",
+      "capacity": 230,
+      "block": "BUC Complex",
+      "floor": "Third Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUC_ROOM3",
+      "capacity": 148,
+      "block": "BUC Complex",
+      "floor": "Third Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_A007",
+      "capacity": 96,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_A107",
+      "capacity": 93,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_B006",
+      "capacity": 130,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_B007",
+      "capacity": 128,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Public Health",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_B106",
+      "capacity": 134,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_F104",
+      "capacity": 30,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_F105",
+      "capacity": 90,
+      "block": "SAT Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAT_F203",
+      "capacity": 40,
+      "block": "SAT Complex",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Information System",
+        "Computer Science",
+        "Computer Science Technology",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "CIT",
+      "capacity": 200,
+      "block": "CIT Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science",
+        "Economics",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAPHIRE_HALL1",
+      "capacity": 200,
+      "block": "Saphire Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science",
+        "Information Technology",
+        "Software Engineering"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Crystal",
+      "capacity": 250,
+      "block": "Conflict Resolution Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Conflict Resolution",
+        "Peace Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Gideon Troopers",
+      "capacity": 100,
+      "block": "Conflict Resolution Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Conflict Resolution",
+        "Peace Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Heritage Church",
+      "capacity": 100,
+      "block": "Conflict Resolution Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Conflict Resolution",
+        "Peace Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Platinum",
+      "capacity": 250,
+      "block": "Conflict Resolution Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Conflict Resolution",
+        "Peace Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Winslow",
+      "capacity": 100,
+      "block": "Conflict Resolution Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Conflict Resolution",
+        "Peace Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C104",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Economics"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "DIAMOND",
+      "capacity": 250,
+      "block": "Economics Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Economics"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EMERALD_HALL2",
+      "capacity": 384,
+      "block": "Emerald Hall",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Economics",
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Sapphire Hall 2",
+      "capacity": 100,
+      "block": "Economics Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Economics",
+        "Medical Laboratory Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH Building - Shared",
+      "capacity": 100,
+      "block": "EAH Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education",
+        "English",
+        "French Studies",
+        "History",
+        "Music",
+        "Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "3 Mini Classrooms on the Last Floor",
+      "capacity": 100,
+      "block": "Engineering Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Engineering",
+        "Environmental Sciences"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - Classrooms on the 3rd Floor",
+      "capacity": 100,
+      "block": "Engineering Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Engineering",
+        "Environmental Sciences"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C301",
+      "capacity": 48,
+      "block": "BBS Complex",
+      "floor": "Second Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Finance"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C305",
+      "capacity": 48,
+      "block": "BBS Complex",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Finance",
+        "Marketing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "CIBN BUILDING",
+      "capacity": 100,
+      "block": "Finance Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Finance"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "HERITAGE CHURCH",
+      "capacity": 100,
+      "block": "Foundation Diploma Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Foundation Diploma",
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "YOUTH_CHURCH",
+      "capacity": 250,
+      "block": "Foundation Diploma Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Foundation Diploma",
+        "Mass Communication"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Youth Church Ground Floor",
+      "capacity": 100,
+      "block": "Foundation Diploma Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Foundation Diploma"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH Auditorium",
+      "capacity": 100,
+      "block": "EAH Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "History",
+        "Nursing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "CRYSTAL",
+      "capacity": 250,
+      "block": "ILD Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "GIDEON_TROOPERS",
+      "capacity": 100,
+      "block": "ILD Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "MARIGOLD",
+      "capacity": 250,
+      "block": "ILD Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "PLATINUM",
+      "capacity": 250,
+      "block": "ILD Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "TOPERS",
+      "capacity": 150,
+      "block": "ILD Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "WINSLOW",
+      "capacity": 100,
+      "block": "ILD Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "ILD",
+        "Political Science",
+        "Public Administration"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS C101",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "IRM"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS C306",
+      "capacity": 48,
+      "block": "BBS Complex",
+      "floor": "Second Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "IRM"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Auditorium C",
+      "capacity": 100,
+      "block": "IRM Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "IRM"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_AUDC",
+      "capacity": 96,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Information Resources Management"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C101",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Information Resources Management"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C306",
+      "capacity": 48,
+      "block": "BBS Complex",
+      "floor": "Second Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Information Resources Management"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C302",
+      "capacity": 48,
+      "block": "BBS Complex",
+      "floor": "Second Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Marketing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "AMP_THEATRE",
+      "capacity": 2350,
+      "block": "Mass Communication Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Mass Communication"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "NESLON_MENDELA",
+      "capacity": 250,
+      "block": "Mass Communication Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Mass Communication"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "QUEEN_ESTHER",
+      "capacity": 150,
+      "block": "Mass Communication Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Mass Communication"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Nelson Mandela",
+      "capacity": 100,
+      "block": "Mass Communication Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Mass Communication"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Topaz",
+      "capacity": 100,
+      "block": "Mass Communication Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Mass Communication",
+        "Medical Laboratory Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EGW_MUSLIM",
+      "capacity": 4,
+      "block": "Medical Laboratory Science Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Medical Laboratory Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "A107",
+      "capacity": 100,
+      "block": "Medical Laboratory Science Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medical Laboratory Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EGW Museum",
+      "capacity": 100,
+      "block": "Medical Laboratory Science Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medical Laboratory Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "F105",
+      "capacity": 100,
+      "block": "Medical Laboratory Science Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medical Laboratory Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "SAPHIRE_HALL 2",
+      "capacity": 150,
+      "block": "Saphire Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Microbiology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - Ground Floor and First Floor",
+      "capacity": 100,
+      "block": "Nursing Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Nursing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Diamond",
+      "capacity": 250,
+      "block": "Political Science Building",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Political Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Sapphire Main Hall",
+      "capacity": 100,
+      "block": "Political Science Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Political Science"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUCODEL Studios 1-5",
+      "capacity": 100,
+      "block": "School Of Computing (IT, CS, CS, And SE) Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "School Of Computing (IT, CS, CS, And SE)"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Computer Labs in SAT and CIT",
+      "capacity": 100,
+      "block": "SAT Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "School Of Computing (IT, CS, CS, And SE)"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon Building 1",
+      "capacity": 100,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "School Of Computing (IT, CS, CS, And SE)"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon Building 2",
+      "capacity": 100,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "School Of Computing (IT, CS, CS, And SE)"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BBS_C106",
+      "capacity": 100,
+      "block": "BBS Complex",
+      "floor": "Ground Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Social Work"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - Lecture Room 1",
+      "capacity": 110,
+      "block": "Nursing Building",
+      "floor": "First Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Nursing",
+        "Architecture"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - Lecture Room 2",
+      "capacity": 200,
+      "block": "Nursing Building",
+      "floor": "First Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Nursing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - ELR 2",
+      "capacity": 50,
+      "block": "Unspecified Building",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Unspecified"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - ELR 1",
+      "capacity": 80,
+      "block": "Unspecified Building",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Unspecified"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - 100 Level Lecture Room",
+      "capacity": 30,
+      "block": "Unspecified Building",
+      "floor": "Third Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Unspecified"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - Lecture Room",
+      "capacity": 12,
+      "block": "Estate Management Building",
+      "floor": "Third Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Estate Management",
+        "Nursing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Academic Building - Undergraduate",
+      "capacity": 40,
+      "block": "Nursing Building",
+      "floor": "Third Floor",
+      "spaceType": "exclusive",
+      "deptOwners": [
+        "Nursing"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Room 011",
+      "capacity": 70,
+      "block": "EAH Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Room 012",
+      "capacity": 95,
+      "block": "EAH Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Room 003",
+      "capacity": 55,
+      "block": "EAH Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Room 017",
+      "capacity": 130,
+      "block": "EAH Complex",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Lecture Room 106",
+      "capacity": 50,
+      "block": "EAH Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Room 116",
+      "capacity": 100,
+      "block": "EAH Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "EAH - Room 102",
+      "capacity": 50,
+      "block": "EAH Complex",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Education, Music, Religious Studies"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 1 - Studio 1",
+      "capacity": 54,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 1 - Studio 2",
+      "capacity": 50,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 1 - Studio 3",
+      "capacity": 50,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 1 - Studio 4",
+      "capacity": 60,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 1 - Studio 5",
+      "capacity": 58,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 2 - Studio 1 - AutoCAD Laboratory",
+      "capacity": 53,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 2 - Artificial Intelligence Studio",
+      "capacity": 90,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "New Horizon 2 - Studio 3",
+      "capacity": 40,
+      "block": "New Horizon Building",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science, Software Engineering, Information Technology"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH - Opposite Chemical Pathology Lab",
+      "capacity": 170,
+      "block": "BUTH College of Medicine",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medicine, Medical Lab Bencarson School"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH - Lecture Room 3",
+      "capacity": 84,
+      "block": "BUTH College of Medicine",
+      "floor": "First Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medicine, Medical Lab Bencarson School"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH - Lecture Room 6",
+      "capacity": 165,
+      "block": "BUTH College of Medicine",
+      "floor": "Second Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medicine, Medical Lab Bencarson School"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH - Lecture Room 7",
+      "capacity": 165,
+      "block": "BUTH College of Medicine",
+      "floor": "Third Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medicine, Medical Lab Bencarson School"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH - Lecture 1",
+      "capacity": 80,
+      "block": "BUTH College of Medicine",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medicine, Medical Lab Bencarson School"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "BUTH - Lecture 2",
+      "capacity": 128,
+      "block": "BUTH College of Medicine",
+      "floor": "Ground Floor",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Medicine, Medical Lab Bencarson School"
+      ],
+      "isVirtual": false
+    },
+    {
+      "name": "Virtual / LMS",
+      "capacity": 5000,
+      "block": "Online / E-Learning",
+      "floor": "Virtual",
+      "spaceType": "shared",
+      "deptOwners": [
+        "University Wide"
+      ],
+      "isVirtual": true
+    },
+    {
+      "name": "University Amphitheatre",
+      "capacity": 2500,
+      "block": "Central Campus",
+      "floor": "Ground",
+      "spaceType": "shared",
+      "deptOwners": [
+        "Computer Science",
+        "School Of Computing (IT, CS, CS, And SE)",
+        "Chapel Administration",
+        "General Studies"
+      ],
+      "isVirtual": false
+    }
+  ],
+  "byDepartment": {
+    "Accounting": [
+      {
+        "name": "BBS_AUD2A",
+        "capacity": 96,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_AUDB2",
+        "capacity": 96,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C102",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C105",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BETHEL_SPENDOR",
+        "capacity": 100,
+        "block": "Accounting Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C103",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_HALL 1",
+        "capacity": 150,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Marigold",
+        "capacity": 250,
+        "block": "Accounting Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS 102",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS 103",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS AUD 2",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Bethel Splendor",
+        "capacity": 100,
+        "block": "Accounting Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Administration": [
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Anatomy": [
+      {
+        "name": "BUTH / College of Medicine Building",
+        "capacity": 100,
+        "block": "BUTH College of Medicine",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Anatomy",
+          "Biochemistry",
+          "Medicine"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Basic Science": [
+      {
+        "name": "SAT_SCLT",
+        "capacity": 300,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Science",
+          "Microbiology",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Basic Sciences": [
+      {
+        "name": "Emerald Main Hall",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "A006",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Medical Laboratory Science",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "A008",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "B006",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "B007",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "B106",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "B107",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Medical Laboratory Science",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SCLT",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Microbiology",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "WRA",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Biochemistry": [
+      {
+        "name": "BUTH / College of Medicine Building",
+        "capacity": 100,
+        "block": "BUTH College of Medicine",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Anatomy",
+          "Biochemistry",
+          "Medicine"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Biology": [
+      {
+        "name": "EMERALD_MAIN HALL",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D004",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D007",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D104",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D107",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_E001",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_MATHLAB",
+        "capacity": 6,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_WRA",
+        "capacity": 666,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Business Administration": [
+      {
+        "name": "BBS C302",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Business Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAMUEL_AKANDE",
+        "capacity": 120,
+        "block": "Business Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Business Administration",
+          "Marketing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Chemistry": [
+      {
+        "name": "EMERALD_MAIN HALL",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D004",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D007",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D104",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D107",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_E001",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_MATHLAB",
+        "capacity": 6,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_WRA",
+        "capacity": 666,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Computer Information System": [
+      {
+        "name": "BUC_LAB1",
+        "capacity": 147,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_LAB2",
+        "capacity": 156,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM1",
+        "capacity": 200,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM2",
+        "capacity": 230,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM3",
+        "capacity": 148,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A007",
+        "capacity": 96,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A107",
+        "capacity": 93,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B006",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B007",
+        "capacity": 128,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B106",
+        "capacity": 134,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F104",
+        "capacity": 30,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F105",
+        "capacity": 90,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F203",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Computer Science": [
+      {
+        "name": "BUC_LAB1",
+        "capacity": 147,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_LAB2",
+        "capacity": 156,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM1",
+        "capacity": 200,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM2",
+        "capacity": 230,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM3",
+        "capacity": 148,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "CIT",
+        "capacity": 200,
+        "block": "CIT Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Economics",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE_HALL1",
+        "capacity": 200,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A007",
+        "capacity": 96,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A107",
+        "capacity": 93,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B006",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B007",
+        "capacity": 128,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B106",
+        "capacity": 134,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F104",
+        "capacity": 30,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F105",
+        "capacity": 90,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F203",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      },
+      {
+        "name": "University Amphitheatre",
+        "capacity": 2500,
+        "block": "Central Campus",
+        "floor": "Ground",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "School Of Computing (IT, CS, CS, And SE)",
+          "Chapel Administration",
+          "General Studies"
+        ],
+        "isVirtual": false
+      }
+    ],
+    "Computer Science Technology": [
+      {
+        "name": "BUC_LAB1",
+        "capacity": 147,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_LAB2",
+        "capacity": 156,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM1",
+        "capacity": 200,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM2",
+        "capacity": 230,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM3",
+        "capacity": 148,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A007",
+        "capacity": 96,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A107",
+        "capacity": 93,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B006",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B007",
+        "capacity": 128,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B106",
+        "capacity": 134,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F104",
+        "capacity": 30,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F105",
+        "capacity": 90,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F203",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Conflict Resolution": [
+      {
+        "name": "Crystal",
+        "capacity": 250,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Gideon Troopers",
+        "capacity": 100,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Heritage Church",
+        "capacity": 100,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Platinum",
+        "capacity": 250,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Winslow",
+        "capacity": 100,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Economics": [
+      {
+        "name": "BBS_C104",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Economics"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "DIAMOND",
+        "capacity": 250,
+        "block": "Economics Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Economics"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "CIT",
+        "capacity": 200,
+        "block": "CIT Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Economics",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_HALL2",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Economics",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Sapphire Hall 2",
+        "capacity": 100,
+        "block": "Economics Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Economics",
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Education": [
+      {
+        "name": "EAH Building - Shared",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education",
+          "English",
+          "French Studies",
+          "History",
+          "Music",
+          "Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Engineering": [
+      {
+        "name": "3 Mini Classrooms on the Last Floor",
+        "capacity": 100,
+        "block": "Engineering Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Engineering",
+          "Environmental Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - Classrooms on the 3rd Floor",
+        "capacity": 100,
+        "block": "Engineering Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Engineering",
+          "Environmental Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "English": [
+      {
+        "name": "EAH Building - Shared",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education",
+          "English",
+          "French Studies",
+          "History",
+          "Music",
+          "Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Environmental Sciences": [
+      {
+        "name": "3 Mini Classrooms on the Last Floor",
+        "capacity": 100,
+        "block": "Engineering Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Engineering",
+          "Environmental Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - Classrooms on the 3rd Floor",
+        "capacity": 100,
+        "block": "Engineering Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Engineering",
+          "Environmental Sciences"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Finance": [
+      {
+        "name": "BBS_C301",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Finance"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C305",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Finance",
+          "Marketing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "CIBN BUILDING",
+        "capacity": 100,
+        "block": "Finance Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Finance"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Foundation Diploma": [
+      {
+        "name": "HERITAGE CHURCH",
+        "capacity": 100,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "YOUTH_CHURCH",
+        "capacity": 250,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma",
+          "Mass Communication"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Youth Church Ground Floor",
+        "capacity": 100,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "French Studies": [
+      {
+        "name": "EAH Building - Shared",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education",
+          "English",
+          "French Studies",
+          "History",
+          "Music",
+          "Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "History": [
+      {
+        "name": "EAH Auditorium",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "History",
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH Building - Shared",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education",
+          "English",
+          "French Studies",
+          "History",
+          "Music",
+          "Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "ILD": [
+      {
+        "name": "CRYSTAL",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_HALL2",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Economics",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "GIDEON_TROOPERS",
+        "capacity": 100,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "HERITAGE CHURCH",
+        "capacity": 100,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "MARIGOLD",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "PLATINUM",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "TOPERS",
+        "capacity": 150,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "WINSLOW",
+        "capacity": 100,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "ILD Public": [
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "IRM": [
+      {
+        "name": "BBS C101",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "IRM"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS C306",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "IRM"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Auditorium C",
+        "capacity": 100,
+        "block": "IRM Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "IRM"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Information Resources Management": [
+      {
+        "name": "BBS_AUDC",
+        "capacity": 96,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Information Resources Management"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C101",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Information Resources Management"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C306",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Information Resources Management"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Information Technology": [
+      {
+        "name": "BUC_LAB1",
+        "capacity": 147,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_LAB2",
+        "capacity": 156,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM1",
+        "capacity": 200,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM2",
+        "capacity": 230,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM3",
+        "capacity": 148,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "CIT",
+        "capacity": 200,
+        "block": "CIT Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Economics",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE_HALL1",
+        "capacity": 200,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A007",
+        "capacity": 96,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A107",
+        "capacity": 93,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B006",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B007",
+        "capacity": 128,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B106",
+        "capacity": 134,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F104",
+        "capacity": 30,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F105",
+        "capacity": 90,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F203",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Marketing": [
+      {
+        "name": "BBS_C302",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Marketing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C305",
+        "capacity": 48,
+        "block": "BBS Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Finance",
+          "Marketing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAMUEL_AKANDE",
+        "capacity": 120,
+        "block": "Business Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Business Administration",
+          "Marketing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Mass Communication": [
+      {
+        "name": "AMP_THEATRE",
+        "capacity": 2350,
+        "block": "Mass Communication Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Mass Communication"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "NESLON_MENDELA",
+        "capacity": 250,
+        "block": "Mass Communication Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Mass Communication"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "QUEEN_ESTHER",
+        "capacity": 150,
+        "block": "Mass Communication Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Mass Communication"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "YOUTH_CHURCH",
+        "capacity": 250,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma",
+          "Mass Communication"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Nelson Mandela",
+        "capacity": 100,
+        "block": "Mass Communication Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Mass Communication"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Topaz",
+        "capacity": 100,
+        "block": "Mass Communication Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Mass Communication",
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Mathematics": [
+      {
+        "name": "EMERALD_MAIN HALL",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D004",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D007",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D104",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D107",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_E001",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_MATHLAB",
+        "capacity": 6,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_WRA",
+        "capacity": 666,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Medical Laboratory Science": [
+      {
+        "name": "EGW_MUSLIM",
+        "capacity": 4,
+        "block": "Medical Laboratory Science Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "A006",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Medical Laboratory Science",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "A107",
+        "capacity": 100,
+        "block": "Medical Laboratory Science Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "B107",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Medical Laboratory Science",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EGW Museum",
+        "capacity": 100,
+        "block": "Medical Laboratory Science Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "F105",
+        "capacity": 100,
+        "block": "Medical Laboratory Science Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Sapphire Hall 2",
+        "capacity": 100,
+        "block": "Economics Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Economics",
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Topaz",
+        "capacity": 100,
+        "block": "Mass Communication Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Mass Communication",
+          "Medical Laboratory Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Medicine": [
+      {
+        "name": "BUTH / College of Medicine Building",
+        "capacity": 100,
+        "block": "BUTH College of Medicine",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Anatomy",
+          "Biochemistry",
+          "Medicine"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Microbiology": [
+      {
+        "name": "SAPHIRE_HALL 2",
+        "capacity": 150,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Microbiology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_SCLT",
+        "capacity": 300,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Science",
+          "Microbiology",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SCLT",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Microbiology",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Music": [
+      {
+        "name": "EAH Building - Shared",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education",
+          "English",
+          "French Studies",
+          "History",
+          "Music",
+          "Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Nursing": [
+      {
+        "name": "Academic Building - Ground Floor and First Floor",
+        "capacity": 100,
+        "block": "Nursing Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH Auditorium",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "History",
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - Lecture Room 1",
+        "capacity": 110,
+        "block": "Nursing Building",
+        "floor": "First Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Nursing",
+          "Architecture"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - Lecture Room 2",
+        "capacity": 200,
+        "block": "Nursing Building",
+        "floor": "First Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - Undergraduate",
+        "capacity": 40,
+        "block": "Nursing Building",
+        "floor": "Third Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - Lecture Room",
+        "capacity": 12,
+        "block": "Estate Management Building",
+        "floor": "Third Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Estate Management",
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Peace Studies": [
+      {
+        "name": "Crystal",
+        "capacity": 250,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Gideon Troopers",
+        "capacity": 100,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Heritage Church",
+        "capacity": 100,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Platinum",
+        "capacity": 250,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Winslow",
+        "capacity": 100,
+        "block": "Conflict Resolution Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Conflict Resolution",
+          "Peace Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Physics With Electrons": [
+      {
+        "name": "EMERALD_MAIN HALL",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D004",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D007",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D104",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_D107",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_E001",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_MATHLAB",
+        "capacity": 6,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_WRA",
+        "capacity": 666,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Political Science": [
+      {
+        "name": "Diamond",
+        "capacity": 250,
+        "block": "Political Science Building",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Political Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "CRYSTAL",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_HALL2",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Economics",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "GIDEON_TROOPERS",
+        "capacity": 100,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "HERITAGE CHURCH",
+        "capacity": 100,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "MARIGOLD",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "PLATINUM",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "TOPERS",
+        "capacity": 150,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "WINSLOW",
+        "capacity": 100,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Sapphire Main Hall",
+        "capacity": 100,
+        "block": "Political Science Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Political Science"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Public Administration": [
+      {
+        "name": "CRYSTAL",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_HALL2",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Economics",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "FAD",
+        "capacity": 70,
+        "block": "Administration Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Administration",
+          "Conflict Resolution",
+          "ILD",
+          "ILD Public",
+          "Peace Studies",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "GIDEON_TROOPERS",
+        "capacity": 100,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "HERITAGE CHURCH",
+        "capacity": 100,
+        "block": "Foundation Diploma Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Foundation Diploma",
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "MARIGOLD",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "PLATINUM",
+        "capacity": 250,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "TOPERS",
+        "capacity": 150,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "WINSLOW",
+        "capacity": 100,
+        "block": "ILD Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "ILD",
+          "Political Science",
+          "Public Administration"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Public Health": [
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B007",
+        "capacity": 128,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_SCLT",
+        "capacity": 300,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Science",
+          "Microbiology",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_WRA",
+        "capacity": 666,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "A006",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Medical Laboratory Science",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "A008",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "B107",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Medical Laboratory Science",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SCLT",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Microbiology",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "WRA",
+        "capacity": 100,
+        "block": "Basic Sciences Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Basic Sciences",
+          "Public Health"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Religious Studies": [
+      {
+        "name": "EAH Building - Shared",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education",
+          "English",
+          "French Studies",
+          "History",
+          "Music",
+          "Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "School Of Computing (IT, CS, CS, And SE)": [
+      {
+        "name": "BUCODEL Studios 1-5",
+        "capacity": 100,
+        "block": "School Of Computing (IT, CS, CS, And SE) Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "School Of Computing (IT, CS, CS, And SE)"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Computer Labs in SAT and CIT",
+        "capacity": 100,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "School Of Computing (IT, CS, CS, And SE)"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon Building 1",
+        "capacity": 100,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "School Of Computing (IT, CS, CS, And SE)"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon Building 2",
+        "capacity": 100,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "School Of Computing (IT, CS, CS, And SE)"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Social Work": [
+      {
+        "name": "BBS_C106",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS_C103",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_HALL 1",
+        "capacity": 150,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EMERALD_MAIN HALL",
+        "capacity": 384,
+        "block": "Emerald Hall",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Mathematics",
+          "Physics With Electrons",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE",
+        "capacity": 528,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Business Administration",
+          "Economics",
+          "Finance",
+          "Information Resources Management",
+          "Marketing",
+          "Mass Communication",
+          "Microbiology",
+          "Political Science",
+          "Public Administration",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BBS 103",
+        "capacity": 100,
+        "block": "BBS Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Accounting",
+          "Social Work"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Software Engineering": [
+      {
+        "name": "BUC_LAB1",
+        "capacity": 147,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_LAB2",
+        "capacity": 156,
+        "block": "BUC Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM1",
+        "capacity": 200,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM2",
+        "capacity": 230,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUC_ROOM3",
+        "capacity": 148,
+        "block": "BUC Complex",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "CIT",
+        "capacity": 200,
+        "block": "CIT Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Economics",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAPHIRE_HALL1",
+        "capacity": 200,
+        "block": "Saphire Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A006",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A007",
+        "capacity": 96,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A008",
+        "capacity": 92,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_A107",
+        "capacity": 93,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B006",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B007",
+        "capacity": 128,
+        "block": "SAT Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B106",
+        "capacity": 134,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_B107",
+        "capacity": 130,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Biology",
+          "Chemistry",
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Mathematics",
+          "Physics With Electrons",
+          "Public Health",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F104",
+        "capacity": 30,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F105",
+        "capacity": 90,
+        "block": "SAT Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "SAT_F203",
+        "capacity": 40,
+        "block": "SAT Complex",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Information System",
+          "Computer Science",
+          "Computer Science Technology",
+          "Information Technology",
+          "Software Engineering"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Unspecified": [
+      {
+        "name": "Academic Building - ELR 2",
+        "capacity": 50,
+        "block": "Unspecified Building",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Unspecified"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - ELR 1",
+        "capacity": 80,
+        "block": "Unspecified Building",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Unspecified"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Academic Building - 100 Level Lecture Room",
+        "capacity": 30,
+        "block": "Unspecified Building",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Unspecified"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Architecture": [
+      {
+        "name": "Academic Building - Lecture Room 1",
+        "capacity": 110,
+        "block": "Nursing Building",
+        "floor": "First Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Nursing",
+          "Architecture"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Estate Management": [
+      {
+        "name": "Academic Building - Lecture Room",
+        "capacity": 12,
+        "block": "Estate Management Building",
+        "floor": "Third Floor",
+        "spaceType": "exclusive",
+        "deptOwners": [
+          "Estate Management",
+          "Nursing"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Education, Music, Religious Studies": [
+      {
+        "name": "EAH - Room 011",
+        "capacity": 70,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH - Room 012",
+        "capacity": 95,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH - Room 003",
+        "capacity": 55,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH - Room 017",
+        "capacity": 130,
+        "block": "EAH Complex",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH - Lecture Room 106",
+        "capacity": 50,
+        "block": "EAH Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH - Room 116",
+        "capacity": 100,
+        "block": "EAH Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "EAH - Room 102",
+        "capacity": 50,
+        "block": "EAH Complex",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Education, Music, Religious Studies"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Computer Science, Software Engineering, Information Technology": [
+      {
+        "name": "New Horizon 1 - Studio 1",
+        "capacity": 54,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 1 - Studio 2",
+        "capacity": 50,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 1 - Studio 3",
+        "capacity": 50,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 1 - Studio 4",
+        "capacity": 60,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 1 - Studio 5",
+        "capacity": 58,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 2 - Studio 1 - AutoCAD Laboratory",
+        "capacity": 53,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 2 - Artificial Intelligence Studio",
+        "capacity": 90,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "New Horizon 2 - Studio 3",
+        "capacity": 40,
+        "block": "New Horizon Building",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Computer Science, Software Engineering, Information Technology"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ],
+    "Medicine, Medical Lab Bencarson School": [
+      {
+        "name": "BUTH - Opposite Chemical Pathology Lab",
+        "capacity": 170,
+        "block": "BUTH College of Medicine",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medicine, Medical Lab Bencarson School"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUTH - Lecture Room 3",
+        "capacity": 84,
+        "block": "BUTH College of Medicine",
+        "floor": "First Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medicine, Medical Lab Bencarson School"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUTH - Lecture Room 6",
+        "capacity": 165,
+        "block": "BUTH College of Medicine",
+        "floor": "Second Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medicine, Medical Lab Bencarson School"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUTH - Lecture Room 7",
+        "capacity": 165,
+        "block": "BUTH College of Medicine",
+        "floor": "Third Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medicine, Medical Lab Bencarson School"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUTH - Lecture 1",
+        "capacity": 80,
+        "block": "BUTH College of Medicine",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medicine, Medical Lab Bencarson School"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "BUTH - Lecture 2",
+        "capacity": 128,
+        "block": "BUTH College of Medicine",
+        "floor": "Ground Floor",
+        "spaceType": "shared",
+        "deptOwners": [
+          "Medicine, Medical Lab Bencarson School"
+        ],
+        "isVirtual": false
+      },
+      {
+        "name": "Virtual / LMS",
+        "capacity": 5000,
+        "block": "Online / E-Learning",
+        "floor": "Virtual",
+        "spaceType": "shared",
+        "deptOwners": [
+          "University Wide"
+        ],
+        "isVirtual": true
+      }
+    ]
+  }
+}

@@ -71,6 +71,7 @@ const AppContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$
 function AppProvider({ children }) {
     const [currentUser, setCurrentUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [sidebarOpen, setSidebarOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [activeRevisionTarget, setActiveRevisionTarget] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [status, setStatus] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("Draft generated");
     const [constraintsComplete, setConstraintsComplete] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [localSessions, setLocalSessions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$data$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["sessions"]);
@@ -116,6 +117,8 @@ function AppProvider({ children }) {
             setAuditEntries,
             sidebarOpen,
             setSidebarOpen,
+            activeRevisionTarget,
+            setActiveRevisionTarget,
             addAuditEntry,
             handleLogin,
             handleLogout
@@ -123,7 +126,7 @@ function AppProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/lib/AppContext.tsx",
-        lineNumber: 84,
+        lineNumber: 93,
         columnNumber: 5
     }, this);
 }
@@ -149,6 +152,8 @@ function useApp() {
             setAuditEntries: ()=>{},
             sidebarOpen: false,
             setSidebarOpen: ()=>{},
+            activeRevisionTarget: null,
+            setActiveRevisionTarget: ()=>{},
             addAuditEntry: ()=>{},
             handleLogin: ()=>{},
             handleLogout: ()=>{}
@@ -464,42 +469,61 @@ const sessions = [
         lecturer: "Maitanmi S.O",
         venue: "Lab 3 — Software",
         day: "Mon",
-        slot: "08:00"
+        slot: "08:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group A"
     },
     {
         code: "COSC 200",
         lecturer: "Adams P.L",
         venue: "CST Hall B",
         day: "Mon",
-        slot: "10:00"
+        slot: "10:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group C"
     },
     {
         code: "SENG 270",
         lecturer: "Rodriguez T.F",
         venue: "Lab 5 — Networks",
         day: "Mon",
-        slot: "14:00"
+        slot: "14:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group A"
     },
     {
         code: "BU-GST 201",
         lecturer: "Nguyen A.K",
         venue: "CST Hall A",
         day: "Tue",
-        slot: "08:00"
+        slot: "08:00",
+        duration: 2,
+        level: "200 Level",
+        group: "All",
+        isVirtual: true
     },
     {
         code: "COSC 202",
         lecturer: "Johnson R.T",
         venue: "LT 12",
         day: "Tue",
-        slot: "12:00"
+        slot: "10:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group B"
     },
     {
         code: "ITGY 271",
         lecturer: "Lee M.N",
         venue: "Lab 3 — Software",
         day: "Tue",
-        slot: "16:00"
+        slot: "14:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group B"
     },
     // Capacity conflict: BU-GST 205 has 205 students in LT 12 (cap 120)
     {
@@ -508,6 +532,9 @@ const sessions = [
         venue: "LT 12",
         day: "Wed",
         slot: "10:00",
+        duration: 2,
+        level: "200 Level",
+        group: "All",
         conflict: "capacity"
     },
     {
@@ -515,22 +542,31 @@ const sessions = [
         lecturer: "Peterson J.E",
         venue: "Lab 3 — Software",
         day: "Wed",
-        slot: "14:00"
+        slot: "14:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group D"
     },
     {
         code: "COSC 872",
         lecturer: "Singh R.V",
         venue: "CST Hall B",
         day: "Thu",
-        slot: "08:00"
+        slot: "08:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group C"
     },
-    // Venue double-booking: two classes in CST Hall A, Thu 12:00
+    // Venue double-booking: two classes in CST Hall A, Thu 10:00
     {
         code: "COSC 204",
         lecturer: "Maitanmi S.O",
         venue: "CST Hall A",
         day: "Thu",
-        slot: "12:00",
+        slot: "10:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group A",
         conflict: "venue"
     },
     {
@@ -538,7 +574,10 @@ const sessions = [
         lecturer: "Rodriguez T.F",
         venue: "CST Hall A",
         day: "Thu",
-        slot: "12:00",
+        slot: "10:00",
+        duration: 2,
+        level: "200 Level",
+        group: "Group A",
         conflict: "venue"
     },
     {
@@ -546,7 +585,11 @@ const sessions = [
         lecturer: "Nguyen A.K",
         venue: "CST Hall A",
         day: "Fri",
-        slot: "10:00"
+        slot: "10:00",
+        duration: 2,
+        level: "200 Level",
+        group: "All",
+        isVirtual: true
     }
 ];
 const constraints = [
