@@ -32,6 +32,16 @@ export type Allocation = {
   isVirtual?: boolean; // True for online/virtual classes (e.g. GST)
 };
 
+export type ExternalBooking = {
+  venue: string;
+  day: string;
+  slot: string;
+  duration: number;
+  lecturer: string;
+  course_code: string;
+  booked_by_department: string;
+};
+
 import universityAllocationsJson from "./university_allocations.json";
 
 export const universityAllocations = universityAllocationsJson as Record<
@@ -127,14 +137,235 @@ export const sessions: Session[] = [
   { code: "INS 401", lecturer: "AWODELE SIMON", venue: "SAPHIRE_HALL1", day: "Fri", slot: "10:00", duration: 2, level: "400 Level", group: "Group A" },
 ];
 
-export type ConstraintKind = "Study Leave" | "Day Off" | "Adjunct";
+export type ConstraintKind = string;
+
 export type Constraint = {
   id: string;
-  kind: ConstraintKind;
+  kind: string;
   lecturer: string;
   detail: string;
   range: string;
+  department?: string;
+  params?: Record<string, any>;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACADEMIC CONSTRAINT TYPE DEFINITIONS & PARAMETER TEMPLATES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ConstraintRuleArchetype =
+  | "time_window"          // Available/unavailable during specific days/times
+  | "full_absence"         // Completely unavailable for semester or date range
+  | "daily_load_limit"     // Maximum lecture hours a lecturer can teach in one day
+  | "consecutive_hours"    // Maximum back-to-back teaching hours without a break
+  | "venue_requirement"    // Course requires specific venue or venue type
+  | "custom_rule";         // General institutional constraint
+
+export type ParameterFieldType =
+  | "text"
+  | "number"
+  | "select"
+  | "days_multi"
+  | "time_slot"
+  | "boolean"
+  | "lecturer_select";
+
+export interface ConstraintParameterField {
+  key: string;
+  label: string;
+  type: ParameterFieldType;
+  options?: string[];
+  defaultValue?: any;
+  placeholder?: string;
+  required?: boolean;
+  hint?: string;
+}
+
+export interface ConstraintTypeDefinition {
+  id: string;
+  name: string;
+  category: "Faculty Availability" | "Workload & Pacing" | "Venue & Space" | "Institutional";
+  description: string;
+  archetype: ConstraintRuleArchetype;
+  parameters: ConstraintParameterField[];
+  isSystemDefault?: boolean;
+  isActive: boolean;
+  iconName?: string;
+}
+
+export interface ConstraintArchetypeTemplate {
+  archetype: ConstraintRuleArchetype;
+  title: string;
+  description: string;
+  icon: string;
+  suggestedParameters: ConstraintParameterField[];
+}
+
+export const constraintArchetypeTemplates: ConstraintArchetypeTemplate[] = [
+  {
+    archetype: "time_window",
+    title: "Restricted Days & Teaching Hours",
+    description: "Sets specific days or times when a lecturer is free to teach or unavailable (such as research days, hospital duty, or visiting faculty hours).",
+    icon: "Clock",
+    suggestedParameters: [
+      { key: "lecturer", label: "Lecturer Name", type: "lecturer_select", required: true },
+      { key: "range", label: "Restricted Days or Hours", type: "text", placeholder: "e.g. Every Wednesday, or Tuesdays & Fridays", required: true },
+      { key: "detail", label: "Reason / Note", type: "text", placeholder: "e.g. Hospital clinic duty or research day", required: true },
+    ],
+  },
+  {
+    archetype: "full_absence",
+    title: "Lecturer Leave of Absence",
+    description: "For lecturers away on doctoral studies, sabbatical, conference travel, or medical leave.",
+    icon: "Plane",
+    suggestedParameters: [
+      { key: "lecturer", label: "Lecturer Name", type: "lecturer_select", required: true },
+      { key: "range", label: "Leave Period / Dates", type: "text", placeholder: "e.g. 12 Jan – 28 Feb or First Semester", required: true },
+      { key: "substitute", label: "Covered by External Substitute", type: "boolean", defaultValue: true, hint: "Check if classes will be taught by a designated substitute" },
+      { key: "detail", label: "Leave Purpose & Institution", type: "text", placeholder: "e.g. Doctoral fellowship at University of Ibadan", required: true },
+    ],
+  },
+  {
+    archetype: "daily_load_limit",
+    title: "Daily Teaching Limit",
+    description: "Sets the maximum number of lecture hours a lecturer can teach in one day to prevent fatigue.",
+    icon: "Layers",
+    suggestedParameters: [
+      { key: "lecturer", label: "Lecturer Name", type: "lecturer_select", required: true },
+      { key: "maxHours", label: "Maximum Hours per Day", type: "number", defaultValue: 4, required: true, hint: "Recommended: 4 hours maximum per day" },
+      { key: "detail", label: "Policy Note", type: "text", placeholder: "e.g. Faculty wellness policy", required: true },
+    ],
+  },
+  {
+    archetype: "consecutive_hours",
+    title: "Rest Break / Back-to-Back Limit",
+    description: "Prevents a lecturer from teaching continuous back-to-back classes for too many hours without a break.",
+    icon: "Clock",
+    suggestedParameters: [
+      { key: "lecturer", label: "Lecturer Name", type: "lecturer_select", required: true },
+      { key: "maxConsecutive", label: "Max Continuous Hours", type: "number", defaultValue: 2, required: true, hint: "Recommended: 2 hours maximum without a break" },
+      { key: "detail", label: "Policy Note", type: "text", placeholder: "e.g. Mandatory rest break between classes", required: true },
+    ],
+  },
+  {
+    archetype: "venue_requirement",
+    title: "Special Room / Lab Requirement",
+    description: "Requires courses under this rule to always be scheduled in a specific room type (such as computer labs or amphitheatre).",
+    icon: "Building2",
+    suggestedParameters: [
+      { key: "lecturer", label: "Lecturer or Group", type: "text", placeholder: "e.g. All Faculty or Computing Dept", required: true },
+      { key: "range", label: "Required Room Type", type: "select", options: ["Computing Laboratory", "Lecture Theatre", "Auditorium", "Seminar Room"], defaultValue: "Computing Laboratory", required: true },
+      { key: "detail", label: "Reason / Equipment Needed", type: "text", placeholder: "e.g. High-performance workstations required", required: true },
+    ],
+  },
+  {
+    archetype: "custom_rule",
+    title: "General University Rule",
+    description: "A flexible institutional rule for any special scheduling policy.",
+    icon: "ShieldCheck",
+    suggestedParameters: [
+      { key: "lecturer", label: "Lecturer or Cohort", type: "text", placeholder: "e.g. All Faculty or 300 Level", required: true },
+      { key: "range", label: "Target Window / Time", type: "text", placeholder: "e.g. Mornings only or Mid-Semester", required: true },
+      { key: "detail", label: "Rule Description", type: "text", placeholder: "e.g. Departmental meeting reserved window", required: true },
+    ],
+  },
+];
+
+export const defaultConstraintTypes: ConstraintTypeDefinition[] = [
+  {
+    id: "type-study-leave",
+    name: "Study Leave",
+    category: "Faculty Availability",
+    description: "Doctoral research fellowships, conferences, and approved academic leaves.",
+    archetype: "full_absence",
+    isSystemDefault: true,
+    isActive: true,
+    iconName: "Plane",
+    parameters: [
+      { key: "lecturer", label: "Faculty Member", type: "lecturer_select", required: true },
+      { key: "detail", label: "Reason & Institution", type: "text", required: true, placeholder: "e.g. Doctoral fellowship" },
+      { key: "range", label: "Date Window", type: "text", required: true, placeholder: "e.g. 12 Jan – 28 Feb" },
+      { key: "substitute", label: "External Substitute", type: "boolean", defaultValue: true, hint: "Check if classes are covered externally" },
+    ],
+  },
+  {
+    id: "type-day-off",
+    name: "Day Off",
+    category: "Faculty Availability",
+    description: "Weekly designated research days, clinical duties, or faculty release days.",
+    archetype: "time_window",
+    isSystemDefault: true,
+    isActive: true,
+    iconName: "CalendarOff",
+    parameters: [
+      { key: "lecturer", label: "Faculty Member", type: "lecturer_select", required: true },
+      { key: "detail", label: "Activity Detail", type: "text", required: true, placeholder: "e.g. Research day" },
+      { key: "range", label: "Recurring Day", type: "select", options: ["Every Wed", "Every Fri AM", "Every Mon", "Every Tue", "Every Thu"], defaultValue: "Every Wed", required: true },
+    ],
+  },
+  {
+    id: "type-adjunct",
+    name: "Adjunct",
+    category: "Faculty Availability",
+    description: "Industry practitioners and guest faculty with restricted teaching availability.",
+    archetype: "time_window",
+    isSystemDefault: true,
+    isActive: true,
+    iconName: "UserCog",
+    parameters: [
+      { key: "lecturer", label: "Faculty Member", type: "lecturer_select", required: true },
+      { key: "detail", label: "Practitioner Detail", type: "text", required: true, placeholder: "e.g. Industry practitioner" },
+      { key: "range", label: "Permitted Window", type: "select", options: ["Tue, Fri", "After 14:00", "Wednesdays Only", "Mon, Wed"], defaultValue: "Tue, Fri", required: true },
+    ],
+  },
+  {
+    id: "type-daily-load",
+    name: "Max Daily Load",
+    category: "Workload & Pacing",
+    description: "Limits maximum daily lecture hours per faculty member to prevent burnout.",
+    archetype: "daily_load_limit",
+    isSystemDefault: true,
+    isActive: true,
+    iconName: "Layers",
+    parameters: [
+      { key: "lecturer", label: "Faculty Member", type: "lecturer_select", required: true },
+      { key: "maxHours", label: "Max Hours per Day", type: "number", defaultValue: 4, required: true },
+      { key: "range", label: "Max Hours Ceiling", type: "text", defaultValue: "Max 4h/day", required: true },
+      { key: "detail", label: "Guideline Note", type: "text", defaultValue: "Faculty wellness & daily teaching ceiling", required: true },
+    ],
+  },
+  {
+    id: "type-consecutive-hours",
+    name: "Consecutive Hours Limit",
+    category: "Workload & Pacing",
+    description: "Restricts back-to-back lecture sessions without a break (max 2 hours continuous).",
+    archetype: "consecutive_hours",
+    isSystemDefault: true,
+    isActive: true,
+    iconName: "Clock",
+    parameters: [
+      { key: "lecturer", label: "Faculty Member", type: "lecturer_select", required: true },
+      { key: "maxConsecutive", label: "Max Continuous Hours", type: "number", defaultValue: 2, required: true },
+      { key: "range", label: "Consecutive Limit", type: "text", defaultValue: "Max 2h block", required: true },
+      { key: "detail", label: "Guideline Note", type: "text", defaultValue: "Mandatory rest interval between continuous classes", required: true },
+    ],
+  },
+  {
+    id: "type-admin-blackout",
+    name: "Administrative Blackout",
+    category: "Institutional",
+    description: "Blocks out departmental board, senate, or deanery meeting hours from lectures.",
+    archetype: "time_window",
+    isSystemDefault: false,
+    isActive: true,
+    iconName: "ShieldCheck",
+    parameters: [
+      { key: "lecturer", label: "Applies To", type: "lecturer_select", defaultValue: "All Faculty", required: true },
+      { key: "detail", label: "Meeting Name", type: "text", defaultValue: "School Board Meeting", required: true },
+      { key: "range", label: "Day & Time Window", type: "select", options: ["Thu 12:00 – 14:00", "Wed 15:00 – 17:00", "Mon 10:00 – 12:00"], defaultValue: "Thu 12:00 – 14:00", required: true },
+    ],
+  },
+];
 
 export const constraints: Constraint[] = [
   { id: "c1", kind: "Study Leave", lecturer: "Adebanjo Olawunmi Asake", detail: "Doctoral research fellowship (Substituted externally)", range: "12 Jan – 28 Feb" },
@@ -188,11 +419,22 @@ export const accounts: UserAccount[] = [
     name: "Yakubu Onome",
     email: "y.onome@bupulse.edu",
     role: "deptTO",
-    roleLabel: "Departmental T.O",
+    roleLabel: "Dept T.O (Computer Science)",
     department: "Computer Science",
     school: "School of Computing & Engineering",
     avatarTone: "violet",
     initials: "YO",
+  },
+  {
+    id: "flourence",
+    name: "Flourence Adeyemi",
+    email: "flourencea@babcock.edu.ng",
+    role: "deptTO",
+    roleLabel: "Dept T.O (Software Eng.)",
+    department: "Software Engineering",
+    school: "School of Computing & Engineering",
+    avatarTone: "brand",
+    initials: "FA",
   },
   {
     id: "olumide",
@@ -223,6 +465,95 @@ export const accounts: UserAccount[] = [
     roleLabel: "Acad. Planning T.O",
     avatarTone: "warn",
     initials: "MD",
+  },
+  // School of Management Sciences Accounts
+  {
+    id: "akande_irm",
+    name: "Akande Oyebola",
+    email: "o.akande@babcock.edu.ng",
+    role: "deptTO",
+    roleLabel: "Dept T.O (Info. Resource Mgt)",
+    department: "Information Resource Management",
+    school: "School of Management Science",
+    avatarTone: "brand",
+    initials: "AO",
+  },
+  {
+    id: "madukoma_irm",
+    name: "Dr. Ezinwayi Madukoma",
+    email: "e.madukoma@babcock.edu.ng",
+    role: "hod",
+    roleLabel: "Head of Dept (IRM)",
+    department: "Information Resource Management",
+    school: "School of Management Science",
+    avatarTone: "violet",
+    initials: "DE",
+  },
+  {
+    id: "abimbola_acc",
+    name: "Sola Abimbola",
+    email: "s.abimbola@babcock.edu.ng",
+    role: "deptTO",
+    roleLabel: "Dept T.O (Accounting)",
+    department: "Accounting",
+    school: "School of Management Science",
+    avatarTone: "good",
+    initials: "SA",
+  },
+  {
+    id: "eze_acc",
+    name: "Dr. P. Eze",
+    email: "p.eze@babcock.edu.ng",
+    role: "hod",
+    roleLabel: "Head of Dept (Accounting)",
+    department: "Accounting",
+    school: "School of Management Science",
+    avatarTone: "warn",
+    initials: "DP",
+  },
+  {
+    id: "nwosu_bam",
+    name: "Emeka Nwosu",
+    email: "e.nwosu@babcock.edu.ng",
+    role: "deptTO",
+    roleLabel: "Dept T.O (Business Admin & Mkt)",
+    department: "Business Administration and Marketing",
+    school: "School of Management Science",
+    avatarTone: "violet",
+    initials: "EN",
+  },
+  {
+    id: "okeke_bam",
+    name: "Dr. C. Okeke",
+    email: "c.okeke@babcock.edu.ng",
+    role: "hod",
+    roleLabel: "Head of Dept (BAM)",
+    department: "Business Administration and Marketing",
+    school: "School of Management Science",
+    avatarTone: "brand",
+    initials: "DC",
+  },
+  {
+    id: "oladele_fin",
+    name: "Ibijoke Oladele",
+    email: "i.oladele@babcock.edu.ng",
+    role: "deptTO",
+    roleLabel: "Dept T.O (Finance)",
+    department: "Finance",
+    school: "School of Management Science",
+    avatarTone: "warn",
+    initials: "IO",
+  },
+  {
+    id: "akintola_fin",
+    name: "Dr. F. Akintola",
+    email: "f.akintola@babcock.edu.ng",
+    role: "hod",
+    roleLabel: "Head of Dept (Finance)",
+    department: "Finance",
+    school: "School of Management Science",
+    avatarTone: "good",
+    initials: "DF",
   },
 ];
 
@@ -290,6 +621,26 @@ export const deptSubmissions: DeptSubmission[] = [
       { code: "BU-GST 205", lecturer: "Williams H.J", venue: "CST Hall A", day: "Wed", slot: "10:00" },
       { code: "COSC 268", lecturer: "Peterson J.E", venue: "Lab 3 — Software", day: "Wed", slot: "14:00" },
       { code: "COSC 872", lecturer: "Singh R.V", venue: "CST Hall B", day: "Thu", slot: "08:00" },
+    ],
+  },
+  {
+    id: "se-200",
+    department: "Software Engineering",
+    school: "School of Computing & Engineering",
+    level: "All Levels",
+    semester: "First Semester 2026/27",
+    deptTO: "Flourence Adeyemi",
+    hod: "Dr. A. Olumide",
+    dean: "Prof. E. Bassey",
+    deanSignedAt: "Mar 07, 11:45",
+    courses: 8,
+    units: 24,
+    conflicts: 0,
+    status: "pending",
+    sessions: [
+      { code: "SENG 201", lecturer: "Maitanmi S.O", venue: "BUC_LAB1", day: "Mon", slot: "10:00" },
+      { code: "SENG 203", lecturer: "Adams P.L", venue: "SAT_A008", day: "Tue", slot: "10:00" },
+      { code: "SENG 305", lecturer: "Nguyen A.K", venue: "CIT", day: "Wed", slot: "08:00" },
     ],
   },
   {
@@ -603,5 +954,227 @@ export const auditLog: AuditEntry[] = [
     level: "300 Level",
     at: "Mar 04, 17:20",
     note: "Persistent venue overlap on Tuesday afternoon — resolve before resubmitting.",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DYNAMIC TIME LOCKS & OPERATING HOURS CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface LunchBreakLock {
+  enabled: boolean;
+  slot: (typeof slots)[number];
+  duration: number; // Duration in hours (typically 1)
+  label: string;
+}
+
+export interface EarlyClosingLock {
+  id: string;
+  enabled: boolean;
+  day: (typeof days)[number];
+  cutoffSlot: (typeof slots)[number]; // No lectures at or after this slot
+  label: string;
+  reason?: string;
+}
+
+export interface OperatingWindow {
+  startSlot: (typeof slots)[number]; // e.g. "07:00"
+  endSlot: (typeof slots)[number];   // e.g. "17:00"
+}
+
+export interface ChapelSeminarScheduleItem {
+  day: (typeof days)[number];
+  slot: (typeof slots)[number];
+  duration: number;
+  venue: string;
+  lecturer: string;
+  code: string;
+  title: string;
+}
+
+export interface CustomTimeLock {
+  id: string;
+  title: string;
+  day: (typeof days)[number];
+  slot: (typeof slots)[number];
+  duration: number; // in hours, e.g. 1 or 2
+  level?: string;   // "All Levels", "100 Level", "200 Level", etc.
+  department?: string; // specific department or "All"
+  reason?: string;
+  enabled: boolean;
+}
+
+export interface DynamicTimeLockConfig {
+  lunchBreak: LunchBreakLock;
+  earlyClosings: EarlyClosingLock[];
+  operatingWindow: OperatingWindow;
+  chapelSeminarSchedule: Record<string, ChapelSeminarScheduleItem>;
+  customTimeLocks: CustomTimeLock[];
+}
+
+export const defaultTimeLockConfig: DynamicTimeLockConfig = {
+  lunchBreak: {
+    enabled: true,
+    slot: "13:00",
+    duration: 1,
+    label: "University Lunch Break",
+  },
+  earlyClosings: [
+    {
+      id: "wed-closing",
+      enabled: true,
+      day: "Wed",
+      cutoffSlot: "17:00",
+      label: "Midweek Fellowship Closing",
+      reason: "Lectures conclude by 5:00 PM for fellowship and sports",
+    },
+    {
+      id: "fri-closing",
+      enabled: true,
+      day: "Fri",
+      cutoffSlot: "13:00",
+      label: "Friday Afternoon Closing",
+      reason: "Lectures conclude by 1:00 PM in preparation for Sabbath",
+    },
+  ],
+  operatingWindow: {
+    startSlot: "07:00",
+    endSlot: "17:00",
+  },
+  chapelSeminarSchedule: {
+    "100 Level": {
+      day: "Mon",
+      slot: "09:00",
+      duration: 1,
+      venue: "University Amphitheatre",
+      lecturer: "Chilaka Uzoma",
+      code: "BU-GST 011 / GEDS001",
+      title: "Citizenship Orientation & Chapel Seminar",
+    },
+    "200 Level": {
+      day: "Tue",
+      slot: "09:00",
+      duration: 1,
+      venue: "University Amphitheatre",
+      lecturer: "Chilaka Uzoma",
+      code: "BU-GST 021",
+      title: "Chapel Seminar & Leadership",
+    },
+    "300 Level": {
+      day: "Wed",
+      slot: "09:00",
+      duration: 1,
+      venue: "University Amphitheatre",
+      lecturer: "Chilaka Uzoma",
+      code: "BU-GST 031",
+      title: "Chapel Seminar & Ethics",
+    },
+    "400 Level": {
+      day: "Thu",
+      slot: "09:00",
+      duration: 1,
+      venue: "University Amphitheatre",
+      lecturer: "Chilaka Uzoma",
+      code: "BU-GST 041",
+      title: "Chapel Seminar & Career Transition",
+    },
+  },
+  customTimeLocks: [
+    {
+      id: "lock-dept-assembly",
+      title: "Departmental Student & Faculty Assembly",
+      day: "Thu",
+      slot: "12:00",
+      duration: 1,
+      level: "All Levels",
+      department: "Computer Science",
+      reason: "Monthly faculty-student townhall and mentorship",
+      enabled: false,
+    },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEPARTMENTAL EVENTS (e.g. Departmental Week, Hackathon, Symposium)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface DepartmentalEvent {
+  id: string;
+  title: string;
+  department?: string;
+  category:
+    | "Departmental Week"
+    | "Symposium"
+    | "Exhibition"
+    | "Fellowship"
+    | "Orientation"
+    | "Special Lecture"
+    | "Hackathon"
+    | "Social / Dinner"
+    | "General"
+    | (string & {});
+  week: string; // e.g. "Semester Week 8", "Week 7 (Oct 26 – Oct 30)"
+  dates?: string; // e.g. "Oct 26 – Oct 30" or "Wed 14:00"
+  day?: (typeof days)[number] | "All Week";
+  timeRange?: string; // e.g. "10:00 – 14:00" or "All Day"
+  venue?: string;     // e.g. "BUC Auditorium", "University Amphitheatre"
+  level?: string;     // "All Levels", "100 Level", etc.
+  description?: string;
+  advisoryNote?: string;
+  exemptFromLectures?: boolean;
+}
+
+export const initialDepartmentalEvents: DepartmentalEvent[] = [
+  {
+    id: "evt-cs-week",
+    title: "NACOS Annual Departmental Week & Tech Expo",
+    department: "Computer Science",
+    category: "Departmental Week",
+    week: "Semester Week 8",
+    day: "All Week",
+    timeRange: "Full Week Event",
+    venue: "BUC Auditorium & Computer Labs",
+    level: "All Levels",
+    description: "Annual Computer Science Departmental Week featuring coding challenges, developer workshops, industry guest keynotes, and project exhibitions.",
+    advisoryNote: "Lectures for Friday afternoon may be adjusted for student hackathon presentations.",
+  },
+  {
+    id: "evt-freshers-welcome",
+    title: "100 Level Freshers Orientation & Welcome Fellowship",
+    department: "Computer Science",
+    category: "Orientation",
+    week: "Semester Week 2",
+    day: "Wed",
+    timeRange: "14:00 – 16:00",
+    venue: "SAT_A008 / BUC_ROOM1",
+    level: "100 Level",
+    description: "Departmental orientation for incoming 100 Level students, introduction to curriculum, academic advisors, and student tech clubs.",
+    advisoryNote: "100 Level students meet with faculty mentors.",
+  },
+  {
+    id: "evt-se-week",
+    title: "Software Engineering Innovation Week & Hackathon",
+    department: "Software Engineering",
+    category: "Departmental Week",
+    week: "Semester Week 9",
+    day: "All Week",
+    timeRange: "Full Week Event",
+    venue: "Innovation Hub & BUC_LAB1",
+    level: "All Levels",
+    description: "Software engineering project showcase, 24-hour product hackathon, and developer demo day.",
+    advisoryNote: "Held in Week 9 without disrupting the general lecture timetable.",
+  },
+  {
+    id: "evt-symposium",
+    title: "Faculty Research & Industry Innovation Symposium",
+    department: "Computer Science",
+    category: "Symposium",
+    week: "Semester Week 11",
+    day: "Thu",
+    timeRange: "10:00 – 13:00",
+    venue: "University Amphitheatre",
+    level: "All Levels",
+    description: "Annual academic symposium presenting research papers, student-faculty capstone projects, and AI in education workshops.",
+    advisoryNote: "Attended by 300L & 400L students and faculty.",
   },
 ];

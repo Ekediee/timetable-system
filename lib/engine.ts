@@ -7,6 +7,10 @@ import {
   slots,
   VenueRecord,
   venueRecords,
+  ExternalBooking,
+  DynamicTimeLockConfig,
+  defaultTimeLockConfig,
+  ChapelSeminarScheduleItem,
 } from "./data";
 
 export type HardConflictType = "venue" | "capacity" | "lecturer" | "availability";
@@ -45,12 +49,15 @@ export interface DecomposedSession {
 }
 
 export interface DecomposeOptions {
-  // Reserved for future solver options
+  externalBookings?: ExternalBooking[];
+  exemptedDepartments?: string[];
+  departmentName?: string;
+  timeLockConfig?: DynamicTimeLockConfig;
 }
 
 /**
- * Extracts individual constituent sub-groups from combined group strings like:
- * "Group A", "Group A & B", "Group A & F", "Group B & E", "Group A & C & E", "All", etc.
+ * Extracts individual constituent sub-groups from group strings like:
+ * "Group A", "Group B", "All", etc.
  */
 export function extractSubgroups(groupStr?: string): string[] {
   if (!groupStr || groupStr === "All" || groupStr === "Unified") return ["All"];
@@ -83,19 +90,298 @@ export function doGroupsClash(group1?: string, group2?: string): boolean {
 }
 
 /**
+ * Institutional Chapel Seminar & Citizenship Orientation Schedule:
+ * - 100 Level: Monday 09:00 (BU-GST 011 for CCMAS and GEDS001 for BMASS are the same course)
+ * - 200 Level: Tuesday 09:00 (BU-GST 021)
+ * - 300 Level: Wednesday 09:00 (BU-GST 031)
+ * - 400 Level: Thursday 09:00 (BU-GST 041)
+ */
+export const CHAPEL_SEMINAR_SCHEDULE: Record<
+  string,
+  { day: (typeof days)[number]; slot: (typeof slots)[number] }
+> = {
+  "100 Level": { day: "Mon", slot: "09:00" },
+  "200 Level": { day: "Tue", slot: "09:00" },
+  "300 Level": { day: "Wed", slot: "09:00" },
+  "400 Level": { day: "Thu", slot: "09:00" },
+};
+
+/**
+ * Standard course identity & metadata for schoolwide Chapel Seminar per academic level
+ */
+export const CHAPEL_SEMINAR_COURSE_INFO: Record<
+  string,
+  {
+    code: string;
+    title: string;
+    lecturer: string;
+    venue: string;
+    day: (typeof days)[number];
+    slot: (typeof slots)[number];
+    duration: number;
+  }
+> = {
+  "100 Level": {
+    code: "BU-GST 011 / GEDS001",
+    title: "Citizenship Orientation & Chapel Seminar",
+    lecturer: "Chilaka Uzoma",
+    venue: "University Amphitheatre",
+    day: "Mon",
+    slot: "09:00",
+    duration: 1,
+  },
+  "200 Level": {
+    code: "BU-GST 021",
+    title: "Chapel Seminar & Leadership",
+    lecturer: "Chilaka Uzoma",
+    venue: "University Amphitheatre",
+    day: "Tue",
+    slot: "09:00",
+    duration: 1,
+  },
+  "300 Level": {
+    code: "BU-GST 031",
+    title: "Chapel Seminar & Ethics",
+    lecturer: "Chilaka Uzoma",
+    venue: "University Amphitheatre",
+    day: "Wed",
+    slot: "09:00",
+    duration: 1,
+  },
+  "400 Level": {
+    code: "BU-GST 041",
+    title: "Chapel Seminar & Career Transition",
+    lecturer: "Chilaka Uzoma",
+    venue: "University Amphitheatre",
+    day: "Thu",
+    slot: "09:00",
+    duration: 1,
+  },
+};
+
+/**
+ * Default list of departments exempted from university-wide Chapel Seminar.
+ * As requested, by default no department is exempted, but exemptions can be
+ * provided via options or added here.
+ */
+export const DEFAULT_EXEMPTED_DEPARTMENTS: string[] = [];
+
+/**
+ * Checks if a department is exempted from the university-wide Chapel Seminar
+ */
+export function isDepartmentExemptFromChapel(
+  departmentName?: string,
+  exemptedList?: string[]
+): boolean {
+  if (!departmentName) return false;
+  const list = exemptedList || DEFAULT_EXEMPTED_DEPARTMENTS;
+  const norm = departmentName.trim().toLowerCase();
+  return list.some((ex) => ex.trim().toLowerCase() === norm);
+}
+
+/**
+ * Checks if a course is a Citizenship Orientation or Chapel Seminar course
+ */
+export function isCitizenshipOrientationCourse(c: {
+  code?: string;
+  title?: string;
+  lecturer?: string;
+  venue?: string;
+}): boolean {
+  const code = (c.code || "").toUpperCase().replace(/\s+/g, "");
+  const title = (c.title || "").toLowerCase();
+  const lecturer = (c.lecturer || "").toLowerCase();
+  const venue = (c.venue || "").toLowerCase();
+
+  if (
+    lecturer.includes("chilaka") ||
+    (venue.includes("amphi") && (title.includes("chapel") || title.includes("citizenship") || title.includes("orientation")))
+  ) {
+    return true;
+  }
+
+  return (
+    code.includes("GEDS001") ||
+    code.includes("GEDS01") ||
+    code.includes("GST011") ||
+    code.includes("GTS011") ||
+    code.includes("BUGST011") ||
+    code.includes("BUGTS011") ||
+    code.includes("GST021") ||
+    code.includes("GTS021") ||
+    code.includes("BUGST021") ||
+    code.includes("BUGTS021") ||
+    code.includes("GST031") ||
+    code.includes("GTS031") ||
+    code.includes("BUGST031") ||
+    code.includes("BUGTS031") ||
+    code.includes("GST041") ||
+    code.includes("GTS041") ||
+    code.includes("BUGST041") ||
+    code.includes("BUGTS041") ||
+    title.includes("citizenship orientation") ||
+    title.includes("chapel seminar") ||
+    title.includes("citizenship")
+  );
+}
+
+/**
+ * Resolves the academic level for Citizenship Orientation & Chapel courses:
+ * - BU-GST 011 / GTS 011 (CCMAS) & GEDS001 (BMASS) are the same course for 100 Level
+ * - BU-GST 021 is for 200 Level
+ * - BU-GST 031 is for 300 Level
+ * - BU-GST 041 is for 400 Level
+ */
+export function getCitizenshipOrientationLevel(c: {
+  code?: string;
+  title?: string;
+  level?: string;
+  day?: string;
+  slot?: string;
+}): string {
+  if (c.day && c.slot) {
+    for (const [lvl, fixed] of Object.entries(CHAPEL_SEMINAR_SCHEDULE)) {
+      if (fixed.day === c.day && fixed.slot === c.slot) {
+        return lvl;
+      }
+    }
+  }
+
+  const code = (c.code || "").toUpperCase().replace(/\s+/g, "");
+  if (
+    code.includes("011") ||
+    code.includes("GEDS001") ||
+    code.includes("GEDS01") ||
+    code.includes("GST011") ||
+    code.includes("GTS011")
+  ) {
+    return "100 Level";
+  }
+  if (code.includes("021") || code.includes("GST021") || code.includes("GTS021")) {
+    return "200 Level";
+  }
+  if (code.includes("031") || code.includes("GST031") || code.includes("GTS031")) {
+    return "300 Level";
+  }
+  if (code.includes("041") || code.includes("GST041") || code.includes("GTS041")) {
+    return "400 Level";
+  }
+  if (c.level && CHAPEL_SEMINAR_SCHEDULE[c.level]) {
+    return c.level;
+  }
+  return "100 Level";
+}
+
+/**
+ * Derives academic level from allocation course code or level field.
+ * Supports:
+ * - Direct level field: "100 Level", "200 Level", etc.
+ * - Standard 3-digit course numbers:
+ *   - NUDT201 -> 200 Level
+ *   - MLSC513 -> 500 Level
+ *   - BU-GST 011 / GTS011 / GEDS001 -> 100 Level
+ *   - BU-GST 021 -> 200 Level
+ *   - BU-GST 031 -> 300 Level
+ *   - BU-GST 041 -> 400 Level
+ */
+export function deriveCourseLevel(c: { code?: string; title?: string; level?: string }): string {
+  if (c.level && CHAPEL_SEMINAR_SCHEDULE[c.level]) {
+    return c.level;
+  }
+  if (isCitizenshipOrientationCourse(c)) {
+    return getCitizenshipOrientationLevel(c);
+  }
+  const code = (c.code || "").toUpperCase();
+  const digitMatch = code.match(/\b([1-5])\d{2}\b/);
+  if (digitMatch) {
+    return `${digitMatch[1]}00 Level`;
+  }
+  const zeroDigitMatch = code.match(/\b0([1-4])\d\b/);
+  if (zeroDigitMatch) {
+    return `${zeroDigitMatch[1]}00 Level`;
+  }
+  return c.level || "100 Level";
+}
+
+/**
+ * Checks if two courses represent equivalent citizenship orientation / chapel sessions
+ * (e.g. BU-GST 011 for CCMAS and GEDS001 for BMASS are the same 100L session)
+ */
+export function isEquivalentOrientationSession(
+  a: { code?: string; title?: string; level?: string; day?: string; slot?: string; lecturer?: string; venue?: string },
+  b: { code?: string; title?: string; level?: string; day?: string; slot?: string; lecturer?: string; venue?: string }
+): boolean {
+  if (!isCitizenshipOrientationCourse(a) || !isCitizenshipOrientationCourse(b)) return false;
+  return getCitizenshipOrientationLevel(a) === getCitizenshipOrientationLevel(b);
+}
+
+/**
  * Break down course allocations into scheduled sessions based on academic unit rules:
  * - 2-Unit course: 1 session of 2 hours
  * - 3-Unit course: 1 session of 2 hours + 1 session of 1 hour (on distinct days)
  * - 4-Unit course: 2 sessions of 2 hours (on distinct days)
  * - 1-Unit course: 1 session of 1 hour
+ * - Citizenship Orientation / Chapel: 1 unified schoolwide session of 1 hour at designated slot
  */
 export function decomposeAllocations(
   allocations: Allocation[],
   options?: DecomposeOptions
 ): DecomposedSession[] {
   const result: DecomposedSession[] = [];
+  const deptName = options?.departmentName;
+  const isExempt = isDepartmentExemptFromChapel(deptName, options?.exemptedDepartments);
+  const chapelSchedule =
+    options?.timeLockConfig?.chapelSeminarSchedule ||
+    defaultTimeLockConfig.chapelSeminarSchedule;
 
+  // 1. Identify active levels in this department's allocations
+  const detectedLevels = new Set<string>();
   for (const alloc of allocations) {
+    const lvl = deriveCourseLevel(alloc);
+    if (chapelSchedule[lvl]) {
+      detectedLevels.add(lvl);
+    }
+  }
+
+  // If no levels detected from allocations, assume standard university undergraduate levels (100L-400L)
+  const activeLevels =
+    detectedLevels.size > 0
+      ? Array.from(detectedLevels).sort()
+      : ["100 Level", "200 Level", "300 Level", "400 Level"];
+
+  // 2. Schoolwide Chapel Seminar: exactly 1 unified session per active level (unless exempt)
+  if (!isExempt) {
+    for (const lvl of activeLevels) {
+      const scheduleItem = chapelSchedule[lvl];
+      if (scheduleItem) {
+        const info = scheduleItem || CHAPEL_SEMINAR_COURSE_INFO[lvl];
+        result.push({
+          id: `CHAPEL-${lvl.replace(/\s+/g, "")}-s1`,
+          code: info.code || "BU-GST 011",
+          title: info.title || "Citizenship Orientation & Chapel Seminar",
+          lecturer: info.lecturer || "Chilaka Uzoma",
+          size: 200,
+          units: 1,
+          type: "Required",
+          duration: scheduleItem.duration || 1,
+          group: "All",
+          level: lvl,
+          isVirtual: false,
+          sessionIndex: 0,
+          totalSessionsForCourse: 1,
+        });
+      }
+    }
+  }
+
+  // 3. Decompose all regular departmental course allocations (skip raw chapel rows as they are already unified above)
+  for (const alloc of allocations) {
+    if (isCitizenshipOrientationCourse(alloc)) {
+      continue;
+    }
+
+    const resolvedLevel = deriveCourseLevel(alloc);
+
     const base = {
       code: alloc.code,
       title: alloc.title,
@@ -104,7 +390,7 @@ export function decomposeAllocations(
       units: alloc.units,
       type: alloc.type,
       group: alloc.group,
-      level: alloc.level,
+      level: resolvedLevel,
       isVirtual: alloc.isVirtual,
     };
 
@@ -164,34 +450,79 @@ export function decomposeAllocations(
 
 /**
  * Validates if a proposed time slot & duration fits institutional operational boundaries:
- * - Operating hours: Mon/Tue/Thu (07:00-18:00), Wed (07:00-17:00), Fri (07:00-13:00)
- * - Break Time: 13:00 - 14:00 (slotIndex 6) is strictly locked daily
+ * Supports dynamic configuration for Operating Hours, Lunch Break, Midweek/Friday closing,
+ * and custom departmental locked time blocks.
  */
 export function isSlotWithinOperatingHours(
   day: (typeof days)[number],
   slotIndex: number,
-  duration: number
+  duration: number,
+  config?: DynamicTimeLockConfig,
+  level?: string,
+  departmentName?: string
 ): boolean {
+  const cfg = config || defaultTimeLockConfig;
   const endIndex = slotIndex + duration - 1;
-  const maxSlotIndex = slots.length - 1; // 10 (17:00)
+  const maxSlotIndex = slots.length - 1;
 
-  // Out of bounds check
-  if (slotIndex < 0 || endIndex > maxSlotIndex) return false;
+  // 1. Operating window bounds check (e.g. 07:00 to 17:00/18:00)
+  const startIdx = slots.indexOf(cfg.operatingWindow.startSlot);
+  const endIdx = slots.indexOf(cfg.operatingWindow.endSlot);
+  const allowedStart = startIdx !== -1 ? startIdx : 0;
+  const allowedEnd = endIdx !== -1 ? endIdx : maxSlotIndex;
 
-  // Friday early finish: no classes after 13:00 (slotIndex 6+)
-  if (day === "Fri" && endIndex >= 6) {
+  if (slotIndex < allowedStart || endIndex > allowedEnd) {
     return false;
   }
 
-  // Wednesday early finish: classes end by 17:00 (no classes at 17:00 / slotIndex 10)
-  if (day === "Wed" && endIndex >= 10) {
-    return false;
+  // 2. Early closing day checks (e.g. Wednesday 17:00 cutoff, Friday 13:00 cutoff)
+  for (const ec of cfg.earlyClosings) {
+    if (ec.enabled && ec.day === day) {
+      const cutoffIdx = slots.indexOf(ec.cutoffSlot);
+      if (cutoffIdx !== -1 && endIndex >= cutoffIdx) {
+        return false;
+      }
+    }
   }
 
-  // Mandatory Lunch Break: 13:00 (slotIndex 6) locked on all days
-  for (let i = slotIndex; i <= endIndex; i++) {
-    if (i === 6) {
-      return false; // Cannot start at or overlap through 13:00
+  // 3. Mandatory Lunch Break check (dynamic slot & duration)
+  if (cfg.lunchBreak.enabled) {
+    const lunchIdx = slots.indexOf(cfg.lunchBreak.slot);
+    const lunchEnd = lunchIdx + cfg.lunchBreak.duration - 1;
+    if (lunchIdx !== -1) {
+      for (let i = slotIndex; i <= endIndex; i++) {
+        if (i >= lunchIdx && i <= lunchEnd) {
+          return false;
+        }
+      }
+    }
+  }
+
+  // 4. Custom departmental time locks / blackouts
+  if (cfg.customTimeLocks && cfg.customTimeLocks.length > 0) {
+    for (const lock of cfg.customTimeLocks) {
+      if (!lock.enabled || lock.day !== day) continue;
+      if (
+        departmentName &&
+        lock.department &&
+        lock.department !== "All" &&
+        lock.department !== departmentName
+      ) {
+        continue;
+      }
+      if (level && lock.level && lock.level !== "All Levels" && lock.level !== level) {
+        continue;
+      }
+
+      const lockStartIdx = slots.indexOf(lock.slot);
+      const lockEndIdx = lockStartIdx + lock.duration - 1;
+      if (lockStartIdx !== -1) {
+        for (let i = slotIndex; i <= endIndex; i++) {
+          if (i >= lockStartIdx && i <= lockEndIdx) {
+            return false;
+          }
+        }
+      }
     }
   }
 
@@ -208,35 +539,72 @@ export function isLecturerAvailableForSlot(
   duration: number,
   constraints: Constraint[]
 ): { available: boolean; reason?: string } {
-  const lecturerConstraints = constraints.filter((c) => c.lecturer === lecturer);
+  const lecturerConstraints = constraints.filter(
+    (c) => c.lecturer === lecturer || c.lecturer === "All Faculty"
+  );
 
   for (const c of lecturerConstraints) {
-    if (c.kind === "Study Leave") {
-      return { available: false, reason: `On Study Leave (${c.detail})` };
+    // 1. Full absence (Study Leave, Sabbatical, Medical Leave, etc.)
+    const isAbsence =
+      c.kind === "Study Leave" ||
+      c.params?.archetype === "full_absence" ||
+      c.kind.toLowerCase().includes("leave") ||
+      c.kind.toLowerCase().includes("sabbatical");
+
+    if (isAbsence) {
+      if (
+        c.params?.substitute === true ||
+        c.detail.toLowerCase().includes("substituted externally") ||
+        c.detail.toLowerCase().includes("substitute")
+      ) {
+        // Faculty on approved leave with external substitute handling teaching duties
+        continue;
+      }
+      return { available: false, reason: `On ${c.kind} (${c.detail})` };
     }
 
-    if (c.kind === "Day Off") {
-      const lowerRange = c.range.toLowerCase();
+    // 2. Day off or restricted weekday
+    const isDayOff =
+      c.kind === "Day Off" ||
+      c.params?.archetype === "time_window" ||
+      c.kind.toLowerCase().includes("day off") ||
+      c.kind.toLowerCase().includes("blackout");
+
+    if (c.kind === "Day Off" || isDayOff) {
+      const lowerRange = (c.range || "").toLowerCase();
       if (lowerRange.includes("wed") && day === "Wed") {
         return { available: false, reason: `Lecturer day off on Wednesdays` };
+      }
+      if (lowerRange.includes("mon") && day === "Mon") {
+        return { available: false, reason: `Lecturer day off on Mondays` };
+      }
+      if (lowerRange.includes("tue") && day === "Tue" && !lowerRange.includes("fri")) {
+        return { available: false, reason: `Lecturer day off on Tuesdays` };
+      }
+      if (lowerRange.includes("thu") && day === "Thu") {
+        return { available: false, reason: `Lecturer day off on Thursdays` };
       }
       if (lowerRange.includes("fri am") && day === "Fri" && slotIndex < 6) {
         return { available: false, reason: `Lecturer day off on Friday mornings` };
       }
+      if (lowerRange.includes("fri") && !lowerRange.includes("am") && !lowerRange.includes("tue") && day === "Fri") {
+        return { available: false, reason: `Lecturer day off on Fridays` };
+      }
     }
 
-    if (c.kind === "Adjunct") {
-      const lowerRange = c.range.toLowerCase();
+    // 3. Adjunct or restricted availability window
+    if (c.kind === "Adjunct" || c.params?.archetype === "time_window") {
+      const lowerRange = (c.range || "").toLowerCase();
       if (lowerRange.includes("tue, fri") || lowerRange.includes("tue & fri")) {
         if (day !== "Tue" && day !== "Fri") {
-          return { available: false, reason: `Adjunct available Tue & Fri only` };
+          return { available: false, reason: `Available Tue & Fri only` };
         }
-      } else if (lowerRange.includes("wed") && day !== "Wed") {
-        return { available: false, reason: `Adjunct available Wed only` };
+      } else if (lowerRange.includes("wed only") && day !== "Wed") {
+        return { available: false, reason: `Available Wednesdays only` };
       }
 
       if (lowerRange.includes("after 14:00") && slotIndex < 7) {
-        return { available: false, reason: `Adjunct available after 14:00 only` };
+        return { available: false, reason: `Available after 14:00 only` };
       }
     }
   }
@@ -272,16 +640,6 @@ export function scoreVenueFitness(
   return score;
 }
 
-export const CHAPEL_SEMINAR_SCHEDULE: Record<
-  string,
-  { day: (typeof days)[number]; slot: (typeof slots)[number] }
-> = {
-  "100 Level": { day: "Mon", slot: "09:00" },
-  "200 Level": { day: "Tue", slot: "09:00" },
-  "300 Level": { day: "Wed", slot: "09:00" },
-  "400 Level": { day: "Thu", slot: "09:00" },
-};
-
 /**
  * Primary Engine: Solves constraint satisfaction problem and generates a timetable schedule
  */
@@ -290,16 +648,19 @@ export function generateTimetable(
   availableVenues: (Venue | VenueRecord)[],
   activeConstraints: Constraint[],
   departmentNameOrOptions: string | DecomposeOptions = "Computer Science",
-  options?: DecomposeOptions
+  options?: DecomposeOptions,
+  explicitExternalBookings?: ExternalBooking[]
 ): EngineResult {
   const departmentName =
     typeof departmentNameOrOptions === "string"
       ? departmentNameOrOptions
-      : "Computer Science";
-  const opts =
+      : departmentNameOrOptions?.departmentName || "Computer Science";
+  const opts: DecomposeOptions =
     typeof departmentNameOrOptions === "object"
-      ? departmentNameOrOptions
-      : options;
+      ? { ...departmentNameOrOptions, departmentName }
+      : { ...(options || {}), departmentName };
+  const externalBookings = opts?.externalBookings || explicitExternalBookings || [];
+  const isExempt = isDepartmentExemptFromChapel(departmentName, opts?.exemptedDepartments);
   const decomposed = decomposeAllocations(allocations, opts);
   const scheduledSessions: Session[] = [];
   const violations: ConstraintViolation[] = [];
@@ -320,25 +681,48 @@ export function generateTimetable(
     }
   }
 
+  // Pre-occupy slots booked by other departments under the same school
+  if (externalBookings && externalBookings.length > 0) {
+    for (const eb of externalBookings) {
+      const slotIdx = slots.indexOf(eb.slot as any);
+      if (slotIdx === -1) continue;
+      const dur = eb.duration || 1;
+      for (let d = slotIdx; d < slotIdx + dur && d < slots.length; d++) {
+        if (eb.venue && occupiedVenues[eb.day]?.[d]) {
+          occupiedVenues[eb.day][d][eb.venue] = `[${eb.booked_by_department}] ${eb.course_code}`;
+        }
+        if (eb.lecturer && occupiedLecturers[eb.day]?.[d]) {
+          occupiedLecturers[eb.day][d][eb.lecturer] = `[${eb.booked_by_department}] ${eb.course_code}`;
+        }
+      }
+    }
+  }
+
+  const chapelSchedule =
+    opts?.timeLockConfig?.chapelSeminarSchedule ||
+    defaultTimeLockConfig.chapelSeminarSchedule;
+
+  // Pre-occupy university-wide Citizenship Orientation & Chapel Seminar slots for all 4 academic levels (if not exempt):
+  // Configured dynamically via timeLockConfig
+  if (!isExempt) {
+    for (const [lvl, fixed] of Object.entries(chapelSchedule)) {
+      const sIdx = slots.indexOf(fixed.slot as any);
+      if (sIdx !== -1 && occupiedGroups[fixed.day]?.[sIdx]) {
+        occupiedGroups[fixed.day][sIdx][`${lvl}-All`] = "Citizenship Orientation & Chapel Seminar";
+        for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
+          occupiedGroups[fixed.day][sIdx][`${lvl}-${g}`] = "Citizenship Orientation & Chapel Seminar";
+        }
+      }
+    }
+  }
+
   // Course day tracking to ensure 3-unit multi-sessions are placed on distinct days
   const courseScheduledDays: Record<string, Set<string>> = {};
 
   // Sort sessions using MRV (Most Constrained Variables first, Chapel Seminar first)
-  const isChapelCourse = (c: { code: string; title: string }) => {
-    const code = c.code.toUpperCase();
-    const title = c.title.toLowerCase();
-    return (
-      code.includes("GEDS001") ||
-      code.includes("GEDS 001") ||
-      code.includes("BU-GST 0") ||
-      title.includes("chapel") ||
-      title.includes("citizenship orientation")
-    );
-  };
-
   const sortedSessions = [...decomposed].sort((a, b) => {
-    const aIsChapel = isChapelCourse(a);
-    const bIsChapel = isChapelCourse(b);
+    const aIsChapel = isCitizenshipOrientationCourse(a);
+    const bIsChapel = isCitizenshipOrientationCourse(b);
 
     if (aIsChapel && !bIsChapel) return -1;
     if (!aIsChapel && bIsChapel) return 1;
@@ -362,10 +746,11 @@ export function generateTimetable(
     }
 
     // Institutional Chapel Seminar: Fixed Day per Level, 09:00, in University Amphitheatre
-    const isChapel = isChapelCourse(item);
+    const isChapel = isCitizenshipOrientationCourse(item);
 
-    if (isChapel && item.level && CHAPEL_SEMINAR_SCHEDULE[item.level]) {
-      const fixed = CHAPEL_SEMINAR_SCHEDULE[item.level];
+    if (isChapel) {
+      const fixedLevel = getCitizenshipOrientationLevel(item);
+      const fixed = chapelSchedule[fixedLevel] || chapelSchedule["100 Level"];
       const slotIdx = slots.indexOf(fixed.slot);
       const chapelVenue =
         availableVenues.find(
@@ -374,7 +759,7 @@ export function generateTimetable(
             v.name === "University Amphitheatre"
         )?.name || "University Amphitheatre";
 
-      const dur = item.duration || 1;
+      const dur = fixed.duration || 1;
 
       for (let d = slotIdx; d < slotIdx + dur; d++) {
         if (occupiedLecturers[fixed.day] && occupiedLecturers[fixed.day][d]) {
@@ -384,9 +769,9 @@ export function generateTimetable(
           occupiedVenues[fixed.day][d][chapelVenue] = item.code;
         }
         if (occupiedGroups[fixed.day] && occupiedGroups[fixed.day][d]) {
-          occupiedGroups[fixed.day][d][`${item.level}-All`] = item.code;
-          for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F"]) {
-            occupiedGroups[fixed.day][d][`${item.level}-${g}`] = item.code;
+          occupiedGroups[fixed.day][d][`${fixedLevel}-All`] = item.code;
+          for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
+            occupiedGroups[fixed.day][d][`${fixedLevel}-${g}`] = item.code;
           }
         }
       }
@@ -401,7 +786,7 @@ export function generateTimetable(
         slot: fixed.slot,
         duration: dur,
         group: item.group || "All",
-        level: item.level,
+        level: fixedLevel,
         isVirtual: false,
       });
 
@@ -417,164 +802,170 @@ export function generateTimetable(
     }));
     dayCounts.sort((a, b) => a.count - b.count);
 
-    for (const { day } of dayCounts) {
+    // Two-tier day search:
+    // Tier A (allowSameDay = false): strictly assign multi-session courses to distinct days (AC-02)
+    // Tier B (allowSameDay = true): if distinct days are saturated for this cohort, allow an open non-clashing slot on the same day before resorting to fallback
+    for (const allowSameDay of [false, true]) {
       if (assigned) break;
 
-      // Prevent multi-session courses for the same cohort from scheduling on the same day if possible
-      if (item.totalSessionsForCourse > 1 && courseScheduledDays[courseGroupKey].has(day)) {
-        continue;
-      }
-
-      // Standard academic block alignment:
-      // 2-hour classes prioritize standard 2-hour lecture periods:
-      // 08:00 (slot 1), 10:00 (slot 3), 14:00 (slot 7), 16:00 (slot 9), 07:00 (slot 0), followed by 11:00 (slot 4), 15:00 (slot 8), 09:00 (slot 2)
-      const slotOrder =
-        item.duration === 2
-          ? [1, 3, 7, 9, 0, 4, 8, 2] // 08:00, 10:00, 14:00, 16:00, 07:00, 11:00, 15:00, 09:00
-          : [5, 0, 9, 2, 8, 1, 3, 4, 7]; // 12:00 (1h before lunch), 07:00, 16:00, 09:00, etc.
-
-      // Try start slots
-      for (const slotIdx of slotOrder) {
+      for (const { day } of dayCounts) {
         if (assigned) break;
 
-        // 1. Operating hours check
-        if (!isSlotWithinOperatingHours(day, slotIdx, item.duration)) {
+        // Prevent multi-session courses for the same cohort from scheduling on the same day unless distinct days are fully booked
+        if (!allowSameDay && item.totalSessionsForCourse > 1 && courseScheduledDays[courseGroupKey].has(day)) {
           continue;
         }
 
-        // 2. Lecturer constraint check
-        const lecturerCheck = isLecturerAvailableForSlot(
-          item.lecturer,
-          day,
-          slotIdx,
-          item.duration,
-          activeConstraints
-        );
-        if (!lecturerCheck.available) {
-          continue;
-        }
+        // Standard academic block alignment:
+        // Maximizes throughput by packing non-overlapping periods without slot fragmentation
+        const slotOrder =
+          item.duration === 2
+            ? [0, 4, 7, 9, 3, 1, 8, 2] // 07:00, 11:00, 14:00, 16:00, 10:00, 08:00, 15:00, 09:00
+            : [5, 10, 0, 9, 2, 8, 1, 3, 4, 7]; // 12:00, 17:00, 07:00, 16:00, 09:00, etc.
 
-        // 3. Lecturer double-booking check
-        let lecturerClash = false;
-        for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-          if (occupiedLecturers[day][d][item.lecturer]) {
-            lecturerClash = true;
-            break;
-          }
-        }
-        if (lecturerClash) continue;
+        // Try start slots
+        for (const slotIdx of slotOrder) {
+          if (assigned) break;
 
-        // 4. Student Group / Cohort non-overlap check
-        const itemLevel = item.level || "200 Level";
-        const itemGroups = extractSubgroups(item.group);
-        const isUnified = itemGroups.includes("All");
-        let groupClash = false;
-        for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-          const occ = occupiedGroups[day][d];
-          const allKey = `${itemLevel}-All`;
-          if (occ[allKey]) {
-            groupClash = true;
-            break;
+          // 1. Operating hours check
+          if (!isSlotWithinOperatingHours(day, slotIdx, item.duration, opts?.timeLockConfig, item.level, departmentName)) {
+            continue;
           }
-          if (isUnified) {
-            // Whole-cohort class: cannot overlap with ANY session of the same level
-            const levelPrefix = `${itemLevel}-`;
-            if (Object.keys(occ).some((k) => k.startsWith(levelPrefix))) {
+
+          // 2. Lecturer constraint check
+          const lecturerCheck = isLecturerAvailableForSlot(
+            item.lecturer,
+            day,
+            slotIdx,
+            item.duration,
+            activeConstraints
+          );
+          if (!lecturerCheck.available) {
+            continue;
+          }
+
+          // 3. Lecturer double-booking check
+          let lecturerClash = false;
+          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
+            if (occupiedLecturers[day][d][item.lecturer]) {
+              lecturerClash = true;
+              break;
+            }
+          }
+          if (lecturerClash) continue;
+
+          // 4. Student Group / Cohort non-overlap check
+          const itemLevel = item.level || "200 Level";
+          const itemGroups = extractSubgroups(item.group);
+          const isUnified = itemGroups.includes("All");
+          let groupClash = false;
+          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
+            const occ = occupiedGroups[day][d];
+            const allKey = `${itemLevel}-All`;
+            if (occ[allKey]) {
               groupClash = true;
               break;
             }
-          } else {
-            // Specific sub-group(s): cannot overlap if ANY constituent group is occupied
-            if (itemGroups.some((g) => occ[`${itemLevel}-${g}`])) {
-              groupClash = true;
-              break;
-            }
-          }
-        }
-        if (groupClash) continue;
-
-        // 5. Virtual venue assignment or candidate physical venue selection
-        if (item.isVirtual) {
-          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-            occupiedLecturers[day][d][item.lecturer] = item.code;
             if (isUnified) {
-              occupiedGroups[day][d][`${itemLevel}-All`] = item.code;
-              for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-                occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+              // Whole-cohort class: cannot overlap with ANY session of the same level
+              const levelPrefix = `${itemLevel}-`;
+              if (Object.keys(occ).some((k) => k.startsWith(levelPrefix))) {
+                groupClash = true;
+                break;
               }
             } else {
-              for (const g of itemGroups) {
-                occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+              // Specific sub-group(s): cannot overlap if ANY constituent group is occupied
+              if (itemGroups.some((g) => occ[`${itemLevel}-${g}`])) {
+                groupClash = true;
+                break;
               }
-              occupiedGroups[day][d][`${itemLevel}-${item.group}`] = item.code;
             }
           }
+          if (groupClash) continue;
 
-          courseScheduledDays[courseGroupKey].add(day);
-
-          scheduledSessions.push({
-            code: item.code,
-            lecturer: item.lecturer,
-            venue: "Virtual / LMS",
-            day,
-            slot: slots[slotIdx],
-            duration: item.duration,
-            group: item.group,
-            level: item.level,
-            isVirtual: true,
-          });
-
-          assigned = true;
-          break;
-        }
-
-        const candidateVenues = [...validVenues]
-          .filter((v) => !v.isVirtual && v.capacity >= item.size)
-          .sort((a, b) => scoreVenueFitness(b, item.size, departmentName) - scoreVenueFitness(a, item.size, departmentName));
-
-        for (const venue of candidateVenues) {
-          // Check venue double-booking across all duration slots
-          let venueClash = false;
-          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-            if (occupiedVenues[day][d][venue.name]) {
-              venueClash = true;
-              break;
-            }
-          }
-          if (venueClash) continue;
-
-          // Assign session!
-          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-            occupiedVenues[day][d][venue.name] = item.code;
-            occupiedLecturers[day][d][item.lecturer] = item.code;
-            if (isUnified) {
-              occupiedGroups[day][d][`${itemLevel}-All`] = item.code;
-              for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-                occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+          // 5. Virtual venue assignment or candidate physical venue selection
+          if (item.isVirtual) {
+            for (let d = slotIdx; d < slotIdx + item.duration; d++) {
+              occupiedLecturers[day][d][item.lecturer] = item.code;
+              if (isUnified) {
+                occupiedGroups[day][d][`${itemLevel}-All`] = item.code;
+                for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
+                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+                }
+              } else {
+                for (const g of itemGroups) {
+                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+                }
+                occupiedGroups[day][d][`${itemLevel}-${item.group}`] = item.code;
               }
-            } else {
-              for (const g of itemGroups) {
-                occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
-              }
-              occupiedGroups[day][d][`${itemLevel}-${item.group}`] = item.code;
             }
+
+            courseScheduledDays[courseGroupKey].add(day);
+
+            scheduledSessions.push({
+              code: item.code,
+              lecturer: item.lecturer,
+              venue: "Virtual / LMS",
+              day,
+              slot: slots[slotIdx],
+              duration: item.duration,
+              group: item.group,
+              level: item.level,
+              isVirtual: true,
+            });
+
+            assigned = true;
+            break;
           }
 
-          courseScheduledDays[courseGroupKey].add(day);
+          const candidateVenues = [...validVenues]
+            .filter((v) => !v.isVirtual && v.capacity >= item.size)
+            .sort((a, b) => scoreVenueFitness(b, item.size, departmentName) - scoreVenueFitness(a, item.size, departmentName));
 
-          scheduledSessions.push({
-            code: item.code,
-            lecturer: item.lecturer,
-            venue: venue.name,
-            day,
-            slot: slots[slotIdx],
-            duration: item.duration,
-            group: item.group,
-            level: item.level,
-          });
+          for (const venue of candidateVenues) {
+            // Check venue double-booking across all duration slots
+            let venueClash = false;
+            for (let d = slotIdx; d < slotIdx + item.duration; d++) {
+              if (occupiedVenues[day][d][venue.name]) {
+                venueClash = true;
+                break;
+              }
+            }
+            if (venueClash) continue;
 
-          assigned = true;
-          break;
+            // Assign session!
+            for (let d = slotIdx; d < slotIdx + item.duration; d++) {
+              occupiedVenues[day][d][venue.name] = item.code;
+              occupiedLecturers[day][d][item.lecturer] = item.code;
+              if (isUnified) {
+                occupiedGroups[day][d][`${itemLevel}-All`] = item.code;
+                for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
+                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+                }
+              } else {
+                for (const g of itemGroups) {
+                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
+                }
+                occupiedGroups[day][d][`${itemLevel}-${item.group}`] = item.code;
+              }
+            }
+
+            courseScheduledDays[courseGroupKey].add(day);
+
+            scheduledSessions.push({
+              code: item.code,
+              lecturer: item.lecturer,
+              venue: venue.name,
+              day,
+              slot: slots[slotIdx],
+              duration: item.duration,
+              group: item.group,
+              level: item.level,
+            });
+
+            assigned = true;
+            break;
+          }
         }
       }
     }
@@ -590,9 +981,12 @@ export function generateTimetable(
       // Tier 1 Search: Free lecturer + free cohort (only venue is overloaded)
       for (const day of days) {
         if (fallbackCandidate) break;
-        const candidateSlots = item.duration === 2 ? [1, 3, 7, 9, 0, 4, 8, 2] : [5, 0, 9, 2, 8, 1, 3, 4, 7];
+        const candidateSlots =
+          item.duration === 2
+            ? [0, 4, 7, 9, 3, 1, 8, 2]
+            : [5, 10, 0, 9, 2, 8, 1, 3, 4, 7];
         for (const slotIdx of candidateSlots) {
-          if (!isSlotWithinOperatingHours(day, slotIdx, item.duration)) continue;
+          if (!isSlotWithinOperatingHours(day, slotIdx, item.duration, opts?.timeLockConfig, item.level, departmentName)) continue;
 
           // Lecturer availability check (study leave, day off, adjunct)
           const lecturerCheck = isLecturerAvailableForSlot(item.lecturer, day, slotIdx, item.duration, activeConstraints);
@@ -640,81 +1034,50 @@ export function generateTimetable(
         }
       }
 
-      // Tier 2 Search: If no free cohort slot, at least guarantee free lecturer!
-      if (!fallbackCandidate) {
-        for (const day of days) {
-          if (fallbackCandidate) break;
-          const candidateSlots = item.duration === 2 ? [1, 3, 7, 9, 0, 4, 8, 2] : [5, 0, 9, 2, 8, 1, 3, 4, 7];
-          for (const slotIdx of candidateSlots) {
-            if (!isSlotWithinOperatingHours(day, slotIdx, item.duration)) continue;
+      if (fallbackCandidate) {
+        scheduledSessions.push({
+          code: item.code,
+          lecturer: item.lecturer,
+          venue: fallbackCandidate.venueName,
+          day: fallbackCandidate.day,
+          slot: slots[fallbackCandidate.slotIdx],
+          duration: item.duration,
+          group: item.group,
+          level: item.level,
+          isVirtual: item.isVirtual,
+        });
+        const assignedDay = fallbackCandidate.day;
+        const assignedSlotIdx = fallbackCandidate.slotIdx;
+        const assignedVenue = fallbackCandidate.venueName;
 
-            const lecturerCheck = isLecturerAvailableForSlot(item.lecturer, day, slotIdx, item.duration, activeConstraints);
-            if (!lecturerCheck.available) continue;
-
-            let lecturerClash = false;
-            for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-              if (occupiedLecturers[day][d][item.lecturer]) {
-                lecturerClash = true;
-                break;
+        for (let d = assignedSlotIdx; d < assignedSlotIdx + item.duration; d++) {
+          if (occupiedGroups[assignedDay] && occupiedGroups[assignedDay][d]) {
+            if (isUnified) {
+              occupiedGroups[assignedDay][d][`${itemLevel}-All`] = item.code;
+              for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
+                occupiedGroups[assignedDay][d][`${itemLevel}-${g}`] = item.code;
               }
+            } else {
+              for (const g of itemGroups) {
+                occupiedGroups[assignedDay][d][`${itemLevel}-${g}`] = item.code;
+              }
+              occupiedGroups[assignedDay][d][`${itemLevel}-${item.group}`] = item.code;
             }
-            if (lecturerClash) continue;
-
-            const v = validVenues.find((ven) => !ven.isVirtual && ven.capacity >= item.size) || validVenues[0];
-            fallbackCandidate = {
-              day,
-              slotIdx,
-              venueName: item.isVirtual ? "Virtual / LMS" : (v ? v.name : "LT 12"),
-            };
-            break;
+          }
+          if (occupiedLecturers[assignedDay] && occupiedLecturers[assignedDay][d]) {
+            occupiedLecturers[assignedDay][d][item.lecturer] = item.code;
           }
         }
-      }
-
-      const assignedDay = fallbackCandidate ? fallbackCandidate.day : days[0];
-      const assignedSlotIdx = fallbackCandidate ? fallbackCandidate.slotIdx : 0;
-      const assignedVenue = fallbackCandidate ? fallbackCandidate.venueName : (validVenues[0]?.name || "LT 12");
-
-      scheduledSessions.push({
-        code: item.code,
-        lecturer: item.lecturer,
-        venue: assignedVenue,
-        day: assignedDay,
-        slot: slots[assignedSlotIdx],
-        duration: item.duration,
-        group: item.group,
-        level: item.level,
-        isVirtual: item.isVirtual,
-        conflict: "venue",
-      });
-
-      violations.push({
-        code: item.code,
-        lecturer: item.lecturer,
-        venue: assignedVenue,
-        day: assignedDay,
-        slot: slots[assignedSlotIdx],
-        conflictType: "venue",
-        description: `Could not satisfy optimal venue allocation for ${item.code} — assigned to ${assignedVenue} with soft warning.`,
-      });
-
-      for (let d = assignedSlotIdx; d < assignedSlotIdx + item.duration; d++) {
-        if (occupiedGroups[assignedDay] && occupiedGroups[assignedDay][d]) {
-          if (isUnified) {
-            occupiedGroups[assignedDay][d][`${itemLevel}-All`] = item.code;
-            for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-              occupiedGroups[assignedDay][d][`${itemLevel}-${g}`] = item.code;
-            }
-          } else {
-            for (const g of itemGroups) {
-              occupiedGroups[assignedDay][d][`${itemLevel}-${g}`] = item.code;
-            }
-            occupiedGroups[assignedDay][d][`${itemLevel}-${item.group}`] = item.code;
-          }
-        }
-        if (occupiedLecturers[assignedDay] && occupiedLecturers[assignedDay][d]) {
-          occupiedLecturers[assignedDay][d][item.lecturer] = item.code;
-        }
+      } else {
+        violations.push({
+          code: item.code,
+          lecturer: item.lecturer,
+          venue: item.isVirtual ? "Virtual / LMS" : (validVenues[0]?.name || "LT 12"),
+          day: days[0],
+          slot: slots[0],
+          conflictType: "availability",
+          description: `Could not allocate non-overlapping slot for ${item.code} (${item.lecturer}).`,
+        });
       }
 
       assigned = true;
@@ -756,13 +1119,26 @@ export function validateLiveSessions(
   rawSessions: Session[],
   allAllocations: Allocation[],
   allVenues: (Venue | VenueRecord)[],
-  activeConstraints: Constraint[]
+  activeConstraints: Constraint[],
+  externalBookings?: ExternalBooking[],
+  options?: {
+    exemptedDepartments?: string[];
+    departmentName?: string;
+    timeLockConfig?: DynamicTimeLockConfig;
+  }
 ): {
   validatedSessions: Session[];
   conflicts: LiveConflict[];
 } {
   const conflicts: LiveConflict[] = [];
   const updatedSessions: Session[] = rawSessions.map((s) => ({ ...s }));
+  const isExempt = isDepartmentExemptFromChapel(
+    options?.departmentName,
+    options?.exemptedDepartments
+  );
+  const chapelSchedule =
+    options?.timeLockConfig?.chapelSeminarSchedule ||
+    defaultTimeLockConfig.chapelSeminarSchedule;
 
   for (let i = 0; i < updatedSessions.length; i++) {
     const s = updatedSessions[i];
@@ -772,18 +1148,56 @@ export function validateLiveSessions(
     let conflictTitle = "";
     let conflictDesc = "";
 
+    // 0. University-wide Citizenship Orientation & Chapel Seminar lock validation
+    const isOrientation = isCitizenshipOrientationCourse(s);
+    const sessionLevel = isOrientation
+      ? getCitizenshipOrientationLevel(s)
+      : deriveCourseLevel(s);
+    const chapelWindow = chapelSchedule[sessionLevel];
+
+    if (!isExempt && chapelWindow) {
+      const chapelSlotIdx = slots.indexOf(chapelWindow.slot as any);
+      const thisEnd = slotIdx + dur;
+      const overlapsChapel =
+        s.day === chapelWindow.day &&
+        slotIdx <= chapelSlotIdx &&
+        thisEnd > chapelSlotIdx;
+
+      if (overlapsChapel) {
+        if (!isOrientation) {
+          // A regular departmental class scheduled during university-wide orientation/chapel!
+          conflictType = "availability";
+          conflictTitle = "Chapel Seminar Clash";
+          conflictDesc = `${sessionLevel} students attend Chapel Seminar on ${chapelWindow.day} ${chapelWindow.slot} (${chapelWindow.venue}). ${s.code} cannot be scheduled during this hour.`;
+        } else if (slotIdx !== chapelSlotIdx || dur !== (chapelWindow.duration || 1)) {
+          conflictType = "availability";
+          conflictTitle = "Chapel Seminar Time Error";
+          conflictDesc = `${s.code} (${sessionLevel} Chapel Seminar) must be held on ${chapelWindow.day} at ${chapelWindow.slot} (${chapelWindow.duration || 1} hour) in ${chapelWindow.venue}.`;
+        }
+      } else if (isOrientation) {
+        conflictType = "availability";
+        conflictTitle = "Chapel Seminar Time Error";
+        conflictDesc = `${s.code} (${sessionLevel} Chapel Seminar) must be scheduled on ${chapelWindow.day} at ${chapelWindow.slot} in ${chapelWindow.venue}.`;
+      }
+    }
+
     // 1. Operating hours & locked lunch break check
-    if (!isSlotWithinOperatingHours(s.day, slotIdx, dur)) {
+    if (!conflictType && !isSlotWithinOperatingHours(s.day, slotIdx, dur, options?.timeLockConfig, sessionLevel, options?.departmentName)) {
       conflictType = "availability";
-      if (s.day === "Fri" && slotIdx + dur - 1 >= 6) {
-        conflictTitle = "Friday Institutional Off";
-        conflictDesc = `${s.code} is scheduled on Friday afternoon. Institutional policy ends Friday classes at 13:00.`;
-      } else if (s.day === "Wed" && slotIdx + dur - 1 >= 10) {
-        conflictTitle = "Wednesday 17:00 University Cutoff";
-        conflictDesc = `${s.code} extends past the Wednesday 17:00 university sports/chapel cutoff.`;
+      const cfg = options?.timeLockConfig || defaultTimeLockConfig;
+      const lunchIdx = slots.indexOf(cfg.lunchBreak.slot);
+      const isLunchConflict = cfg.lunchBreak.enabled && lunchIdx !== -1 && (slotIdx <= lunchIdx && slotIdx + dur > lunchIdx);
+      const earlyClosing = cfg.earlyClosings.find((ec) => ec.enabled && ec.day === s.day && (slotIdx + dur - 1 >= slots.indexOf(ec.cutoffSlot)));
+
+      if (earlyClosing) {
+        conflictTitle = earlyClosing.label || `${s.day} Early Closing`;
+        conflictDesc = `${s.code} is scheduled during ${conflictTitle}. Classes conclude by ${earlyClosing.cutoffSlot} on ${s.day}.`;
+      } else if (isLunchConflict) {
+        conflictTitle = cfg.lunchBreak.label || "University Lunch Break";
+        conflictDesc = `${s.code} overlaps with the locked ${conflictTitle} (${cfg.lunchBreak.slot}).`;
       } else {
-        conflictTitle = "Mandatory Lunch Break (13:00 - 14:00)";
-        conflictDesc = `${s.code} collides with the locked institutional lunch break (13:00 - 14:00).`;
+        conflictTitle = "Operating Hours Restriction";
+        conflictDesc = `${s.code} falls outside approved university teaching hours or during a locked departmental period.`;
       }
     }
 
@@ -792,19 +1206,70 @@ export function validateLiveSessions(
       const availCheck = isLecturerAvailableForSlot(s.lecturer, s.day, slotIdx, dur, activeConstraints);
       if (!availCheck.available) {
         conflictType = "availability";
-        conflictTitle = "Lecturer Constraint Conflict";
-        conflictDesc = `${s.lecturer} (${s.code}): ${availCheck.reason ?? "Unavailable for this slot"}.`;
+        conflictTitle = "Lecturer Unavailable";
+        conflictDesc = `${s.lecturer} (${s.code}): ${availCheck.reason ?? "Unavailable for this time slot"}.`;
+      }
+    }
+
+    // 2b. Dynamic Workload Limits & Consecutive Teaching Hours
+    if (!conflictType) {
+      const loadConstraints = activeConstraints.filter(
+        (c) => c.lecturer === s.lecturer || c.lecturer === "All Faculty"
+      );
+      for (const lc of loadConstraints) {
+        // Daily load limit
+        const maxDaily = lc.params?.maxHours ?? (lc.kind === "Max Daily Load" ? 4 : undefined);
+        if (typeof maxDaily === "number" && maxDaily > 0) {
+          const daySessions = updatedSessions.filter(
+            (os) => os.lecturer === s.lecturer && os.day === s.day
+          );
+          const totalHours = daySessions.reduce((sum, os) => sum + (os.duration ?? 1), 0);
+          if (totalHours > maxDaily) {
+            conflictType = "availability";
+            conflictTitle = "Daily Teaching Load Exceeded";
+            conflictDesc = `${s.lecturer} is scheduled for ${totalHours} lecture hours on ${s.day}, exceeding the daily cap of ${maxDaily} hours.`;
+            break;
+          }
+        }
+
+        // Consecutive hours limit
+        const maxConsec = lc.params?.maxConsecutive ?? (lc.kind === "Consecutive Hours Limit" ? 2 : undefined);
+        if (typeof maxConsec === "number" && maxConsec > 0) {
+          const daySessions = updatedSessions
+            .filter((os) => os.lecturer === s.lecturer && os.day === s.day)
+            .sort((a, b) => slots.indexOf(a.slot as any) - slots.indexOf(b.slot as any));
+
+          let consecutiveRun = 0;
+          let prevEndSlot = -1;
+          for (const ds of daySessions) {
+            const startIdx = slots.indexOf(ds.slot as any);
+            const durHours = ds.duration ?? 1;
+            if (prevEndSlot === startIdx) {
+              consecutiveRun += durHours;
+            } else {
+              consecutiveRun = durHours;
+            }
+            prevEndSlot = startIdx + durHours;
+            if (consecutiveRun > maxConsec) {
+              conflictType = "availability";
+              conflictTitle = "Consecutive Hours Limit Exceeded";
+              conflictDesc = `${s.lecturer} has ${consecutiveRun} continuous lecture hours on ${s.day} without a mandatory break (policy limit: ${maxConsec} hrs).`;
+              break;
+            }
+          }
+          if (conflictType) break;
+        }
       }
     }
 
     // 3. Physical venue capacity check
-    if (!conflictType && !s.isVirtual && s.venue !== "Virtual / LMS") {
+    if (!conflictType && !s.isVirtual && s.venue !== "Virtual / LMS" && !isOrientation) {
       const alloc = allAllocations.find((a) => a.code === s.code);
       const v = allVenues.find((ven) => ven.name === s.venue);
       if (alloc && v && !("isVirtual" in v && v.isVirtual) && alloc.size > v.capacity) {
         conflictType = "capacity";
-        conflictTitle = "Venue Capacity Exceeded";
-        conflictDesc = `${alloc.size} students enrolled in ${s.code} exceed ${s.venue} capacity of ${v.capacity} seats.`;
+        conflictTitle = "Room Capacity Exceeded";
+        conflictDesc = `${alloc.size} students enrolled in ${s.code} exceed ${s.venue} capacity (${v.capacity} seats).`;
       }
     }
 
@@ -815,15 +1280,45 @@ export function validateLiveSessions(
         const other = updatedSessions[j];
         if (other.isVirtual || other.venue === "Virtual / LMS") continue;
         if (other.venue === s.venue && other.day === s.day) {
+          // If both are equivalent citizenship orientation / chapel sessions sharing the Amphitheatre, skip
+          if (isEquivalentOrientationSession(s, other)) continue;
           const otherStart = slots.indexOf(other.slot as any);
           const otherDur = other.duration ?? 1;
           const otherEnd = otherStart + otherDur;
           const thisEnd = slotIdx + dur;
           if (slotIdx < otherEnd && otherStart < thisEnd) {
             conflictType = "venue";
-            conflictTitle = "Venue Double-Booking";
-            conflictDesc = `${s.venue} is double-booked on ${s.day} ${s.slot} with ${other.code} (${other.lecturer}).`;
+            conflictTitle = "Room Double-Booked";
+            conflictDesc = `${s.venue} is already booked on ${s.day} ${s.slot} for ${other.code} (${other.lecturer}).`;
             break;
+          }
+        }
+      }
+
+      // Cross-department external venue booking check
+      if (!conflictType && externalBookings && externalBookings.length > 0) {
+        for (const eb of externalBookings) {
+          if (eb.venue === s.venue && eb.day === s.day) {
+            if (
+              isEquivalentOrientationSession(s, {
+                code: eb.course_code,
+                day: eb.day,
+                slot: eb.slot,
+                lecturer: eb.lecturer,
+                venue: eb.venue,
+              })
+            )
+              continue;
+            const ebStart = slots.indexOf(eb.slot as any);
+            const ebDur = eb.duration ?? 1;
+            const ebEnd = ebStart + ebDur;
+            const thisEnd = slotIdx + dur;
+            if (slotIdx < ebEnd && ebStart < thisEnd) {
+              conflictType = "venue";
+              conflictTitle = "Room Reserved by Another Department";
+              conflictDesc = `${s.venue} is reserved by ${eb.booked_by_department} for ${eb.course_code} (${eb.lecturer}) on ${s.day} ${eb.slot}.`;
+              break;
+            }
           }
         }
       }
@@ -835,15 +1330,45 @@ export function validateLiveSessions(
         if (i === j) continue;
         const other = updatedSessions[j];
         if (other.lecturer === s.lecturer && other.day === s.day) {
+          // Equivalent citizenship orientation / chapel sessions co-scheduled in the Amphitheatre share the same lecturer
+          if (isEquivalentOrientationSession(s, other)) continue;
           const otherStart = slots.indexOf(other.slot as any);
           const otherDur = other.duration ?? 1;
           const otherEnd = otherStart + otherDur;
           const thisEnd = slotIdx + dur;
           if (slotIdx < otherEnd && otherStart < thisEnd) {
             conflictType = "lecturer";
-            conflictTitle = "Lecturer Double-Booking";
-            conflictDesc = `${s.lecturer} is booked simultaneously on ${s.day} ${s.slot} for both ${s.code} and ${other.code}.`;
+            conflictTitle = "Lecturer Double-Booked";
+            conflictDesc = `${s.lecturer} is already scheduled on ${s.day} ${s.slot} for both ${s.code} and ${other.code}.`;
             break;
+          }
+        }
+      }
+
+      // Cross-department external lecturer clash check
+      if (!conflictType && externalBookings && externalBookings.length > 0) {
+        for (const eb of externalBookings) {
+          if (eb.lecturer === s.lecturer && eb.day === s.day) {
+            if (
+              isEquivalentOrientationSession(s, {
+                code: eb.course_code,
+                day: eb.day,
+                slot: eb.slot,
+                lecturer: eb.lecturer,
+                venue: eb.venue,
+              })
+            )
+              continue;
+            const ebStart = slots.indexOf(eb.slot as any);
+            const ebDur = eb.duration ?? 1;
+            const ebEnd = ebStart + ebDur;
+            const thisEnd = slotIdx + dur;
+            if (slotIdx < ebEnd && ebStart < thisEnd) {
+              conflictType = "lecturer";
+              conflictTitle = "Lecturer Scheduled in Another Department";
+              conflictDesc = `${s.lecturer} is already scheduled by ${eb.booked_by_department} for ${eb.course_code} on ${s.day} ${eb.slot}.`;
+              break;
+            }
           }
         }
       }
@@ -855,6 +1380,8 @@ export function validateLiveSessions(
         if (i === j) continue;
         const other = updatedSessions[j];
         if (other.level === s.level && other.day === s.day) {
+          // Equivalent orientation sessions share the Amphitheatre without clash
+          if (isEquivalentOrientationSession(s, other)) continue;
           const groupClash = doGroupsClash(s.group, other.group);
 
           if (groupClash) {
@@ -864,7 +1391,7 @@ export function validateLiveSessions(
             const thisEnd = slotIdx + dur;
             if (slotIdx < otherEnd && otherStart < thisEnd) {
               conflictType = "availability";
-              conflictTitle = "Cohort Schedule Collision";
+              conflictTitle = "Student Class Overlap";
               conflictDesc = `${s.level} students (${s.group ?? "Cohort"}) have overlapping classes: ${s.code} and ${other.code} on ${s.day} ${s.slot}.`;
               break;
             }

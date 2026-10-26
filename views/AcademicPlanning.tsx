@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle2,
   Clock,
@@ -22,6 +22,7 @@ import { Card, CardHead, Pill, Button } from "../components/ui";
 import TimetableModal from "../components/TimetableModal";
 import { type DeptSubmission, type AuditEntry } from "../lib/data";
 import { useApp } from "../lib/AppContext";
+import { workflowApi } from "../lib/api";
 
 type FilterTab = "all" | "pending" | "approved" | "returned" | "published";
 
@@ -355,6 +356,52 @@ export default function AcademicPlanning(props?: {
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  useEffect(() => {
+    workflowApi
+      .getSubmissions()
+      .then((res) => {
+        if (res && res.submissions && res.submissions.length > 0) {
+          setSubmissions((prev) => {
+            const updated = [...prev];
+            res.submissions.forEach((dbSub: any) => {
+              const idx = updated.findIndex((s) => s.department === dbSub.department);
+              const validStatus = (["pending", "approved", "returned", "published"].includes(dbSub.status)
+                ? dbSub.status
+                : "pending") as "pending" | "approved" | "returned" | "published";
+              if (idx !== -1) {
+                updated[idx] = {
+                  ...updated[idx],
+                  status: validStatus,
+                  courses: dbSub.courses || updated[idx].courses,
+                  publishedAt: dbSub.publishedAt || updated[idx].publishedAt,
+                };
+              } else {
+                updated.push({
+                  id: dbSub.id || dbSub.timetableId,
+                  department: dbSub.department,
+                  school: dbSub.school || "School of Computing & Engineering",
+                  level: "All Levels",
+                  semester: "First Semester 2026/27",
+                  deptTO: dbSub.deptTO || "Dept T.O",
+                  hod: "HOD",
+                  dean: "Dean",
+                  deanSignedAt: dbSub.deanSignedAt || "Recently",
+                  courses: dbSub.courses || 0,
+                  units: dbSub.units || 0,
+                  conflicts: 0,
+                  status: validStatus,
+                  publishedAt: dbSub.publishedAt,
+                  sessions: [],
+                });
+              }
+            });
+            return updated;
+          });
+        }
+      })
+      .catch((e) => console.warn("Could not fetch submissions from DB:", e));
+  }, [setSubmissions]);
+
   if (!submissions) return null;
 
   const selected = submissions.find((s) => s.id === selectedId) ?? null;
@@ -363,6 +410,14 @@ export default function AcademicPlanning(props?: {
     const sub = submissions.find((s) => s.id === id)!;
     const at = stamp();
     const newStatus = publish ? "published" as const : "approved" as const;
+
+    if (publish) {
+      workflowApi.publish(sub.department).catch(() => {});
+      context.updateTimetableStatus("Published", undefined, sub.department);
+    } else {
+      context.updateTimetableStatus("Submitted to Acad Pl. T.O", undefined, sub.department);
+    }
+
     setSubmissions((prev) =>
       prev.map((s) =>
         s.id === id
@@ -381,6 +436,9 @@ export default function AcademicPlanning(props?: {
 
   function handleReturn(id: string, comment: string) {
     const sub = submissions.find((s) => s.id === id)!;
+    workflowApi.hodReject(sub.department, comment).catch(() => {});
+    context.updateTimetableStatus("Draft generated", comment, sub.department);
+
     setSubmissions((prev) =>
       prev.map((s) =>
         s.id === id ? { ...s, status: "returned" as const, returnComment: comment } : s,
@@ -402,14 +460,14 @@ export default function AcademicPlanning(props?: {
     const toProcess = submissions.filter(
       (s) => selectedIds.has(s.id) && s.status === "pending",
     );
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        selectedIds.has(s.id) && s.status === "pending"
-          ? { ...s, status: newStatus, ...(publish ? { publishedAt: at } : {}) }
-          : s,
-      ),
-    );
+
     toProcess.forEach((s) => {
+      if (publish) {
+        workflowApi.publish(s.department).catch(() => {});
+        context.updateTimetableStatus("Published", undefined, s.department);
+      } else {
+        context.updateTimetableStatus("Submitted to Acad Pl. T.O", undefined, s.department);
+      }
       onAuditEntry({
         action: publish ? "published" : "approved",
         department: s.department,
@@ -417,6 +475,14 @@ export default function AcademicPlanning(props?: {
         level: s.level,
       });
     });
+
+    setSubmissions((prev) =>
+      prev.map((s) =>
+        selectedIds.has(s.id) && s.status === "pending"
+          ? { ...s, status: newStatus, ...(publish ? { publishedAt: at } : {}) }
+          : s,
+      ),
+    );
     setSelectedIds(new Set());
     setSelectedId(null);
   }

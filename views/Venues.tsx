@@ -15,7 +15,8 @@ import { venues as defaultVenues, days, slots, type Session, type Venue } from "
 import { useApp } from "../lib/AppContext";
 
 export default function Venues() {
-  const { localSessions, localVenues } = useApp();
+  const context = useApp();
+  const { localSessions, localVenues, externalBookings, timeLockConfig } = context;
   const venueList = localVenues?.length ? localVenues : defaultVenues;
   const [selectedVenue, setSelectedVenue] = useState<string>(
     venueList[0]?.name ?? "BUC_LAB1",
@@ -53,26 +54,39 @@ export default function Venues() {
     });
   }
 
-  // Calculate statistics for selected venue
+  // Helper to find external department booking in selected venue at (day, slot)
+  function getExternalBookingForCell(
+    venueName: string,
+    day: string,
+    slot: string,
+  ) {
+    if (!externalBookings || externalBookings.length === 0) return undefined;
+    const slotIdx = slots.indexOf(slot as any);
+    return externalBookings.find((b) => {
+      if (b.venue !== venueName || b.day !== day) return false;
+      const startIdx = slots.indexOf(b.slot as any);
+      const dur = b.duration ?? 1;
+      return slotIdx >= startIdx && slotIdx < startIdx + dur;
+    });
+  }
+
+  // Calculate statistics for selected venue using dynamic time lock configuration
   let occupiedSlotsCount = 0;
   let freeSlotsCount = 0;
+  const cfg = context.timeLockConfig;
 
   days.forEach((d) => {
     slots.forEach((s) => {
-      const isBreak = s === "13:00";
-      const isWedOff = d === "Wed" && s === "17:00";
-      const isFriOff =
-        d === "Fri" &&
-        (s === "13:00" ||
-          s === "14:00" ||
-          s === "15:00" ||
-          s === "16:00" ||
-          s === "17:00");
-      const isSystemLocked = isBreak || isWedOff || isFriOff;
+      const isBreak = cfg?.lunchBreak?.enabled && s === cfg.lunchBreak.slot;
+      const earlyClosing = cfg?.earlyClosings?.find(
+        (ec) => ec.enabled && ec.day === d && slots.indexOf(s as any) >= slots.indexOf(ec.cutoffSlot)
+      );
+      const isSystemLocked = isBreak || !!earlyClosing;
 
       if (!isSystemLocked) {
         const session = getSessionForCell(currentVenue?.name ?? "", d, s);
-        if (session) occupiedSlotsCount++;
+        const external = getExternalBookingForCell(currentVenue?.name ?? "", d, s);
+        if (session || external) occupiedSlotsCount++;
         else freeSlotsCount++;
       }
     });
@@ -213,18 +227,18 @@ export default function Venues() {
                         {s}
                       </div>
                       {days.map((d) => {
-                        const isBreak = s === "13:00";
-                        const isWedOff = d === "Wed" && s === "17:00";
-                        const isFriOff =
-                          d === "Fri" &&
-                          (s === "13:00" ||
-                            s === "14:00" ||
-                            s === "15:00" ||
-                            s === "16:00" ||
-                            s === "17:00");
-                        const isSystemLocked = isBreak || isWedOff || isFriOff;
+                        const isBreak = cfg?.lunchBreak?.enabled && s === cfg.lunchBreak.slot;
+                        const earlyClosing = cfg?.earlyClosings?.find(
+                          (ec) => ec.enabled && ec.day === d && slots.indexOf(s as any) >= slots.indexOf(ec.cutoffSlot)
+                        );
+                        const isSystemLocked = isBreak || !!earlyClosing;
 
                         const session = getSessionForCell(
+                          currentVenue.name,
+                          d,
+                          s,
+                        );
+                        const external = getExternalBookingForCell(
                           currentVenue.name,
                           d,
                           s,
@@ -241,7 +255,7 @@ export default function Venues() {
                           );
                         }
 
-                        if (isWedOff || isFriOff) {
+                        if (earlyClosing) {
                           return (
                             <div
                               key={d + s}
@@ -263,6 +277,28 @@ export default function Venues() {
                               </p>
                               <p className="text-[9.5px] text-muted truncate">
                                 {session.lecturer}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        if (external) {
+                          return (
+                            <div
+                              key={d + s}
+                              className="flex flex-col justify-center rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-1 transition"
+                              title={`Reserved by ${external.booked_by_department} for ${external.course_code} (${external.lecturer})`}
+                            >
+                              <div className="flex items-center justify-between gap-1">
+                                <p className="text-[11px] font-bold text-amber-700 dark:text-amber-300 truncate">
+                                  {external.course_code}
+                                </p>
+                                <span className="shrink-0 text-[8px] font-semibold uppercase px-1 rounded bg-amber-500/20 text-amber-800 dark:text-amber-200">
+                                  Locked
+                                </span>
+                              </div>
+                              <p className="text-[9px] text-muted truncate">
+                                {external.booked_by_department}
                               </p>
                             </div>
                           );
@@ -293,7 +329,11 @@ export default function Venues() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-3 w-3 rounded bg-brand-soft ring-1 ring-brand/30" />
-                  Occupied (Scheduled Session)
+                  Occupied (Your Dept)
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded bg-amber-500/20 border border-amber-500/40" />
+                  Locked (Other Dept)
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-3 w-3 rounded bg-panel ring-1 ring-line" />

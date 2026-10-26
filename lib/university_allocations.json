@@ -778,7 +778,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -789,7 +789,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -811,7 +811,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -822,7 +822,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -833,7 +833,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -844,7 +844,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -855,7 +855,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -1616,7 +1616,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -1638,7 +1638,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -1649,7 +1649,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -1660,7 +1660,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -2168,7 +2168,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -2179,7 +2179,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -2201,7 +2201,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -2742,7 +2742,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -2764,7 +2764,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -2775,7 +2775,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -3316,7 +3316,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -3393,7 +3393,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -3415,7 +3415,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -3967,7 +3967,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -4077,7 +4077,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -4121,7 +4121,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -4447,7 +4447,7 @@
     },
     {
       "code": "MCM 305",
-      "title": "Newspaper/Magazine Management and Production",
+      "title": "Newspaper/Magazine Management\u00a0and Production",
       "lecturer": "Adetola Adesegun S",
       "units": 2,
       "size": 55,
@@ -4629,7 +4629,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -4651,7 +4651,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -4662,7 +4662,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -4860,7 +4860,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -4981,7 +4981,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -5313,7 +5313,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6052,7 +6052,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6151,7 +6151,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -6184,7 +6184,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -6261,7 +6261,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6305,7 +6305,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6327,7 +6327,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6338,7 +6338,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6692,7 +6692,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -6714,7 +6714,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -6725,7 +6725,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -7266,7 +7266,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -7387,7 +7387,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -7420,7 +7420,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -7464,7 +7464,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -7475,7 +7475,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -7585,7 +7585,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -7607,7 +7607,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -7796,7 +7796,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -8568,7 +8568,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -8612,7 +8612,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -8689,7 +8689,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -8733,7 +8733,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -8755,7 +8755,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -8810,7 +8810,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     }
   ],
@@ -9142,7 +9142,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -9252,7 +9252,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -9263,7 +9263,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -9705,7 +9705,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -9749,7 +9749,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -9771,7 +9771,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -9782,7 +9782,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -10114,7 +10114,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -10147,7 +10147,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -10169,7 +10169,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -10191,7 +10191,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -10213,7 +10213,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -10224,7 +10224,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -10598,7 +10598,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -10609,7 +10609,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group B",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -11012,7 +11012,7 @@
     },
     {
       "code": "MUS 331",
-      "title": "Western Music, 1750 – present",
+      "title": "Western Music, 1750 \u2013 present",
       "lecturer": "Daramola Tolulope",
       "units": 2,
       "size": 55,
@@ -11293,7 +11293,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -11337,7 +11337,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -11359,7 +11359,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -11735,7 +11735,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -11801,7 +11801,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -11823,7 +11823,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     }
   ],
@@ -12210,7 +12210,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -12276,7 +12276,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -12298,7 +12298,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     }
   ],
@@ -13356,7 +13356,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -13378,7 +13378,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -13389,7 +13389,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -13400,7 +13400,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -13864,7 +13864,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -13886,7 +13886,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -13897,7 +13897,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -14317,7 +14317,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -14339,7 +14339,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -14350,7 +14350,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     }
   ],
@@ -14748,7 +14748,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -14814,7 +14814,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -14836,7 +14836,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -15190,7 +15190,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -15234,7 +15234,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -15256,7 +15256,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -15665,7 +15665,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -15709,7 +15709,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -15731,7 +15731,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -16085,7 +16085,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -16129,7 +16129,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -16151,7 +16151,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -16174,7 +16174,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -16227,31 +16227,9 @@
       "title": "Introduction to Computer Science and Programming I, II",
       "lecturer": "Akande Oyebola",
       "units": 3,
-      "size": 60,
+      "size": 55,
       "type": "Core",
-      "group": "Group A & B",
-      "level": "100 Level",
-      "isVirtual": false
-    },
-    {
-      "code": "COSC111",
-      "title": "Introduction to Computer Science and Programming I, II",
-      "lecturer": "Akande Oyebola",
-      "units": 3,
-      "size": 60,
-      "type": "Core",
-      "group": "Group C & D",
-      "level": "100 Level",
-      "isVirtual": false
-    },
-    {
-      "code": "COSC111",
-      "title": "Introduction to Computer Science and Programming I, II",
-      "lecturer": "Akande Oyebola",
-      "units": 3,
-      "size": 60,
-      "type": "Core",
-      "group": "Group E & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -16262,7 +16240,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16273,7 +16251,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16284,7 +16262,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16295,7 +16273,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -16306,7 +16284,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -16339,7 +16317,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -16350,7 +16328,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -16383,7 +16361,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -16438,7 +16416,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -16493,7 +16471,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -16548,7 +16526,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16559,7 +16537,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16570,7 +16548,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16581,7 +16559,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16592,7 +16570,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16603,7 +16581,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16614,7 +16592,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16625,7 +16603,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16636,7 +16614,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16647,7 +16625,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16658,7 +16636,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16669,7 +16647,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -16680,7 +16658,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16735,7 +16713,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16746,7 +16724,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16779,7 +16757,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16790,7 +16768,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16823,7 +16801,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16878,7 +16856,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16889,7 +16867,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -16922,7 +16900,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -16971,13 +16949,24 @@
       "isVirtual": false
     },
     {
+      "code": "BU-GST 011",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
+      "type": "GST",
+      "group": "Group A",
+      "level": "100 Level",
+      "isVirtual": true
+    },
+    {
       "code": "MTH 101",
       "title": "Elementary Mathematics I",
       "lecturer": "Kanu, Richmond Uchenna",
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -16988,7 +16977,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17019,31 +17008,9 @@
       "title": "General Mathematics  I",
       "lecturer": "Kanu, Richmond Uchenna",
       "units": 3,
-      "size": 60,
+      "size": 55,
       "type": "Core",
-      "group": "Group A & B",
-      "level": "100 Level",
-      "isVirtual": false
-    },
-    {
-      "code": "MATH101",
-      "title": "General Mathematics  I",
-      "lecturer": "Kanu, Richmond Uchenna",
-      "units": 3,
-      "size": 60,
-      "type": "Core",
-      "group": "Group C & D",
-      "level": "100 Level",
-      "isVirtual": false
-    },
-    {
-      "code": "MATH101",
-      "title": "General Mathematics  I",
-      "lecturer": "Kanu, Richmond Uchenna",
-      "units": 3,
-      "size": 60,
-      "type": "Core",
-      "group": "Group E & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17054,20 +17021,20 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
     {
-      "code": "GEDS 001 / BU-GST",
-      "title": "Chapel Seminar & Citizenship Orientation",
-      "lecturer": "Chapel Directorate / Abioye Funke Victoria",
-      "units": 1,
-      "size": 250,
+      "code": "GEDS001",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
       "type": "GST",
-      "group": "All",
+      "group": "Group A",
       "level": "100 Level",
-      "isVirtual": false
+      "isVirtual": true
     },
     {
       "code": "COSC333",
@@ -17076,7 +17043,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17087,7 +17054,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17098,7 +17065,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -17153,7 +17120,7 @@
       "units": 1,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17164,7 +17131,7 @@
       "units": 1,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17197,7 +17164,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17208,7 +17175,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17233,6 +17200,17 @@
       "group": "Group D",
       "level": "100 Level",
       "isVirtual": false
+    },
+    {
+      "code": "BU-GST 021",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
+      "type": "GST",
+      "group": "Group A",
+      "level": "200 Level",
+      "isVirtual": true
     },
     {
       "code": "GST 111",
@@ -17241,7 +17219,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "All",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": true
     },
@@ -17251,8 +17229,8 @@
       "lecturer": "Esator Goodluck",
       "units": 2,
       "size": 55,
-      "type": "Elective",
-      "group": "Group A & F",
+      "type": "Core",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -17262,7 +17240,7 @@
       "lecturer": "Esator Goodluck",
       "units": 2,
       "size": 55,
-      "type": "Elective",
+      "type": "Core",
       "group": "Group B",
       "level": "200 Level",
       "isVirtual": false
@@ -17273,7 +17251,7 @@
       "lecturer": "Ayeni David",
       "units": 2,
       "size": 55,
-      "type": "Elective",
+      "type": "Core",
       "group": "Group C",
       "level": "200 Level",
       "isVirtual": false
@@ -17284,7 +17262,7 @@
       "lecturer": "Ayeni David",
       "units": 2,
       "size": 55,
-      "type": "Elective",
+      "type": "Core",
       "group": "Group D",
       "level": "200 Level",
       "isVirtual": false
@@ -17295,7 +17273,7 @@
       "lecturer": "Ibhiedu Amos",
       "units": 2,
       "size": 55,
-      "type": "Elective",
+      "type": "Core",
       "group": "Group E",
       "level": "200 Level",
       "isVirtual": false
@@ -17307,7 +17285,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17318,7 +17296,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17400,13 +17378,35 @@
       "isVirtual": true
     },
     {
+      "code": "BU-GST 031",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
+      "type": "GST",
+      "group": "Group A",
+      "level": "300 Level",
+      "isVirtual": true
+    },
+    {
+      "code": "BU-GST 041",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
+      "type": "GST",
+      "group": "Group A",
+      "level": "400 Level",
+      "isVirtual": true
+    },
+    {
       "code": "PHYS101",
       "title": "General Physics I",
       "lecturer": "Kehinde Daniel Olusegun",
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17417,7 +17417,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17428,7 +17428,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": true
     },
@@ -17439,7 +17439,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": true
     },
@@ -17450,7 +17450,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": true
     },
@@ -17461,20 +17461,20 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": true
     },
     {
-      "code": "GEDS 001 / BU-GST",
-      "title": "Chapel Seminar & Citizenship Orientation",
-      "lecturer": "Chapel Directorate / Abioye Funke Victoria",
-      "units": 1,
-      "size": 250,
+      "code": "GEDS001",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
       "type": "GST",
-      "group": "All",
-      "level": "200 Level",
-      "isVirtual": false
+      "group": "Group A",
+      "level": "100 Level",
+      "isVirtual": true
     },
     {
       "code": "COSC107",
@@ -17483,7 +17483,7 @@
       "units": 1,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17494,7 +17494,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -17505,7 +17505,7 @@
       "units": 1,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -17516,7 +17516,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": true
     },
@@ -17527,7 +17527,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -17538,7 +17538,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17549,7 +17549,7 @@
       "units": 1,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17560,7 +17560,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17571,7 +17571,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17582,7 +17582,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17593,20 +17593,20 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
     {
-      "code": "GEDS 001 / BU-GST",
-      "title": "Chapel Seminar & Citizenship Orientation",
-      "lecturer": "Chapel Directorate / Abioye Funke Victoria",
-      "units": 1,
-      "size": 250,
+      "code": "GEDS001",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
       "type": "GST",
-      "group": "All",
-      "level": "300 Level",
-      "isVirtual": false
+      "group": "Group A",
+      "level": "100 Level",
+      "isVirtual": true
     },
     {
       "code": "COSC325",
@@ -17615,7 +17615,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17626,7 +17626,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17637,7 +17637,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": true
     },
@@ -17648,7 +17648,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17659,7 +17659,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17670,7 +17670,7 @@
       "units": 1,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17681,20 +17681,20 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
     {
-      "code": "GEDS 001 / BU-GST",
-      "title": "Chapel Seminar & Citizenship Orientation",
-      "lecturer": "Chapel Directorate / Abioye Funke Victoria",
-      "units": 1,
-      "size": 250,
+      "code": "GEDS001",
+      "title": "Citizenship Orientation",
+      "lecturer": "Abioye Funke Victoria",
+      "units": 0,
+      "size": 55,
       "type": "GST",
-      "group": "All",
-      "level": "400 Level",
-      "isVirtual": false
+      "group": "Group A",
+      "level": "100 Level",
+      "isVirtual": true
     },
     {
       "code": "ITGY400",
@@ -17703,7 +17703,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17714,7 +17714,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": true
     },
@@ -17725,7 +17725,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17736,7 +17736,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17747,7 +17747,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": true
     },
@@ -17846,7 +17846,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group A & F",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17857,7 +17857,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group B & E",
+      "group": "Group B",
       "level": "300 Level",
       "isVirtual": false
     },
@@ -17890,7 +17890,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group A & C & E",
+      "group": "Group A",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17901,7 +17901,7 @@
       "units": 2,
       "size": 55,
       "type": "Core",
-      "group": "Group B & D & F",
+      "group": "Group B",
       "level": "400 Level",
       "isVirtual": false
     },
@@ -17912,7 +17912,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "100 Level",
       "isVirtual": false
     },
@@ -17923,7 +17923,7 @@
       "units": 2,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": true
     },
@@ -17934,7 +17934,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": false
     },
@@ -17945,7 +17945,7 @@
       "units": 3,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "300 Level",
       "isVirtual": true
     },
@@ -17956,7 +17956,7 @@
       "units": 3,
       "size": 55,
       "type": "GST",
-      "group": "Direct Entry",
+      "group": "Group A",
       "level": "200 Level",
       "isVirtual": true
     },
@@ -18022,7 +18022,7 @@
       "units": 3,
       "size": 55,
       "type": "Core",
-      "group": "Group E",
+      "group": "Group F",
       "level": "300 Level",
       "isVirtual": false
     }
@@ -18074,7 +18074,7 @@
     },
     {
       "code": "BU-HIS 109",
-      "title": "Nigerian constitutional development 1914 – 1999",
+      "title": "Nigerian constitutional development 1914 \u2013 1999",
       "lecturer": "Popoola Micheal",
       "units": 2,
       "size": 55,
@@ -18085,7 +18085,7 @@
     },
     {
       "code": "BU-HIS 109",
-      "title": "Nigerian constitutional development 1914 – 1999",
+      "title": "Nigerian constitutional development 1914 \u2013 1999",
       "lecturer": "Nwachukwu Chituru Udo",
       "units": 2,
       "size": 55,
@@ -18118,7 +18118,7 @@
     },
     {
       "code": "HIS 201",
-      "title": "Nigeria from 1000 – 1900",
+      "title": "Nigeria from 1000 \u2013 1900",
       "lecturer": "Tommy Grace",
       "units": 3,
       "size": 55,
@@ -18129,7 +18129,7 @@
     },
     {
       "code": "HIS 201",
-      "title": "Nigeria from 1000 – 1900",
+      "title": "Nigeria from 1000 \u2013 1900",
       "lecturer": "Orji Boniface Ifeanyi",
       "units": 3,
       "size": 55,
@@ -18476,7 +18476,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -18498,7 +18498,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -18509,7 +18509,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -18786,7 +18786,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -18808,7 +18808,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -18819,7 +18819,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -19132,7 +19132,7 @@
     },
     {
       "code": "AGRY501",
-      "title": "Ornamental Horticultureÿ",
+      "title": "Ornamental Horticulture\u00ff",
       "lecturer": "Shobo Bolatito Adenike",
       "units": 2,
       "size": 55,
@@ -19204,7 +19204,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -19657,7 +19657,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -19712,7 +19712,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -19734,7 +19734,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -19879,7 +19879,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -20387,7 +20387,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -20431,7 +20431,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -20464,7 +20464,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -21082,7 +21082,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -21115,7 +21115,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -21126,7 +21126,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     }
   ],
@@ -21447,7 +21447,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -21491,7 +21491,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -21513,7 +21513,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -21546,7 +21546,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -21601,7 +21601,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -21689,7 +21689,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -22252,7 +22252,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -22274,7 +22274,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -22285,7 +22285,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -22529,7 +22529,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -22597,7 +22597,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -22806,7 +22806,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -23059,7 +23059,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -23312,7 +23312,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -23422,7 +23422,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -24282,7 +24282,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -24293,7 +24293,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -24315,7 +24315,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     }
   ],
@@ -24372,7 +24372,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -24636,7 +24636,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -24768,7 +24768,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -25300,7 +25300,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -25311,7 +25311,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -25333,7 +25333,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -25852,7 +25852,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -25885,7 +25885,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -25896,7 +25896,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -28188,7 +28188,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -28210,7 +28210,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -28221,7 +28221,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -28232,7 +28232,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -28243,7 +28243,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -28254,7 +28254,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -28276,7 +28276,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -28773,7 +28773,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -28806,7 +28806,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -28828,7 +28828,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -29338,7 +29338,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -29360,7 +29360,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -29382,7 +29382,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -29857,7 +29857,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -29868,7 +29868,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -29901,7 +29901,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -30189,7 +30189,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -30321,7 +30321,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -30400,7 +30400,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -30631,7 +30631,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "300 Level",
       "isVirtual": true
     },
     {
@@ -30873,7 +30873,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "400 Level",
       "isVirtual": true
     },
     {
@@ -31071,7 +31071,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -31170,7 +31170,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -31280,7 +31280,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {
@@ -31390,7 +31390,7 @@
       "size": 55,
       "type": "GST",
       "group": "Group A",
-      "level": "200 Level",
+      "level": "100 Level",
       "isVirtual": true
     },
     {

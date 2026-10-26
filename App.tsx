@@ -18,6 +18,7 @@ import AcademicPlanningAudit from "./views/AcademicPlanningAudit";
 import AcademicPlanningClashes from "./views/AcademicPlanningClashes";
 import AcademicPlanningAnalytics from "./views/AcademicPlanningAnalytics";
 import AcademicPlanningConstraints from "./views/AcademicPlanningConstraints";
+import { useApp } from "./lib/AppContext";
 import {
   sessions,
   constraints,
@@ -37,76 +38,57 @@ import {
 } from "./lib/data";
 
 const defaultViewByRole: Record<UserRole, View> = {
-  deptTO: "dashboard",
+  deptTO: "generate",
   hod: "hodReview",
   dean: "deanReview",
   acadPlanningTO: "acadPlanning",
 };
 
-const topBarSubtitleByRole: Partial<Record<UserRole, string>> = {
-  deptTO: `${department.name} — ${department.session}, ${department.semester}`,
-  hod: `Head of Department · ${department.name}`,
-  dean: department.school,
-  acadPlanningTO: "Babcock University · First Semester 2025/26",
-};
-
 const topBarTitleByView: Record<View, string> = {
-  dashboard: "Dashboard",
-  allocations: "Allocations",
-  venues: "Venues & Timeslots",
-  constraints: "Constraints",
-  generate: "Generated Timetable",
+  dashboard: "Overview Dashboard",
+  allocations: "Course Allocations",
+  venues: "Venues & Room Schedules",
+  constraints: "Lecturer Scheduling Rules",
+  generate: "Timetable Schedule",
   history: "Status & History",
   hodReview: "Submissions",
   deanReview: "School Submissions",
   acadPlanning: "Academic Planning Office",
   acadPublished: "Published Timetables",
   acadAudit: "Audit Log",
-  acadConstraints: "Constraints Management",
+  acadConstraints: "Scheduling Rules & Templates",
   acadClashes: "Venue Clash Detection",
   acadAnalytics: "Analytics",
 };
 
-function nowLabel() {
-  const d = new Date();
-  const month = d.toLocaleString("en-US", { month: "short" });
-  const day = String(d.getDate()).padStart(2, "0");
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  return `${month} ${day}, ${h}:${m}`;
-}
-
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
-  const [view, setView] = useState<View>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [status, setStatus] = useState<Status>("Draft generated");
-  const [constraintsComplete, setConstraintsComplete] = useState(false);
-  const [localSessions, setLocalSessions] = useState<Session[]>(sessions);
-  const [localConstraints, setLocalConstraints] = useState<Constraint[]>(constraints);
-  const [localTimeline, setLocalTimeline] = useState<TimelineStep[]>(timeline);
-
-  // Shared Acad Planning state — lifted so all three views stay in sync
-  const [deptSubs, setDeptSubs] = useState<DeptSubmission[]>(deptSubmissions);
-  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>(auditLog);
-
-  function addAuditEntry(partial: Omit<AuditEntry, "id" | "actor" | "at">) {
-    const entry: AuditEntry = {
-      ...partial,
-      id: `a${Date.now()}`,
-      actor: "M. Danladi",
-      at: nowLabel(),
-    };
-    setAuditEntries((prev) => [entry, ...prev]);
-  }
+  const context = useApp();
+  const currentUser = context.currentUser;
+  const [view, setView] = useState<View>("generate");
+  const sidebarOpen = context.sidebarOpen;
+  const setSidebarOpen = context.setSidebarOpen;
+  const status = context.status;
+  const setStatus = context.setStatus;
+  const constraintsComplete = context.constraintsComplete;
+  const setConstraintsComplete = context.setConstraintsComplete;
+  const localSessions = context.localSessions;
+  const setLocalSessions = context.setLocalSessions;
+  const localConstraints = context.localConstraints;
+  const setLocalConstraints = context.setLocalConstraints;
+  const localTimeline = context.localTimeline;
+  const setLocalTimeline = context.setLocalTimeline;
+  const deptSubs = context.deptSubs;
+  const setDeptSubs = context.setDeptSubs;
+  const auditEntries = context.auditEntries;
+  const addAuditEntry = context.addAuditEntry;
 
   function handleLogin(account: UserAccount) {
-    setCurrentUser(account);
+    context.handleLogin(account);
     setView(defaultViewByRole[account.role]);
   }
 
   function handleLogout() {
-    setCurrentUser(null);
+    context.handleLogout();
     setView("dashboard");
   }
 
@@ -115,6 +97,16 @@ export default function App() {
   }
 
   const showStatus = currentUser.role === "deptTO" ? status : undefined;
+  const userDept = currentUser.department || department.name;
+  const userSchool = currentUser.school || department.school;
+  const currentSubtitle =
+    currentUser.role === "deptTO"
+      ? `${userDept} — ${department.session}, ${department.semester}`
+      : currentUser.role === "hod"
+      ? `Head of Department · ${userDept}`
+      : currentUser.role === "dean"
+      ? userSchool
+      : "Babcock University · First Semester 2025/26";
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-canvas">
@@ -129,7 +121,7 @@ export default function App() {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
           title={topBarTitleByView[view]}
-          subtitle={topBarSubtitleByRole[currentUser.role]}
+          subtitle={currentSubtitle}
           status={showStatus}
           onMenuClick={() => setSidebarOpen(true)}
           setView={setView}
@@ -151,6 +143,7 @@ export default function App() {
             {view === "venues" && <Venues />}
             {view === "constraints" && (
               <Constraints
+                setView={setView}
                 localConstraints={localConstraints}
                 setLocalConstraints={setLocalConstraints}
                 constraintsComplete={constraintsComplete}

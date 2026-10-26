@@ -212,6 +212,7 @@ export default function Sidebar({
                 <BadgeCheck size={14} className="text-brand" />
               </p>
               <p className="truncate text-[11.5px] text-muted">
+                {currentUser.department ? `${currentUser.department} · ` : ""}
                 {currentUser.roleLabel}
               </p>
             </div>

@@ -67,6 +67,7 @@ export default function Dashboard(props?: {
   const constraintsComplete = props?.constraintsComplete ?? context.constraintsComplete;
   const localTimeline = props?.localTimeline ?? context.localTimeline;
   const allocations = context.localAllocations ?? defaultAllocations;
+  const deptName = context.currentUser?.department || context.currentProgram || department.name;
 
   const conflicts = localSessions.filter((s) => s.conflict);
   const rejection = localTimeline.find((t) => t.state === "rejected");
@@ -89,7 +90,7 @@ export default function Dashboard(props?: {
           <CardHead
             icon={<CalendarClock size={18} />}
             title="Timetable readiness"
-            sub={`${department.name} · ${department.level} · ${department.semester}`}
+            sub={`${deptName} · ${department.level} · ${department.semester}`}
             action={
               submitted ? (
                 <Pill tone="good">
@@ -105,9 +106,9 @@ export default function Dashboard(props?: {
           <div className="flex flex-col gap-3 px-5 pb-5 sm:flex-row">
             <Stat label="Courses allocated" value={String(allocations.length)} hint="9 lecturers assigned" />
             <Stat
-              label="Constraints active"
+              label="Scheduling rules active"
               value={String(localConstraints.length)}
-              hint={constraintsComplete ? "Marked complete" : "Study leave, days off, adjuncts"}
+              hint={constraintsComplete ? "Rules marked ready" : "Leaves, days off & teaching rules"}
               tone="brand"
             />
             <Stat

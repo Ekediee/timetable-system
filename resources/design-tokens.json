@@ -1,0 +1,162 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "surface": {
+      "canvas": {
+        "value": "#eef1f5",
+        "type": "color",
+        "description": "Base app canvas background"
+      },
+      "panel": {
+        "value": "#f5f6f8",
+        "type": "color",
+        "description": "Subtle container and secondary background"
+      },
+      "card": {
+        "value": "#ffffff",
+        "type": "color",
+        "description": "Elevated card and surface white"
+      }
+    },
+    "text": {
+      "ink": {
+        "value": "#10131a",
+        "type": "color",
+        "description": "Primary high-contrast text color"
+      },
+      "subink": {
+        "value": "#414652",
+        "type": "color",
+        "description": "Secondary body and label text"
+      },
+      "muted": {
+        "value": "#737884",
+        "type": "color",
+        "description": "Tertiary, placeholder, and metadata text"
+      }
+    },
+    "border": {
+      "line": {
+        "value": "#e7e9ee",
+        "type": "color",
+        "description": "Default border and divider line"
+      },
+      "line-soft": {
+        "value": "#eef0f4",
+        "type": "color",
+        "description": "Subtle border line"
+      }
+    },
+    "brand": {
+      "default": {
+        "value": "#2f66ff",
+        "type": "color",
+        "description": "Primary brand action color"
+      },
+      "ink": {
+        "value": "#1e4fd6",
+        "type": "color",
+        "description": "Primary brand hover/active state"
+      },
+      "soft": {
+        "value": "#e9effe",
+        "type": "color",
+        "description": "Primary brand subtle tinted background"
+      }
+    },
+    "feedback": {
+      "good": {
+        "value": "#16a06a",
+        "type": "color",
+        "description": "Success and published status"
+      },
+      "good-soft": {
+        "value": "#e6f6ee",
+        "type": "color",
+        "description": "Success soft background fill"
+      },
+      "warn": {
+        "value": "#d9822b",
+        "type": "color",
+        "description": "Warning and draft status"
+      },
+      "warn-soft": {
+        "value": "#fbf0e2",
+        "type": "color",
+        "description": "Warning soft background fill"
+      },
+      "bad": {
+        "value": "#dc3d43",
+        "type": "color",
+        "description": "Danger, error, and rejected status"
+      },
+      "bad-soft": {
+        "value": "#fcecec",
+        "type": "color",
+        "description": "Danger soft background fill"
+      },
+      "violet": {
+        "value": "#6b53d6",
+        "type": "color",
+        "description": "Accent / academic planning accent"
+      },
+      "violet-soft": {
+        "value": "#efecfb",
+        "type": "color",
+        "description": "Accent soft background fill"
+      }
+    },
+    "scrollbar": {
+      "thumb": {
+        "value": "#cdd1d9",
+        "type": "color",
+        "description": "Scrollbar hover thumb indicator"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": {
+        "value": ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+        "type": "fontFamily",
+        "description": "Primary application sans font family"
+      }
+    },
+    "featureSettings": {
+      "sans": {
+        "value": "\"cv11\", \"ss01\"",
+        "type": "other",
+        "description": "Font OpenType stylistic alternatives (Inter cv11, ss01)"
+      }
+    }
+  },
+  "borderRadius": {
+    "card": {
+      "value": "1rem",
+      "type": "borderRadius",
+      "description": "16px rounded-2xl for surface cards"
+    },
+    "interactive": {
+      "value": "0.75rem",
+      "type": "borderRadius",
+      "description": "12px rounded-xl for buttons, inputs, form controls"
+    },
+    "pill": {
+      "value": "9999px",
+      "type": "borderRadius",
+      "description": "Full rounded pill for badges, status chips"
+    }
+  },
+  "transition": {
+    "fade": {
+      "duration": {
+        "value": "0.28s",
+        "type": "duration"
+      },
+      "timingFunction": {
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "type": "cubicBezier"
+      }
+    }
+  }
+}

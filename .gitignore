@@ -1,4 +1,5 @@
 node_modules/
+.next/
 dist/
 build/
 .cache/
@@ -19,8 +20,13 @@ logs/
 /.plugins/
 /.opencode-skills/
 checklist.md
+docs/checklist.md
 
 2026_2027_first_semester_allocation.xlsx
+resources/2026_2027_first_semester_allocation.xlsx
 venu.csv
+resources/venu.csv
 BACKEND_API_SPECIFICATION.md
+docs/BACKEND_API_SPECIFICATION.md
 TIMETABLE_CONSTRAINTS.md
+docs/TIMETABLE_CONSTRAINTS.md

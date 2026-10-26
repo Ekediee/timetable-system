@@ -30,6 +30,23 @@ import {
   Layers,
   ArrowUpDown,
   CheckCheck,
+  ShieldCheck,
+  Lock,
+  Settings2,
+  Sliders,
+  CalendarOff,
+  UserCog,
+  Plane,
+  Eye,
+  HelpCircle,
+  CheckCircle,
+  Hash,
+  Type,
+  ListFilter,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles,
+  Info,
 } from "lucide-react";
 import { Card, CardHead, Button, Pill } from "../components/ui";
 import {
@@ -37,14 +54,24 @@ import {
   adjunctRecords as ADJUNCT_SEED,
   globalDaysOff as DAYS_OFF_SEED,
   globalStudyLeaves as STUDY_LEAVE_SEED,
+  days,
+  slots,
   type VenueRecord,
   type AdjunctRecord,
   type GlobalDayOff,
   type GlobalStudyLeave,
+  type ConstraintTypeDefinition,
+  type ConstraintRuleArchetype,
+  type ConstraintParameterField,
+  type ParameterFieldType,
+  constraintArchetypeTemplates,
+  defaultConstraintTypes,
+  type Constraint,
 } from "../lib/data";
+import { useApp } from "../lib/AppContext";
 
-type Tab = "venues" | "time";
-type TimeTab = "adjuncts" | "studyleave" | "daysoff";
+type Tab = "venues" | "time" | "types";
+type TimeTab = "adjuncts" | "studyleave" | "daysoff" | "timelocks";
 
 const DEPARTMENTS = [
   { name: "Computer Science", school: "School of Computing & Engineering" },
@@ -1295,182 +1322,73 @@ function VenuesTab() {
   );
 }
 
-// ── Adjuncts Section ─────────────────────────────────────────────────────────
+// ── Adjuncts Section (Read-Only Audit for Academic Planning) ────────────────
 
 function AdjunctsSection() {
-  const [adjuncts, setAdjuncts] = useState<AdjunctRecord[]>(ADJUNCT_SEED);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    department: "",
-    courses: "",
-    availableDays: [] as string[],
-    note: "",
+  const [adjuncts] = useState<AdjunctRecord[]>(ADJUNCT_SEED);
+  const [filterDept, setFilterDept] = useState("all");
+  const [search, setSearch] = useState("");
+
+  const filtered = adjuncts.filter((a) => {
+    if (filterDept !== "all" && a.department !== filterDept) return false;
+    if (
+      search &&
+      !a.name.toLowerCase().includes(search.toLowerCase()) &&
+      !a.department.toLowerCase().includes(search.toLowerCase())
+    )
+      return false;
+    return true;
   });
-
-  function toggleDay(day: string) {
-    setForm((f) => ({
-      ...f,
-      availableDays: f.availableDays.includes(day)
-        ? f.availableDays.filter((d) => d !== day)
-        : [...f.availableDays, day],
-    }));
-  }
-
-  function handleAdd() {
-    if (!form.name.trim() || !form.department) return;
-    const dept = DEPARTMENTS.find((d) => d.name === form.department)!;
-    const entry: AdjunctRecord = {
-      id: `adj${Date.now()}`,
-      name: form.name.trim(),
-      department: form.department,
-      school: dept?.school ?? "",
-      courses: form.courses
-        .split(",")
-        .map((c) => c.trim())
-        .filter(Boolean),
-      availableDays: form.availableDays,
-      note: form.note.trim(),
-    };
-    setAdjuncts((prev) => [entry, ...prev]);
-    setForm({
-      name: "",
-      department: "",
-      courses: "",
-      availableDays: [],
-      note: "",
-    });
-    setShowForm(false);
-  }
 
   return (
     <Card>
       <CardHead
         icon={<UserCheck size={16} />}
-        title="Adjunct Lecturer Roster"
-        sub={`${adjuncts.length} adjunct${adjuncts.length !== 1 ? "s" : ""} registered institution-wide`}
+        title="Departmental Adjunct Rosters"
+        sub={`${adjuncts.length} adjunct${adjuncts.length !== 1 ? "s" : ""} registered across departments · Read-only audit view`}
         action={
-          <Button
-            variant="primary"
-            className="h-8 px-3 text-[12.5px]"
-            onClick={() => setShowForm((v) => !v)}
-          >
-            <Plus size={12} /> Add adjunct
-          </Button>
+          <span className="rounded-full bg-panel border border-line px-2.5 py-1 text-[11px] font-semibold text-muted flex items-center gap-1.5">
+            <Lock size={11} className="text-muted" /> Managed by Departmental TOs
+          </span>
         }
       />
 
-      {/* Add form */}
-      {showForm && (
-        <div className="mx-5 mb-4 rounded-xl border border-brand/30 bg-brand-soft/20 px-4 py-4">
-          <p className="mb-3 text-[13px] font-semibold text-ink">
-            New adjunct lecturer
-          </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Full name
-              </label>
-              <input
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="e.g. Nguyen A.K"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Department
-              </label>
-              <select
-                value={form.department}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, department: e.target.value }))
-                }
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink focus:border-brand focus:outline-none"
-              >
-                <option value="">Select department…</option>
-                <option value="General Studies">General Studies (GST)</option>
-                {DEPARTMENTS.map((d) => (
-                  <option key={d.name} value={d.name}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Courses taught (comma-separated)
-              </label>
-              <input
-                value={form.courses}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, courses: e.target.value }))
-                }
-                placeholder="e.g. BU-GST 201, COSC 268"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Note / restriction
-              </label>
-              <input
-                value={form.note}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, note: e.target.value }))
-                }
-                placeholder="e.g. Evenings only, after 14:00"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-[11.5px] font-semibold text-muted">
-                Available days
-              </label>
-              <div className="flex gap-2">
-                {ALL_DAYS.map((day) => {
-                  const on = form.availableDays.includes(day);
-                  return (
-                    <button
-                      key={day}
-                      onClick={() => toggleDay(day)}
-                      className={`flex h-8 w-12 items-center justify-center rounded-lg border text-[12px] font-semibold transition ${
-                        on
-                          ? "border-brand bg-brand text-white"
-                          : "border-line bg-white text-muted hover:border-brand/40"
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button
-              variant="primary"
-              className="h-8 px-4 text-[12.5px]"
-              onClick={handleAdd}
-            >
-              Save adjunct
-            </Button>
-            <Button
-              variant="ghost"
-              className="h-8 px-3 text-[12.5px]"
-              onClick={() => setShowForm(false)}
-            >
-              Cancel
-            </Button>
-          </div>
+      <div className="mx-5 mb-4 rounded-xl border border-line/80 bg-panel/30 px-3.5 py-2.5 text-[12px] text-muted flex items-start gap-2.5">
+        <Info size={15} className="text-brand shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          <strong className="text-ink font-semibold">Institutional Audit View:</strong> Departmental Timetable Officers register and update their adjunct lecturers' teaching windows. Academic Planning defines the underlying constraint categories and audits adherence.
+        </p>
+      </div>
+
+      {/* Filter and search */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 pb-3">
+        <div className="flex items-center gap-2">
+          <select
+            value={filterDept}
+            onChange={(e) => setFilterDept(e.target.value)}
+            className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-medium text-ink focus:border-brand focus:outline-none cursor-pointer"
+          >
+            <option value="all">All departments</option>
+            {DEPARTMENTS.map((d) => (
+              <option key={d.name} value={d.name}>
+                {d.name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        <div className="relative">
+          <Search size={13} className="absolute left-2.5 top-2.5 text-muted" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search adjuncts…"
+            className="h-8 w-48 rounded-lg border border-line bg-card pl-8 pr-2.5 text-[12px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
+          />
+        </div>
+      </div>
 
       <div className="divide-y divide-line-soft pb-1">
-        {adjuncts.map((adj) => (
+        {filtered.map((adj) => (
           <div
             key={adj.id}
             className="flex items-start gap-4 px-5 py-4 transition hover:bg-panel/40"
@@ -1523,18 +1441,12 @@ function AdjunctsSection() {
                 </div>
               )}
             </div>
-            <button
-              onClick={() =>
-                setAdjuncts((p) => p.filter((a) => a.id !== adj.id))
-              }
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-line text-muted transition hover:border-bad/40 hover:text-bad"
-              title="Remove adjunct"
-            >
-              <Trash2 size={13} />
-            </button>
+            <span className="rounded bg-panel/80 border border-line/60 px-2 py-0.5 text-[10.5px] font-medium text-muted">
+              Audited
+            </span>
           </div>
         ))}
-        {adjuncts.length === 0 && (
+        {filtered.length === 0 && (
           <div className="py-10 text-center text-[13.5px] text-muted">
             No adjunct lecturers registered.
           </div>
@@ -1544,151 +1456,73 @@ function AdjunctsSection() {
   );
 }
 
-// ── Study Leave Section ───────────────────────────────────────────────────────
+// ── Study Leave Section (Read-Only Audit for Academic Planning) ───────────────
 
 function StudyLeaveSection() {
-  const [entries, setEntries] = useState<GlobalStudyLeave[]>(STUDY_LEAVE_SEED);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    lecturer: "",
-    department: "",
-    from: "",
-    to: "",
-    reason: "",
-  });
+  const [entries] = useState<GlobalStudyLeave[]>(STUDY_LEAVE_SEED);
+  const [filterDept, setFilterDept] = useState("all");
+  const [search, setSearch] = useState("");
 
-  function handleAdd() {
-    if (!form.lecturer.trim() || !form.department || !form.from || !form.to)
-      return;
-    setEntries((prev) => [
-      {
-        id: `sl${Date.now()}`,
-        lecturer: form.lecturer.trim(),
-        department: form.department,
-        from: form.from,
-        to: form.to,
-        reason: form.reason.trim(),
-      },
-      ...prev,
-    ]);
-    setForm({ lecturer: "", department: "", from: "", to: "", reason: "" });
-    setShowForm(false);
-  }
+  const filtered = entries.filter((e) => {
+    if (filterDept !== "all" && e.department !== filterDept) return false;
+    if (
+      search &&
+      !e.lecturer.toLowerCase().includes(search.toLowerCase()) &&
+      !e.department.toLowerCase().includes(search.toLowerCase())
+    )
+      return false;
+    return true;
+  });
 
   return (
     <Card>
       <CardHead
         icon={<Calendar size={16} />}
-        title="Study Leave — Institution-wide"
-        sub={`${entries.length} active leave record${entries.length !== 1 ? "s" : ""} across all departments`}
+        title="Departmental Study Leave Submissions"
+        sub={`${entries.length} active leave record${entries.length !== 1 ? "s" : ""} across departments · Read-only audit view`}
         action={
-          <Button
-            variant="primary"
-            className="h-8 px-3 text-[12.5px]"
-            onClick={() => setShowForm((v) => !v)}
-          >
-            <Plus size={12} /> Add leave
-          </Button>
+          <span className="rounded-full bg-panel border border-line px-2.5 py-1 text-[11px] font-semibold text-muted flex items-center gap-1.5">
+            <Lock size={11} className="text-muted" /> Managed by Departmental TOs
+          </span>
         }
       />
 
-      {showForm && (
-        <div className="mx-5 mb-4 rounded-xl border border-brand/30 bg-brand-soft/20 px-4 py-4">
-          <p className="mb-3 text-[13px] font-semibold text-ink">
-            New study leave entry
-          </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Lecturer name
-              </label>
-              <input
-                value={form.lecturer}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, lecturer: e.target.value }))
-                }
-                placeholder="e.g. Adebayo F.O"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Department
-              </label>
-              <select
-                value={form.department}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, department: e.target.value }))
-                }
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink focus:border-brand focus:outline-none"
-              >
-                <option value="">Select department…</option>
-                {DEPARTMENTS.map((d) => (
-                  <option key={d.name} value={d.name}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                From
-              </label>
-              <input
-                value={form.from}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, from: e.target.value }))
-                }
-                placeholder="e.g. 12 Jan 2026"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                To
-              </label>
-              <input
-                value={form.to}
-                onChange={(e) => setForm((f) => ({ ...f, to: e.target.value }))}
-                placeholder="e.g. 28 Feb 2026"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Reason
-              </label>
-              <input
-                value={form.reason}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, reason: e.target.value }))
-                }
-                placeholder="e.g. Doctoral fieldwork — University of Lagos"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button
-              variant="primary"
-              className="h-8 px-4 text-[12.5px]"
-              onClick={handleAdd}
-            >
-              Save
-            </Button>
-            <Button
-              variant="ghost"
-              className="h-8 px-3 text-[12.5px]"
-              onClick={() => setShowForm(false)}
-            >
-              Cancel
-            </Button>
-          </div>
+      <div className="mx-5 mb-4 rounded-xl border border-line/80 bg-panel/30 px-3.5 py-2.5 text-[12px] text-muted flex items-start gap-2.5">
+        <Info size={15} className="text-brand shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          <strong className="text-ink font-semibold">Institutional Audit View:</strong> Faculty study leave entries are registered by Departmental Timetable Officers. Academic Planning defines the Study Leave constraint category and audits semester coverage.
+        </p>
+      </div>
+
+      {/* Filter and search */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 pb-3">
+        <div className="flex items-center gap-2">
+          <select
+            value={filterDept}
+            onChange={(e) => setFilterDept(e.target.value)}
+            className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-medium text-ink focus:border-brand focus:outline-none cursor-pointer"
+          >
+            <option value="all">All departments</option>
+            {DEPARTMENTS.map((d) => (
+              <option key={d.name} value={d.name}>
+                {d.name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        <div className="relative">
+          <Search size={13} className="absolute left-2.5 top-2.5 text-muted" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search faculty…"
+            className="h-8 w-48 rounded-lg border border-line bg-card pl-8 pr-2.5 text-[12px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
+          />
+        </div>
+      </div>
 
       <div className="divide-y divide-line-soft pb-1">
-        {entries.map((entry) => (
+        {filtered.map((entry) => (
           <div
             key={entry.id}
             className="flex items-start gap-4 px-5 py-4 transition hover:bg-panel/40"
@@ -1718,20 +1552,14 @@ function StudyLeaveSection() {
                 </p>
               )}
             </div>
-            <button
-              onClick={() =>
-                setEntries((p) => p.filter((e) => e.id !== entry.id))
-              }
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-line text-muted transition hover:border-bad/40 hover:text-bad"
-              title="Remove entry"
-            >
-              <Trash2 size={13} />
-            </button>
+            <span className="rounded bg-panel/80 border border-line/60 px-2 py-0.5 text-[10.5px] font-medium text-muted">
+              Audited
+            </span>
           </div>
         ))}
-        {entries.length === 0 && (
+        {filtered.length === 0 && (
           <div className="py-10 text-center text-[13.5px] text-muted">
-            No study leave records.
+            No study leave records match criteria.
           </div>
         )}
       </div>
@@ -1739,162 +1567,73 @@ function StudyLeaveSection() {
   );
 }
 
-// ── Days Off Section ──────────────────────────────────────────────────────────
+// ── Days Off Section (Read-Only Audit for Academic Planning) ──────────────────
 
 function DaysOffSection() {
-  const [entries, setEntries] = useState<GlobalDayOff[]>(DAYS_OFF_SEED);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    lecturer: "",
-    department: "",
-    date: "",
-    reason: "",
-    recurring: false,
-  });
+  const [entries] = useState<GlobalDayOff[]>(DAYS_OFF_SEED);
+  const [filterDept, setFilterDept] = useState("all");
+  const [search, setSearch] = useState("");
 
-  function handleAdd() {
-    if (!form.lecturer.trim() || !form.department || !form.date) return;
-    setEntries((prev) => [
-      {
-        id: `do${Date.now()}`,
-        lecturer: form.lecturer.trim(),
-        department: form.department,
-        date: form.date.trim(),
-        reason: form.reason.trim(),
-        recurring: form.recurring,
-      },
-      ...prev,
-    ]);
-    setForm({
-      lecturer: "",
-      department: "",
-      date: "",
-      reason: "",
-      recurring: false,
-    });
-    setShowForm(false);
-  }
+  const filtered = entries.filter((e) => {
+    if (filterDept !== "all" && e.department !== filterDept) return false;
+    if (
+      search &&
+      !e.lecturer.toLowerCase().includes(search.toLowerCase()) &&
+      !e.department.toLowerCase().includes(search.toLowerCase())
+    )
+      return false;
+    return true;
+  });
 
   return (
     <Card>
       <CardHead
         icon={<Clock size={16} />}
-        title="Days Off — Institution-wide"
-        sub={`${entries.length} record${entries.length !== 1 ? "s" : ""} · one-off and recurring`}
+        title="Departmental Days Off Approvals"
+        sub={`${entries.length} record${entries.length !== 1 ? "s" : ""} institution-wide · Read-only audit view`}
         action={
-          <Button
-            variant="primary"
-            className="h-8 px-3 text-[12.5px]"
-            onClick={() => setShowForm((v) => !v)}
-          >
-            <Plus size={12} /> Add day off
-          </Button>
+          <span className="rounded-full bg-panel border border-line px-2.5 py-1 text-[11px] font-semibold text-muted flex items-center gap-1.5">
+            <Lock size={11} className="text-muted" /> Managed by Departmental TOs
+          </span>
         }
       />
 
-      {showForm && (
-        <div className="mx-5 mb-4 rounded-xl border border-brand/30 bg-brand-soft/20 px-4 py-4">
-          <p className="mb-3 text-[13px] font-semibold text-ink">
-            New day-off record
-          </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Lecturer name
-              </label>
-              <input
-                value={form.lecturer}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, lecturer: e.target.value }))
-                }
-                placeholder="e.g. Johnson R.T"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Department
-              </label>
-              <select
-                value={form.department}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, department: e.target.value }))
-                }
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink focus:border-brand focus:outline-none"
-              >
-                <option value="">Select department…</option>
-                {DEPARTMENTS.map((d) => (
-                  <option key={d.name} value={d.name}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Date / schedule
-              </label>
-              <input
-                value={form.date}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, date: e.target.value }))
-                }
-                placeholder="e.g. Every Wednesday · Mar 15, 2026"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11.5px] font-semibold text-muted">
-                Reason
-              </label>
-              <input
-                value={form.reason}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, reason: e.target.value }))
-                }
-                placeholder="e.g. Research day"
-                className="h-8 w-full rounded-lg border border-line bg-white px-2.5 text-[12.5px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-              />
-            </div>
-            <div className="flex items-center gap-2 sm:col-span-2">
-              <button
-                onClick={() =>
-                  setForm((f) => ({ ...f, recurring: !f.recurring }))
-                }
-                className="text-muted transition hover:text-brand"
-              >
-                {form.recurring ? (
-                  <CheckSquare size={16} className="text-brand" />
-                ) : (
-                  <Square size={16} />
-                )}
-              </button>
-              <span className="text-[12.5px] text-subink">
-                Recurring (repeats every week)
-              </span>
-            </div>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button
-              variant="primary"
-              className="h-8 px-4 text-[12.5px]"
-              onClick={handleAdd}
-            >
-              Save
-            </Button>
-            <Button
-              variant="ghost"
-              className="h-8 px-3 text-[12.5px]"
-              onClick={() => setShowForm(false)}
-            >
-              Cancel
-            </Button>
-          </div>
+      <div className="mx-5 mb-4 rounded-xl border border-line/80 bg-panel/30 px-3.5 py-2.5 text-[12px] text-muted flex items-start gap-2.5">
+        <Info size={15} className="text-brand shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          <strong className="text-ink font-semibold">Institutional Audit View:</strong> Research, clinical, and administrative days off are assigned by Departmental Timetable Officers following Academic Planning category rules.
+        </p>
+      </div>
+
+      {/* Filter and search */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 pb-3">
+        <div className="flex items-center gap-2">
+          <select
+            value={filterDept}
+            onChange={(e) => setFilterDept(e.target.value)}
+            className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-medium text-ink focus:border-brand focus:outline-none cursor-pointer"
+          >
+            <option value="all">All departments</option>
+            {DEPARTMENTS.map((d) => (
+              <option key={d.name} value={d.name}>
+                {d.name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        <div className="relative">
+          <Search size={13} className="absolute left-2.5 top-2.5 text-muted" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search lecturer…"
+            className="h-8 w-48 rounded-lg border border-line bg-card pl-8 pr-2.5 text-[12px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
+          />
+        </div>
+      </div>
 
       <div className="divide-y divide-line-soft pb-1">
-        {entries.map((entry) => (
+        {filtered.map((entry) => (
           <div
             key={entry.id}
             className="flex items-start gap-4 px-5 py-4 transition hover:bg-panel/40"
@@ -1925,20 +1664,14 @@ function DaysOffSection() {
                 </p>
               )}
             </div>
-            <button
-              onClick={() =>
-                setEntries((p) => p.filter((e) => e.id !== entry.id))
-              }
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-line text-muted transition hover:border-bad/40 hover:text-bad"
-              title="Remove entry"
-            >
-              <Trash2 size={13} />
-            </button>
+            <span className="rounded bg-panel/80 border border-line/60 px-2 py-0.5 text-[10.5px] font-medium text-muted">
+              Audited
+            </span>
           </div>
         ))}
-        {entries.length === 0 && (
+        {filtered.length === 0 && (
           <div className="py-10 text-center text-[13.5px] text-muted">
-            No day-off records.
+            No day-off records match criteria.
           </div>
         )}
       </div>
@@ -1946,17 +1679,1445 @@ function DaysOffSection() {
   );
 }
 
+// ── Time Locks Section (Academic Planning Authority) ─────────────────────────
+
+function TimeLocksSection() {
+  const context = useApp();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const [showAddLock, setShowAddLock] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDay, setNewDay] = useState<(typeof days)[number]>("Thu");
+  const [newSlot, setNewSlot] = useState<(typeof slots)[number]>("12:00");
+  const [newDuration, setNewDuration] = useState(1);
+  const [newLevel, setNewLevel] = useState("All Levels");
+  const [newReason, setNewReason] = useState("");
+
+  const wedClosing = context.timeLockConfig.earlyClosings.find((c) => c.day === "Wed");
+  const friClosing = context.timeLockConfig.earlyClosings.find((c) => c.day === "Fri");
+
+  return (
+    <div className="space-y-5">
+      {/* Institutional Hours & Breaks Card */}
+      <Card>
+        <CardHead
+          icon={<Clock size={17} />}
+          title="Campus Operational Hours & Mandatory Breaks"
+          sub="Institutional schedule rules enforced across all faculties and departments during timetable generation"
+          action={
+            <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-bold text-brand">
+              Academic Planning Directorate
+            </span>
+          }
+        />
+
+        {toastMessage && (
+          <div className="mx-5 mt-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-[12px] font-semibold text-emerald-800">
+            <CheckSquare size={14} className="text-emerald-600 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 bg-panel/30">
+          {/* Lunch Break */}
+          <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10.5px] font-bold text-amber-700 uppercase">
+                  Daily Break
+                </span>
+                <button
+                  onClick={() => {
+                    context.toggleLunchBreak();
+                    showToast(context.timeLockConfig.lunchBreak.enabled ? "Lunch break disabled" : "Lunch break activated");
+                  }}
+                  className={`rounded px-2 py-0.5 text-[10.5px] font-bold uppercase transition cursor-pointer ${
+                    context.timeLockConfig.lunchBreak.enabled
+                      ? "bg-amber-500/15 text-amber-700 hover:bg-amber-500/25"
+                      : "bg-panel text-muted hover:bg-line"
+                  }`}
+                >
+                  {context.timeLockConfig.lunchBreak.enabled ? "Active" : "Disabled"}
+                </button>
+              </div>
+              <h4 className="mt-2 text-[14px] font-bold text-ink">University Lunch Break</h4>
+              <p className="mt-1 text-[12px] text-muted leading-relaxed">
+                Daily period strictly locked across all schools. 2-hour classes cannot begin right before this hour.
+              </p>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
+              <span className="font-semibold text-muted">Break Hour:</span>
+              <select
+                value={context.timeLockConfig.lunchBreak.slot}
+                onChange={(e) => {
+                  context.updateLunchBreak(e.target.value as any);
+                  showToast(`Lunch break updated to ${e.target.value}`);
+                }}
+                className="rounded-md border border-line bg-card px-2 py-0.5 text-[11px] font-bold text-amber-800 outline-none cursor-pointer"
+              >
+                <option value="12:00">12:00 – 1:00 PM</option>
+                <option value="13:00">1:00 PM – 2:00 PM</option>
+                <option value="14:00">2:00 PM – 3:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Wednesday Early Closing */}
+          <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10.5px] font-bold text-blue-700 uppercase">
+                  Wednesday
+                </span>
+                <button
+                  onClick={() => {
+                    context.toggleEarlyClosing("wed-closing");
+                    showToast(wedClosing?.enabled ? "Wednesday closing disabled" : "Wednesday closing activated");
+                  }}
+                  className={`rounded px-2 py-0.5 text-[10.5px] font-bold uppercase transition cursor-pointer ${
+                    wedClosing?.enabled
+                      ? "bg-blue-500/15 text-blue-700 hover:bg-blue-500/25"
+                      : "bg-panel text-muted hover:bg-line"
+                  }`}
+                >
+                  {wedClosing?.enabled ? "Active" : "Disabled"}
+                </button>
+              </div>
+              <h4 className="mt-2 text-[14px] font-bold text-ink">Midweek Fellowship Closing</h4>
+              <p className="mt-1 text-[12px] text-muted leading-relaxed">
+                Lectures conclude early on Wednesdays for student fellowship, chapel life, and sports.
+              </p>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
+              <span className="font-semibold text-muted">Concludes by:</span>
+              <select
+                value={wedClosing?.cutoffSlot || "17:00"}
+                onChange={(e) => {
+                  context.updateEarlyClosing("wed-closing", e.target.value as any);
+                  showToast(`Wednesday curfew set to ${e.target.value}`);
+                }}
+                className="rounded-md border border-line bg-card px-2 py-0.5 text-[11px] font-bold text-blue-800 outline-none cursor-pointer"
+              >
+                <option value="16:00">4:00 PM (16:00)</option>
+                <option value="17:00">5:00 PM (17:00)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Friday Early Closing */}
+          <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded bg-violet-500/10 px-2 py-0.5 text-[10.5px] font-bold text-violet uppercase">
+                  Friday
+                </span>
+                <button
+                  onClick={() => {
+                    context.toggleEarlyClosing("fri-closing");
+                    showToast(friClosing?.enabled ? "Friday closing disabled" : "Friday closing activated");
+                  }}
+                  className={`rounded px-2 py-0.5 text-[10.5px] font-bold uppercase transition cursor-pointer ${
+                    friClosing?.enabled
+                      ? "bg-violet-soft text-violet hover:bg-violet-soft/80"
+                      : "bg-panel text-muted hover:bg-line"
+                  }`}
+                >
+                  {friClosing?.enabled ? "Active" : "Disabled"}
+                </button>
+              </div>
+              <h4 className="mt-2 text-[14px] font-bold text-ink">Friday Sabbath Closing</h4>
+              <p className="mt-1 text-[12px] text-muted leading-relaxed">
+                Academic activities conclude early on Fridays in preparation for the Sabbath and weekend transition.
+              </p>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
+              <span className="font-semibold text-muted">Concludes by:</span>
+              <select
+                value={friClosing?.cutoffSlot || "13:00"}
+                onChange={(e) => {
+                  context.updateEarlyClosing("fri-closing", e.target.value as any);
+                  showToast(`Friday closing set to ${e.target.value}`);
+                }}
+                className="rounded-md border border-line bg-card px-2 py-0.5 text-[11px] font-bold text-violet outline-none cursor-pointer"
+              >
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">1:00 PM (13:00)</option>
+                <option value="14:00">2:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Daily Operating Window (Dynamic & Editable by Academic Planning) */}
+          <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 uppercase">
+                  Mon – Thu
+                </span>
+                <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10.5px] font-bold text-emerald-800">
+                  {context.timeLockConfig?.operatingWindow?.startSlot || "07:00"} – {context.timeLockConfig?.operatingWindow?.endSlot || "17:00"}
+                </span>
+              </div>
+              <h4 className="mt-2 text-[14px] font-bold text-ink">Standard Teaching Hours</h4>
+              <p className="mt-1 text-[12px] text-muted leading-relaxed">
+                Standard university operating window. Regular class lectures and practicals are scheduled dynamically within these approved hours.
+              </p>
+            </div>
+            <div className="mt-3 border-t border-line/60 pt-2">
+              <div className="flex items-center justify-between text-[11px] mb-1.5">
+                <span className="font-semibold text-muted">Operating Band:</span>
+                <span className="font-mono text-[10.5px] font-bold text-emerald-700">
+                  {context.timeLockConfig?.operatingWindow?.startSlot || "07:00"} – {context.timeLockConfig?.operatingWindow?.endSlot || "17:00"}
+                </span>
+              </div>
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+                <select
+                  value={context.timeLockConfig?.operatingWindow?.startSlot || "07:00"}
+                  onChange={(e) => {
+                    const newStart = e.target.value as any;
+                    const end = context.timeLockConfig?.operatingWindow?.endSlot || "17:00";
+                    context.updateOperatingWindow(newStart, end);
+                    showToast(`Standard teaching hours updated to ${newStart} – ${end} (Saved)`);
+                  }}
+                  className="w-full rounded-md border border-line bg-card px-1.5 py-1 text-[11px] font-bold text-emerald-800 outline-none cursor-pointer text-center"
+                >
+                  <option value="07:00">07:00 AM</option>
+                  <option value="08:00">08:00 AM</option>
+                  <option value="09:00">09:00 AM</option>
+                </select>
+                <span className="text-muted font-bold text-[10px]">to</span>
+                <select
+                  value={context.timeLockConfig?.operatingWindow?.endSlot || "17:00"}
+                  onChange={(e) => {
+                    const newEnd = e.target.value as any;
+                    const start = context.timeLockConfig?.operatingWindow?.startSlot || "07:00";
+                    context.updateOperatingWindow(start, newEnd);
+                    showToast(`Standard teaching hours updated to ${start} – ${newEnd} (Saved)`);
+                  }}
+                  className="w-full rounded-md border border-line bg-card px-1.5 py-1 text-[11px] font-bold text-emerald-800 outline-none cursor-pointer text-center"
+                >
+                  <option value="16:00">04:00 PM</option>
+                  <option value="17:00">05:00 PM</option>
+                  <option value="18:00">06:00 PM</option>
+                  <option value="19:00">07:00 PM</option>
+                  <option value="20:00">08:00 PM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* University Chapel Seminar Configuration */}
+      <Card>
+        <CardHead
+          icon={<ShieldCheck size={17} />}
+          title="Schoolwide Chapel Seminar & Citizenship Orientation"
+          sub="Synchronized weekly seminar held in the University Amphitheatre with Pastor Chilaka Uzoma"
+          action={
+            <span className="rounded-full bg-good-soft px-2.5 py-0.5 text-[11px] font-bold text-good">
+              4 Academic Levels
+            </span>
+          }
+        />
+        <div className="p-5 space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {(["100 Level", "200 Level", "300 Level", "400 Level"] as const).map((lvl, index) => {
+              const colors = ["bg-brand", "bg-blue-500", "bg-violet", "bg-emerald-500"];
+              const textColors = ["text-brand", "text-blue-600", "text-violet", "text-emerald-600"];
+              const item = context.timeLockConfig.chapelSeminarSchedule[lvl];
+              const activeDay = item?.day || (index === 0 ? "Mon" : index === 1 ? "Tue" : index === 2 ? "Wed" : "Thu");
+              const activeSlot = item?.slot || "09:00";
+
+              return (
+                <div key={lvl} className="rounded-xl border border-line bg-card p-4 relative overflow-hidden flex flex-col justify-between">
+                  <div className={`absolute top-0 left-0 right-0 h-1 ${colors[index]}`} />
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] font-bold text-ink">{lvl}</span>
+                      <span className={`rounded bg-panel px-2 py-0.5 text-[11px] font-bold ${textColors[index]}`}>
+                        {activeDay} {activeSlot}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-[12.5px] font-bold text-ink">{item?.code || "BU-GST Seminar"}</p>
+                    <p className="text-[11.5px] text-muted">{item?.title || "Chapel Seminar"}</p>
+                    <div className="mt-3 space-y-1 text-[11px] text-subink pt-2 border-t border-line">
+                      <p>📍 {item?.venue || "University Amphitheatre"}</p>
+                      <p>👤 {item?.lecturer || "Pastor Chilaka Uzoma"}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-line/60 flex items-center justify-between gap-2">
+                    <span className="text-[10.5px] font-semibold text-muted">Adjust Slot:</span>
+                    <div className="flex items-center gap-1">
+                      <select
+                        value={activeDay}
+                        onChange={(e) => context.updateChapelSlot(lvl, e.target.value as any, activeSlot)}
+                        className="rounded border border-line bg-panel px-1.5 py-0.5 text-[10.5px] font-semibold text-ink cursor-pointer"
+                      >
+                        <option value="Mon">Mon</option>
+                        <option value="Tue">Tue</option>
+                        <option value="Wed">Wed</option>
+                        <option value="Thu">Thu</option>
+                      </select>
+                      <select
+                        value={activeSlot}
+                        onChange={(e) => context.updateChapelSlot(lvl, activeDay, e.target.value as any)}
+                        className="rounded border border-line bg-panel px-1.5 py-0.5 text-[10.5px] font-semibold text-ink cursor-pointer"
+                      >
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
+
+      {/* Institutional Custom Locked Periods */}
+      <Card>
+        <CardHead
+          icon={<Lock size={17} />}
+          title="Institutional Custom Locked Periods & Blackouts"
+          sub="Reserve recurring campus-wide time blocks for university assemblies, convocations, or Senate meetings"
+          action={
+            <Button variant="outline" onClick={() => setShowAddLock(true)}>
+              <Plus size={14} /> Add University Lock
+            </Button>
+          }
+        />
+        <div className="p-5">
+          {context.timeLockConfig.customTimeLocks.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-line p-8 text-center text-muted">
+              <Lock size={24} className="mx-auto mb-2 text-muted/50" />
+              <p className="text-[13px] font-semibold text-subink">No custom institutional locks active</p>
+              <p className="text-[12px] text-muted mt-0.5">
+                Lock recurring times for Senate meetings, convocation rehearsals, or all-university assemblies.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {context.timeLockConfig.customTimeLocks.map((lock) => (
+                <div key={lock.id} className="rounded-xl border border-line bg-card p-3.5 flex flex-col justify-between shadow-2xs">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[13px] font-bold text-ink">{lock.title}</span>
+                      <button
+                        onClick={() => context.toggleCustomTimeLock(lock.id)}
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase transition cursor-pointer ${
+                          lock.enabled ? "bg-good-soft text-good" : "bg-panel text-muted"
+                        }`}
+                      >
+                        {lock.enabled ? "Active" : "Off"}
+                      </button>
+                    </div>
+                    <p className="text-[12px] text-muted mt-1 leading-relaxed">
+                      {lock.reason || "Reserved university time period"}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px] text-subink">
+                    <span>
+                      <strong>{lock.day}</strong> at <strong>{lock.slot}</strong> ({lock.duration}h) · {lock.level || "All"}
+                    </span>
+                    <button
+                      onClick={() => context.deleteCustomTimeLock(lock.id)}
+                      className="text-muted hover:text-bad transition cursor-pointer p-1"
+                      title="Remove locked period"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Add Custom Lock Modal */}
+      {showAddLock && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-xs"
+          onClick={() => setShowAddLock(false)}
+        >
+          <div
+            className="bp-fade w-full max-w-md rounded-2xl border border-line bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet text-white shadow-xs">
+                  <Lock size={18} />
+                </span>
+                <div>
+                  <h3 className="text-[17px] font-bold text-ink">Add University Time Lock</h3>
+                  <p className="text-[12px] text-muted">
+                    Lock a recurring time block across departments
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddLock(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-panel hover:text-ink cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3.5">
+              <div>
+                <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  Title / Reason *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. University Senate Meeting or Convocation"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full rounded-xl border border-line bg-panel px-3.5 py-2 text-[13px] font-medium text-ink outline-none focus:border-brand"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                    Day of Week
+                  </label>
+                  <select
+                    value={newDay}
+                    onChange={(e) => setNewDay(e.target.value as any)}
+                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                  >
+                    {days.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                    Start Slot
+                  </label>
+                  <select
+                    value={newSlot}
+                    onChange={(e) => setNewSlot(e.target.value as any)}
+                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                  >
+                    {slots.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                    Duration
+                  </label>
+                  <select
+                    value={newDuration}
+                    onChange={(e) => setNewDuration(Number(e.target.value))}
+                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                  >
+                    <option value={1}>1 hour</option>
+                    <option value={2}>2 hours</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                    Target Cohort
+                  </label>
+                  <select
+                    value={newLevel}
+                    onChange={(e) => setNewLevel(e.target.value)}
+                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                  >
+                    <option value="All Levels">All Levels (Campus-wide)</option>
+                    <option value="100 Level">100 Level</option>
+                    <option value="200 Level">200 Level</option>
+                    <option value="300 Level">300 Level</option>
+                    <option value="400 Level">400 Level</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  Description / Operational Notes
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. All lectures halted for monthly university academic assembly"
+                  value={newReason}
+                  onChange={(e) => setNewReason(e.target.value)}
+                  className="w-full rounded-xl border border-line bg-panel px-3.5 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2 border-t border-line/60 pt-4">
+              <Button variant="outline" onClick={() => setShowAddLock(false)}>
+                Cancel
+              </Button>
+              <Button
+                disabled={!newTitle.trim()}
+                onClick={() => {
+                  context.addCustomTimeLock({
+                    title: newTitle.trim(),
+                    day: newDay,
+                    slot: newSlot,
+                    duration: newDuration,
+                    level: newLevel,
+                    department: "All",
+                    reason: newReason.trim() || undefined,
+                    enabled: true,
+                  });
+                  setNewTitle("");
+                  setNewReason("");
+                  setShowAddLock(false);
+                }}
+              >
+                <Plus size={15} /> Save University Lock
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Constraint Types & Schema Registry (Academic Planning Exclusive) ──────────
+
+function getArchetypeIcon(archetype: ConstraintRuleArchetype) {
+  switch (archetype) {
+    case "full_absence":
+      return Plane;
+    case "time_window":
+      return CalendarOff;
+    case "daily_load_limit":
+      return Layers;
+    case "consecutive_hours":
+      return Clock;
+    case "venue_requirement":
+      return Building2;
+    case "custom_rule":
+    default:
+      return ShieldCheck;
+  }
+}
+
+function getArchetypeColor(archetype: ConstraintRuleArchetype): "brand" | "violet" | "warn" | "good" | "neutral" {
+  switch (archetype) {
+    case "full_absence":
+      return "violet";
+    case "time_window":
+      return "warn";
+    case "daily_load_limit":
+      return "brand";
+    case "consecutive_hours":
+      return "warn";
+    case "venue_requirement":
+      return "good";
+    case "custom_rule":
+    default:
+      return "neutral";
+  }
+}
+
+interface DefineConstraintTypeModalProps {
+  initialArchetype?: ConstraintRuleArchetype;
+  existingType?: ConstraintTypeDefinition;
+  onSave: (typeDef: Omit<ConstraintTypeDefinition, "id">) => void;
+  onClose: () => void;
+}
+
+function DefineConstraintTypeModal({
+  initialArchetype = "time_window",
+  existingType,
+  onSave,
+  onClose,
+}: DefineConstraintTypeModalProps) {
+  const [selectedArchetype, setSelectedArchetype] = useState<ConstraintRuleArchetype>(
+    existingType?.archetype || initialArchetype
+  );
+  // Default text values are left EMPTY so the placeholder is clearly seen!
+  const [name, setName] = useState(existingType?.name || "");
+  const [category, setCategory] = useState<ConstraintTypeDefinition["category"]>(
+    existingType?.category || "Faculty Availability"
+  );
+  const [description, setDescription] = useState(existingType?.description || "");
+  const [parameters, setParameters] = useState<ConstraintParameterField[]>(() => {
+    if (existingType?.parameters && existingType.parameters.length > 0) {
+      return [...existingType.parameters];
+    }
+    const tpl = constraintArchetypeTemplates.find((t) => t.archetype === initialArchetype);
+    return tpl ? [...tpl.suggestedParameters] : [];
+  });
+
+  const [activeWizardTab, setActiveWizardTab] = useState<"template" | "details" | "parameters" | "preview">("template");
+
+  // Switch template and pre-populate parameters
+  function handleSelectTemplate(arch: ConstraintRuleArchetype) {
+    setSelectedArchetype(arch);
+    const tpl = constraintArchetypeTemplates.find((t) => t.archetype === arch);
+    if (tpl) {
+      setParameters([...tpl.suggestedParameters]);
+    }
+  }
+
+  function addCustomParameter() {
+    const newKey = `field_${Date.now()}`;
+    setParameters([
+      ...parameters,
+      {
+        key: newKey,
+        label: "",
+        type: "text",
+        required: true,
+        placeholder: "Enter details here...",
+      },
+    ]);
+  }
+
+  function updateParameter(index: number, updates: Partial<ConstraintParameterField>) {
+    setParameters((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], ...updates };
+      return next;
+    });
+  }
+
+  function removeParameter(index: number) {
+    setParameters((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleSubmit() {
+    if (!name.trim()) return;
+    onSave({
+      name: name.trim(),
+      category,
+      description: description.trim() || `Applies ${name.trim()} policy guidelines during timetable scheduling.`,
+      archetype: selectedArchetype,
+      parameters,
+      isActive: true,
+    });
+    onClose();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bp-fade flex max-h-[92vh] w-full max-w-3xl flex-col rounded-2xl border border-line bg-card shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
+              <Sliders size={20} />
+            </div>
+            <div>
+              <h3 className="text-[16px] font-bold text-ink">
+                {existingType ? "Edit Scheduling Rule" : "Create New Scheduling Rule"}
+              </h3>
+              <p className="text-[12px] text-muted">
+                Academic Planning Guidelines · Step-by-Step Policy Builder
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-panel hover:text-ink cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Wizard Steps Navigation */}
+        <div className="flex border-b border-line bg-panel/50 px-6 pt-2">
+          {[
+            { id: "template" as const, label: "1. Choose Template", icon: Layers },
+            { id: "details" as const, label: "2. Rule Name & Category", icon: FileText },
+            { id: "parameters" as const, label: "3. Form Questions", icon: Sliders },
+            { id: "preview" as const, label: "4. Preview Form", icon: Eye },
+          ].map((st) => (
+            <button
+              key={st.id}
+              onClick={() => setActiveWizardTab(st.id)}
+              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-[12.5px] font-semibold transition ${
+                activeWizardTab === st.id
+                  ? "border-brand text-brand"
+                  : "border-transparent text-muted hover:text-subink"
+              }`}
+            >
+              <st.icon size={14} />
+              {st.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* STEP 1: ARCHETYPE TEMPLATE SELECTION */}
+          {activeWizardTab === "template" && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-[14px] font-bold text-ink">Choose a Starting Template</h4>
+                <p className="text-[12px] text-muted">
+                  Pick the pattern that best matches what you want to achieve. Each template already includes the most helpful form fields.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {constraintArchetypeTemplates.map((tpl) => {
+                  const Icon = getArchetypeIcon(tpl.archetype);
+                  const isSelected = selectedArchetype === tpl.archetype;
+                  return (
+                    <div
+                      key={tpl.archetype}
+                      onClick={() => handleSelectTemplate(tpl.archetype)}
+                      className={`cursor-pointer rounded-xl border p-4 transition ${
+                        isSelected
+                          ? "border-brand bg-brand-soft/20 ring-2 ring-brand/30"
+                          : "border-line bg-panel/60 hover:border-muted hover:bg-panel"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                              isSelected ? "bg-brand text-white" : "bg-card text-subink"
+                            }`}
+                          >
+                            <Icon size={16} />
+                          </div>
+                          <span className="text-[13.5px] font-bold text-ink">{tpl.title}</span>
+                        </div>
+                        {isSelected && <CheckCircle size={16} className="text-brand shrink-0" />}
+                      </div>
+                      <p className="mt-2 text-[12px] leading-relaxed text-subink">{tpl.description}</p>
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {tpl.suggestedParameters.map((p) => (
+                          <span
+                            key={p.key}
+                            className="inline-flex items-center rounded-md bg-card px-2 py-0.5 text-[10.5px] text-muted border border-line"
+                          >
+                            {p.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button variant="primary" onClick={() => setActiveWizardTab("details")}>
+                  Continue to Details <ChevronRight size={14} className="ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: TYPE IDENTITY */}
+          {activeWizardTab === "details" && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-[14px] font-bold text-ink">Rule Name & Purpose</h4>
+                <p className="text-[12px] text-muted">
+                  Give this rule a clear, everyday name that lecturers and time officers will immediately recognize.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wider text-muted mb-1.5">
+                    Rule Name <span className="text-bad">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Parental & Maternity Leave, Daily Teaching Cap, Sabbatical Duty"
+                    className="w-full rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13.5px] text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wider text-muted mb-1.5">
+                      Category
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as any)}
+                      className="w-full rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13.5px] text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft font-medium"
+                    >
+                      <option value="Faculty Availability">Faculty Availability & Leaves</option>
+                      <option value="Workload & Pacing">Teaching Hours & Rest Breaks</option>
+                      <option value="Venue & Space">Special Room Requirements</option>
+                      <option value="Institutional">General University Policy</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wider text-muted mb-1.5">
+                      Rule Pattern
+                    </label>
+                    <div className="flex items-center gap-2 rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px] text-subink font-medium">
+                      <span className="font-semibold text-ink capitalize">{selectedArchetype.replace("_", " ")}</span>
+                      <span className="text-muted text-[11px]">(Selected in Step 1)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wider text-muted mb-1.5">
+                    Guideline / Note for Officers
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Explain in plain words when this rule applies and how it affects lecturer schedules..."
+                    className="w-full rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px] text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-2">
+                <Button variant="outline" onClick={() => setActiveWizardTab("template")}>
+                  ← Back to Templates
+                </Button>
+                <Button variant="primary" onClick={() => setActiveWizardTab("parameters")}>
+                  Configure Form Questions ({parameters.length}) <ChevronRight size={14} className="ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: PARAMETER SCHEMA BUILDER */}
+          {activeWizardTab === "parameters" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-[14px] font-bold text-ink">Information to Collect</h4>
+                  <p className="text-[12px] text-muted">
+                    Choose what questions departmental officers need to answer when applying this rule to a lecturer.
+                  </p>
+                </div>
+                <Button variant="outline" className="px-3 py-1.5 text-[12px]" onClick={addCustomParameter}>
+                  <Plus size={14} /> Add Another Question / Field
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {parameters.map((param, idx) => (
+                  <div
+                    key={param.key || idx}
+                    className="rounded-xl border border-line bg-panel/60 p-4 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-card text-[11px] font-bold text-muted border border-line">
+                          {idx + 1}
+                        </span>
+                        <span className="text-[13px] font-bold text-ink">
+                          {param.label || "New Question"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="flex items-center gap-1.5 text-[11.5px] text-subink cursor-pointer font-medium">
+                          <input
+                            type="checkbox"
+                            checked={param.required ?? true}
+                            onChange={(e) => updateParameter(idx, { required: e.target.checked })}
+                            className="rounded border-line text-brand focus:ring-brand"
+                          />
+                          Required
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removeParameter(idx)}
+                          className="text-muted hover:text-bad p-1 rounded transition cursor-pointer"
+                          title="Remove Question"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                          Question Label (what users see)
+                        </label>
+                        <input
+                          type="text"
+                          value={param.label}
+                          onChange={(e) => updateParameter(idx, { label: e.target.value })}
+                          className="w-full rounded-lg border border-line bg-card px-2.5 py-1.5 text-[12.5px] text-ink outline-none focus:border-brand"
+                          placeholder="e.g. Daily Maximum Hours or Date Period"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                          Answer Type
+                        </label>
+                        <select
+                          value={param.type}
+                          onChange={(e) =>
+                            updateParameter(idx, { type: e.target.value as ParameterFieldType })
+                          }
+                          className="w-full rounded-lg border border-line bg-card px-2.5 py-1.5 text-[12.5px] text-ink outline-none focus:border-brand"
+                        >
+                          <option value="lecturer_select">Select Lecturer from List</option>
+                          <option value="text">Short Text (e.g. Reason, Date, or Note)</option>
+                          <option value="number">Number of Hours</option>
+                          <option value="select">Dropdown Choice List</option>
+                          <option value="days_multi">Select Days of the Week</option>
+                          <option value="time_slot">Time of Day</option>
+                          <option value="boolean">Yes / No Checkbox</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {param.type === "select" && (
+                      <div>
+                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                          Choices (separated by comma)
+                        </label>
+                        <input
+                          type="text"
+                          value={param.options?.join(", ") || ""}
+                          onChange={(e) =>
+                            updateParameter(idx, {
+                              options: e.target.value
+                                .split(",")
+                                .map((s) => s.trim())
+                                .filter(Boolean),
+                            })
+                          }
+                          placeholder="e.g. Option 1, Option 2, Option 3"
+                          className="w-full rounded-lg border border-line bg-card px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-brand"
+                        />
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                          Placeholder / Example Text
+                        </label>
+                        <input
+                          type="text"
+                          value={param.placeholder || ""}
+                          onChange={(e) =>
+                            updateParameter(idx, {
+                              placeholder: e.target.value,
+                            })
+                          }
+                          placeholder="e.g. e.g. 12 Jan – 28 Feb or Every Wednesday"
+                          className="w-full rounded-lg border border-line bg-card px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-brand"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                          Helpful Hint (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={param.hint || ""}
+                          onChange={(e) => updateParameter(idx, { hint: e.target.value })}
+                          placeholder="Small tip displayed under the input"
+                          className="w-full rounded-lg border border-line bg-card px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-brand"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between pt-2">
+                <Button variant="outline" onClick={() => setActiveWizardTab("details")}>
+                  ← Back to Details
+                </Button>
+                <Button variant="primary" onClick={() => setActiveWizardTab("preview")}>
+                  Preview Form <Eye size={14} className="ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: LIVE FORM PREVIEW */}
+          {activeWizardTab === "preview" && (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-line bg-panel/40 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye size={16} className="text-brand" />
+                  <h4 className="text-[13.5px] font-bold text-ink">Form Preview: What Officers Will See</h4>
+                </div>
+                <p className="text-[12px] text-muted">
+                  This is the exact screen that departmental officers will see when adding a lecturer under <strong>&ldquo;{name || "Untitled Rule"}&rdquo;</strong>.
+                </p>
+              </div>
+
+              {/* Simulated Form Container */}
+              <div className="rounded-2xl border border-line bg-card p-6 shadow-sm space-y-4">
+                <div className="border-b border-line pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-bold text-ink">Add {name || "New Rule"}</span>
+                    <Pill tone={getArchetypeColor(selectedArchetype)}>{category}</Pill>
+                  </div>
+                  <p className="mt-1 text-[12px] text-subink">{description || "No description provided."}</p>
+                </div>
+
+                <div className="space-y-3.5">
+                  {parameters.map((p) => (
+                    <div key={p.key} className="space-y-1">
+                      <label className="block text-[12px] font-semibold text-subink">
+                        {p.label || "Untitled Field"} {p.required && <span className="text-bad">*</span>}
+                      </label>
+                      {p.type === "lecturer_select" ? (
+                        <select className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[13px] text-ink">
+                          <option>ADEGBENJO Aderonke (Computer Science)</option>
+                          <option>Ayankoya Folashade (Computer Science)</option>
+                          <option>Akande Oyebola (Computer Science)</option>
+                          <option>All Faculty Members</option>
+                        </select>
+                      ) : p.type === "number" ? (
+                        <input
+                          type="number"
+                          defaultValue={p.defaultValue || 4}
+                          className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[13px] text-ink"
+                        />
+                      ) : p.type === "select" ? (
+                        <select className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[13px] text-ink">
+                          {(p.options && p.options.length > 0
+                            ? p.options
+                            : ["Option A", "Option B", "Option C"]
+                          ).map((opt) => (
+                            <option key={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      ) : p.type === "boolean" ? (
+                        <label className="flex items-center gap-2 text-[12.5px] text-ink cursor-pointer pt-1">
+                          <input type="checkbox" defaultChecked={p.defaultValue !== false} className="rounded" />
+                          <span>Approved and active</span>
+                        </label>
+                      ) : p.type === "days_multi" ? (
+                        <div className="flex gap-1.5 pt-1">
+                          {["Mon", "Tue", "Wed", "Thu", "Fri"].map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              className="rounded-lg border border-line bg-panel px-2.5 py-1 text-[12px] font-medium text-subink hover:border-brand"
+                            >
+                              {d}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder={p.placeholder || "Enter details here..."}
+                          className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[13px] text-ink"
+                        />
+                      )}
+                      {p.hint && <p className="text-[11px] text-muted">{p.hint}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-2">
+                <Button variant="outline" onClick={() => setActiveWizardTab("parameters")}>
+                  ← Back to Questions
+                </Button>
+                <Button variant="primary" onClick={handleSubmit}>
+                  <Check size={14} /> Save & Activate Rule
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Constraint Types Section ─────────────────────────────────────────────
+
+function ConstraintTypesSection() {
+  const context = useApp();
+  const {
+    constraintTypes,
+    addConstraintType,
+    updateConstraintType,
+    deleteConstraintType,
+    toggleConstraintType,
+    resetConstraintTypesToDefault,
+    localConstraints,
+  } = context;
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingType, setEditingType] = useState<ConstraintTypeDefinition | null>(null);
+  const [selectedTemplateForModal, setSelectedTemplateForModal] = useState<ConstraintRuleArchetype | undefined>(
+    undefined
+  );
+
+  const filteredTypes = constraintTypes.filter((t) => {
+    if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return (
+        t.name.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.category.toLowerCase().includes(q) ||
+        t.archetype.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Top Banner & Context Summary */}
+      <Card>
+        <div className="p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                <Sliders size={22} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[16px] font-bold text-ink">
+                    Timetable Rules & Policy Templates
+                  </h3>
+                  <Pill tone="brand">{constraintTypes.filter((t) => t.isActive).length} Active Rules</Pill>
+                </div>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-subink max-w-2xl">
+                  Set up university-wide teaching guidelines, leaves, and lecture hour limits.
+                  Any rule created here is automatically followed when departments schedule their timetables.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                className="px-3 py-1.5 text-[12px]"
+                onClick={() => {
+                  if (confirm("Restore standard Babcock University rules and templates?")) {
+                    resetConstraintTypesToDefault();
+                  }
+                }}
+              >
+                <RotateCcw size={14} /> Restore Standard Rules
+              </Button>
+              <Button
+                variant="primary"
+                className="px-3 py-1.5 text-[12px]"
+                onClick={() => {
+                  setEditingType(null);
+                  setSelectedTemplateForModal(undefined);
+                  setIsCreateModalOpen(true);
+                }}
+              >
+                <Plus size={15} /> Create New Rule
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Policy Templates Quick Creator */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-[14px] font-bold text-ink flex items-center gap-2">
+              <Layers size={16} className="text-brand" />
+              Start from a Policy Template
+            </h4>
+            <p className="text-[12px] text-muted">
+              Pick a template below to quickly set up a new rule for your faculty:
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {constraintArchetypeTemplates.map((tpl) => {
+            const Icon = getArchetypeIcon(tpl.archetype);
+            const tone = getArchetypeColor(tpl.archetype);
+            return (
+              <div
+                key={tpl.archetype}
+                className="group relative flex flex-col justify-between rounded-xl border border-line bg-card p-4 transition hover:border-brand/50 hover:shadow-sm"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-panel text-brand">
+                        <Icon size={16} />
+                      </div>
+                      <span className="text-[13px] font-bold text-ink">{tpl.title}</span>
+                    </div>
+                    <Pill tone={tone}>{tpl.archetype.replace("_", " ")}</Pill>
+                  </div>
+                  <p className="text-[12px] text-subink leading-relaxed line-clamp-2">
+                    {tpl.description}
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-line flex items-center justify-between">
+                  <span className="text-[11px] text-muted font-medium">
+                    {tpl.suggestedParameters.length} standard fields
+                  </span>
+                  <button
+                    onClick={() => {
+                      setEditingType(null);
+                      setSelectedTemplateForModal(tpl.archetype);
+                      setIsCreateModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1 text-[12px] font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    Use This Template →
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Active Rules Registry List */}
+      <Card>
+        <CardHead
+          title="Active University Rules"
+          sub="Rules currently available for departmental scheduling"
+          action={
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Category Filter */}
+              <div className="flex rounded-lg border border-line bg-panel p-0.5">
+                {["all", "Faculty Availability", "Workload & Pacing", "Venue & Space", "Institutional"].map(
+                  (cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setCategoryFilter(cat)}
+                      className={`rounded-md px-2.5 py-1 text-[11.5px] font-medium transition ${
+                        categoryFilter === cat
+                          ? "bg-white text-ink shadow-xs"
+                          : "text-muted hover:text-subink"
+                      }`}
+                    >
+                      {cat === "all" ? "All Categories" : cat}
+                    </button>
+                  )
+                )}
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+                <input
+                  type="text"
+                  placeholder="Search rules..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8 rounded-lg border border-line bg-panel pl-8 pr-3 text-[12px] text-ink outline-none focus:border-brand"
+                />
+              </div>
+            </div>
+          }
+        />
+
+        <div className="divide-y divide-line">
+          {filteredTypes.map((typeDef) => {
+            const Icon = getArchetypeIcon(typeDef.archetype);
+            const activeInstanceCount = localConstraints.filter((c) => c.kind === typeDef.name).length;
+
+            return (
+              <div
+                key={typeDef.id}
+                className={`p-4 transition ${
+                  typeDef.isActive ? "bg-card hover:bg-panel/40" : "bg-panel/20 opacity-70"
+                }`}
+              >
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  {/* Left info */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                        typeDef.isActive ? "bg-brand-soft text-brand" : "bg-panel text-muted"
+                      }`}
+                    >
+                      <Icon size={18} />
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[14px] font-bold text-ink">{typeDef.name}</span>
+                        <Pill tone={getArchetypeColor(typeDef.archetype)}>{typeDef.category}</Pill>
+                        {typeDef.isSystemDefault ? (
+                          <span className="rounded-md bg-panel px-2 py-0.5 text-[10.5px] font-medium text-subink">
+                            Standard Rule
+                          </span>
+                        ) : (
+                          <span className="rounded-md bg-brand-soft px-2 py-0.5 text-[10.5px] font-bold text-brand">
+                            Custom Policy
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[12px] text-subink">{typeDef.description}</p>
+
+                      {/* Information Required */}
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-muted uppercase tracking-wider mr-1">
+                          Information required ({typeDef.parameters.length}):
+                        </span>
+                        {typeDef.parameters.map((p) => (
+                          <span
+                            key={p.key}
+                            className="inline-flex items-center gap-1 rounded-md border border-line bg-panel px-2 py-0.5 text-[11px] text-subink"
+                          >
+                            <span className="font-semibold text-ink">{p.label}</span>
+                            {p.required && <span className="text-bad font-bold">*</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right actions */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 shrink-0">
+                    {/* Active Instances Count */}
+                    <div className="text-right mr-2">
+                      <span className="text-[13px] font-bold text-ink">{activeInstanceCount}</span>
+                      <span className="block text-[10.5px] text-muted">Dept instances</span>
+                    </div>
+
+                    {/* Toggle Active */}
+                    <button
+                      onClick={() => toggleConstraintType(typeDef.id)}
+                      className={`flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[12px] font-semibold transition cursor-pointer ${
+                        typeDef.isActive
+                          ? "border-good/30 bg-good-soft/30 text-good-ink"
+                          : "border-line bg-panel text-muted"
+                      }`}
+                    >
+                      {typeDef.isActive ? (
+                        <>
+                          <Check size={13} /> Active
+                        </>
+                      ) : (
+                        "Disabled"
+                      )}
+                    </button>
+
+                    {/* Edit */}
+                    <button
+                      onClick={() => {
+                        setEditingType(typeDef);
+                        setSelectedTemplateForModal(typeDef.archetype);
+                        setIsCreateModalOpen(true);
+                      }}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-card text-subink hover:border-brand hover:text-brand transition cursor-pointer"
+                      title="Edit Category & Parameters"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+
+                    {/* Delete (custom only) */}
+                    {!typeDef.isSystemDefault && (
+                      <button
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Are you sure you want to delete the "${typeDef.name}" rule?`
+                            )
+                          ) {
+                            deleteConstraintType(typeDef.id);
+                          }
+                        }}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-card text-muted hover:border-bad hover:text-bad transition cursor-pointer"
+                        title="Delete Custom Rule"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {filteredTypes.length === 0 && (
+            <div className="py-12 text-center text-muted">
+              <Sliders size={28} className="mx-auto mb-2 opacity-40" />
+              <p className="text-[13px] font-medium text-ink">No rules match your search</p>
+              <p className="text-[12px]">Adjust your filter or click Create New Rule</p>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Define / Edit Modal */}
+      {isCreateModalOpen && (
+        <DefineConstraintTypeModal
+          initialArchetype={selectedTemplateForModal || "time_window"}
+          existingType={editingType || undefined}
+          onSave={(typeDef) => {
+            if (editingType) {
+              updateConstraintType(editingType.id, typeDef);
+            } else {
+              addConstraintType(typeDef);
+            }
+          }}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            setEditingType(null);
+            setSelectedTemplateForModal(undefined);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function AcademicPlanningConstraints() {
-  const [tab, setTab] = useState<Tab>("venues");
-  const [timeTab, setTimeTab] = useState<TimeTab>("adjuncts");
+  const [tab, setTab] = useState<Tab>("types");
+  const [timeTab, setTimeTab] = useState<TimeTab>("timelocks");
+  const { constraintTypes } = useApp();
 
   const timeTabs: { id: TimeTab; label: string; Icon: typeof Users }[] = [
-    { id: "adjuncts", label: "Adjunct Lecturers", Icon: UserCheck },
-    { id: "studyleave", label: "Study Leave", Icon: Calendar },
-    { id: "daysoff", label: "Days Off", Icon: Clock },
+    { id: "timelocks", label: "Campus Time Locks & Rules", Icon: ShieldCheck },
+    { id: "adjuncts", label: "Adjunct Rosters (Audit)", Icon: UserCheck },
+    { id: "studyleave", label: "Study Leave (Audit)", Icon: Calendar },
+    { id: "daysoff", label: "Days Off (Audit)", Icon: Clock },
   ];
+
+  const activeTypesCount = constraintTypes.filter((t) => t.isActive).length;
 
   return (
     <div className="bp-fade flex flex-col gap-5">
@@ -1964,27 +3125,45 @@ export default function AcademicPlanningConstraints() {
       <div className="flex w-fit gap-1 rounded-xl border border-line bg-panel p-1">
         {[
           {
+            id: "types" as const,
+            label: "Constraint Categories & Policy",
+            Icon: Sliders,
+            badge: `${activeTypesCount}`,
+          },
+          { id: "time" as const, label: "Time Locks & Audit", Icon: Clock },
+          {
             id: "venues" as const,
             label: "Venue Assignments",
             Icon: Building2,
           },
-          { id: "time" as const, label: "Time Constraints", Icon: Clock },
-        ].map(({ id, label, Icon }) => (
+        ].map(({ id, label, Icon, badge }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors ${
-              tab === id ? "bg-white text-ink" : "text-muted hover:text-subink"
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors cursor-pointer ${
+              tab === id ? "bg-white text-ink shadow-xs" : "text-muted hover:text-subink"
             }`}
           >
             <Icon size={14} />
             {label}
+            {badge && (
+              <span
+                className={`ml-1 rounded-full px-1.5 py-0.2 text-[10.5px] font-bold ${
+                  tab === id ? "bg-brand text-white" : "bg-panel text-muted border border-line"
+                }`}
+              >
+                {badge}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
       {/* Venues tab */}
       {tab === "venues" && <VenuesTab />}
+
+      {/* Constraint Types & Templates tab */}
+      {tab === "types" && <ConstraintTypesSection />}
 
       {/* Time tab */}
       {tab === "time" && (
@@ -2010,6 +3189,7 @@ export default function AcademicPlanningConstraints() {
           {timeTab === "adjuncts" && <AdjunctsSection />}
           {timeTab === "studyleave" && <StudyLeaveSection />}
           {timeTab === "daysoff" && <DaysOffSection />}
+          {timeTab === "timelocks" && <TimeLocksSection />}
         </>
       )}
     </div>

@@ -17,6 +17,80 @@ export async function POST(req: NextRequest) {
     const tempPath = path.join(os.tmpdir(), `alloc_${Date.now()}_${file.name}`);
     await fs.writeFile(tempPath, buffer);
 
+    if (file.name.endsWith(".json")) {
+      const text = buffer.toString("utf-8");
+      const json = JSON.parse(text);
+      const programs: Record<string, any[]> = {};
+
+      const deriveLevel = (code: string) => {
+        const clean = code.toUpperCase().replace(/\s+/g, "");
+        if (clean.includes("011") || clean.includes("GEDS001") || clean.includes("GST011") || clean.includes("GTS011")) {
+          return "100 Level";
+        }
+        if (clean.includes("021") || clean.includes("GST021") || clean.includes("GTS021")) {
+          return "200 Level";
+        }
+        if (clean.includes("031") || clean.includes("GST031") || clean.includes("GTS031")) {
+          return "300 Level";
+        }
+        if (clean.includes("041") || clean.includes("GST041") || clean.includes("GTS041")) {
+          return "400 Level";
+        }
+
+        const digits = code.match(/\d+/);
+        if (!digits) return "200 Level";
+        const num = parseInt(digits[0], 10);
+        if (num < 200) return "100 Level";
+        if (num < 300) return "200 Level";
+        if (num < 400) return "300 Level";
+        if (num < 500) return "400 Level";
+        return "500 Level";
+      };
+
+      if (Array.isArray(json.programs)) {
+        for (const prog of json.programs) {
+          const progName = prog.program || "General";
+          programs[progName] = (prog.courses || []).map((c: any) => {
+            const code = c.courseCode || c.code || "";
+            const isVirtual = /GST|GEDS/i.test(code);
+            return {
+              code,
+              title: c.courseTitle || c.title || "",
+              lecturer: c.lecturer || "TBA",
+              units: Number(c.unit ?? c.units ?? 2),
+              size: 55,
+              type: isVirtual ? "GST" : "Core",
+              group: c.group || "All",
+              level: c.level || deriveLevel(code),
+              isVirtual,
+            };
+          });
+        }
+      } else if (typeof json === "object") {
+        for (const [progName, courses] of Object.entries(json)) {
+          if (Array.isArray(courses)) {
+            programs[progName] = courses.map((c: any) => {
+              const code = c.courseCode || c.code || "";
+              const isVirtual = /GST|GEDS/i.test(code);
+              return {
+                code,
+                title: c.courseTitle || c.title || "",
+                lecturer: c.lecturer || "TBA",
+                units: Number(c.unit ?? c.units ?? 2),
+                size: 55,
+                type: isVirtual ? "GST" : "Core",
+                group: c.group || "All",
+                level: c.level || deriveLevel(code),
+                isVirtual,
+              };
+            });
+          }
+        }
+      }
+
+      return NextResponse.json({ success: true, programs });
+    }
+
     const pyScript = `
 import zipfile, xml.etree.ElementTree as ET, json, re, sys
 
@@ -63,14 +137,16 @@ try:
                 level = '200 Level'
                 if digits:
                     num = int(digits[0])
-                    if num >= 100 and num < 200:
+                    if num < 200:
                         level = '100 Level'
                     elif num >= 200 and num < 300:
                         level = '200 Level'
                     elif num >= 300 and num < 400:
                         level = '300 Level'
-                    elif num >= 400:
+                    elif num >= 400 and num < 500:
                         level = '400 Level'
+                    elif num >= 500:
+                        level = '500 Level'
                 
                 c_type = 'Core'
                 is_virtual = False
