@@ -1,11 +1,13 @@
 "use client";
 
-import { CheckCircle2, XCircle, Clock, MessageSquare, ArrowLeft, Download } from "lucide-react";
-import { Card, CardHead, Pill, Button } from "../components/ui";
+import { useState } from "react";
+import { CheckCircle2, XCircle, Clock, MessageSquare, ArrowLeft, Download, RefreshCw } from "lucide-react";
+import { Card, CardHead, Pill, Button, DataUnavailableState } from "../components/ui";
 import { type Status, type TimelineStep } from "../lib/data";
 import type { View } from "../components/Sidebar";
 import { useRouter } from "next/navigation";
 import { useApp } from "../lib/AppContext";
+import { workflowApi } from "../lib/api";
 
 export default function History(props?: {
   status?: Status;
@@ -17,6 +19,32 @@ export default function History(props?: {
 
   const status = props?.status ?? context.status;
   const localTimeline = props?.localTimeline ?? context.localTimeline;
+  const activeDept = context.currentProgram || context.currentUser?.department || "";
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  async function handleRefresh() {
+    if (!activeDept) return;
+    setIsRefreshing(true);
+    try {
+      const res = await workflowApi.getTimeline(activeDept);
+      if (res && Array.isArray(res.timeline)) {
+        context.setLocalTimeline(res.timeline);
+      }
+    } catch (err) {
+      console.warn("Failed refreshing timeline:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
+  if (!activeDept) {
+    return (
+      <DataUnavailableState
+        title="No Department Assigned"
+        description="A department is required before the timetable history can be loaded."
+      />
+    );
+  }
 
   function navigateToGenerate() {
     if (props?.setView) {
@@ -67,17 +95,10 @@ export default function History(props?: {
 
             <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-end">
               <Button
-                onClick={() => handleReviseFlagged("BU-GST 205")}
+                onClick={navigateToGenerate}
                 className="w-full sm:w-auto text-[13px] bg-bad hover:bg-bad/90 text-white"
               >
-                Revise BU-GST 205 →
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleReviseFlagged("COSC 204", "Thu", "10:00")}
-                className="w-full sm:w-auto text-[12.5px] border-bad/30 text-bad hover:bg-bad-soft"
-              >
-                Revise CST Hall A Clash →
+                Revise Timetable →
               </Button>
             </div>
           </div>
@@ -91,31 +112,55 @@ export default function History(props?: {
               title="Submission timeline"
               sub="Full audit trail for this timetable"
             action={
-              <Button
-                variant="outline"
-                className="text-[12px] px-3 py-2"
-                onClick={() => {
-                  const rows = localTimeline.map(
-                    (t) => `${t.at}\t${t.role}\t${t.actor}\t${t.action}${t.comment ? `\t"${t.comment}"` : ""}`,
-                  );
-                  const blob = new Blob(
-                    ["Date\tRole\tActor\tAction\tComment\n" + rows.join("\n")],
-                    { type: "text/plain" },
-                  );
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "BUPulse-timeline.txt";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-              >
-                <Download size={13} /> Export
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="text-[12px] px-3 py-2"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} /> {isRefreshing ? "Refreshing..." : "Refresh"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-[12px] px-3 py-2"
+                  onClick={() => {
+                    const rows = localTimeline.map(
+                      (t) => `${t.at}\t${t.role}\t${t.actor}\t${t.action}${t.comment ? `\t"${t.comment}"` : ""}`,
+                    );
+                    const blob = new Blob(
+                      ["Date\tRole\tActor\tAction\tComment\n" + rows.join("\n")],
+                      { type: "text/plain" },
+                    );
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "BUPulse-timeline.txt";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download size={13} /> Export
+                </Button>
+              </div>
             }
           />
           <div className="px-5 pb-6">
-            {localTimeline.map((s, i) => {
+            {localTimeline.length === 0 ? (
+              <div className="py-12 text-center text-muted">
+                <Clock size={36} className="mx-auto mb-2.5 opacity-40 text-muted" />
+                <p className="text-[14px] font-semibold text-ink">No review history yet</p>
+                <p className="text-[13px] text-muted max-w-sm mx-auto mt-1">
+                  Once your timetable draft is generated and submitted for HOD review, all sign-offs and status transitions will be logged here.
+                </p>
+                <div className="mt-4">
+                  <Button variant="outline" onClick={navigateToGenerate}>
+                    Go to Timetable Generator
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              localTimeline.map((s, i) => {
               const Icon =
                 s.state === "done"
                   ? CheckCircle2
@@ -163,8 +208,9 @@ export default function History(props?: {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            })
+          )}
+        </div>
         </Card>
       </div>
 
@@ -187,7 +233,13 @@ export default function History(props?: {
                 {status}
               </p>
               <p className="mt-0.5 text-[12px] text-muted">
-                {isSubmitted
+                {status === "Published"
+                  ? "Master schedule published campus-wide"
+                  : status === "Submitted to Acad Pl. T.O"
+                  ? "Approved by Dean — awaiting master publication"
+                  : status === "Submitted to Dean"
+                  ? "Approved by HOD — awaiting Dean sign-off"
+                  : status === "Submitted to HOD"
                   ? "Awaiting HOD decision"
                   : "Draft in progress — resolve conflicts to submit"}
               </p>
@@ -216,10 +268,10 @@ export default function History(props?: {
               </p>
               {!isSubmitted && (
                 <button
-                  onClick={() => handleReviseFlagged("BU-GST 205")}
-                  className="mt-3 text-[12.5px] font-semibold text-brand hover:underline"
+                  onClick={navigateToGenerate}
+                  className="mt-3 text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
                 >
-                  Revise timetable on flagged class →
+                  Revise timetable on generator →
                 </button>
               )}
             </div>

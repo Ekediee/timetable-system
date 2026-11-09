@@ -14,11 +14,11 @@ import {
   CalendarClock,
   Send,
 } from "lucide-react";
-import { Card, CardHead, Pill, Button } from "../components/ui";
+import { Card, CardHead, Pill, Button, CardSkeleton, TableSkeleton } from "../components/ui";
 import {
-  allocations as defaultAllocations,
-  venues,
   department,
+  accounts,
+  getParentSchool,
   type Status,
   type Session,
   type Constraint,
@@ -66,8 +66,35 @@ export default function Dashboard(props?: {
   const localConstraints = props?.localConstraints ?? context.localConstraints;
   const constraintsComplete = props?.constraintsComplete ?? context.constraintsComplete;
   const localTimeline = props?.localTimeline ?? context.localTimeline;
-  const allocations = context.localAllocations ?? defaultAllocations;
+  const allocations = context.localAllocations || [];
   const deptName = context.currentUser?.department || context.currentProgram || department.name;
+
+  const isDeptTODashboard = context.dashboardData?.role === "deptTO";
+  const deptTOData =
+    context.dashboardData?.role === "deptTO" ? context.dashboardData : null;
+
+  const allocatedCount =
+    allocations.length > 0
+      ? allocations.length
+      : deptTOData
+      ? deptTOData.allocationsSummary.allocatedCount
+      : 0;
+
+  const totalCourses =
+    deptTOData
+      ? deptTOData.allocationsSummary.totalCourses
+      : allocations.length;
+
+  const conflictCount =
+    localSessions.length > 0
+      ? localSessions.filter((s) => s.conflict).length
+      : deptTOData
+      ? deptTOData.timetable?.conflictsCount ?? 0
+      : 0;
+
+  const hasSessions =
+    localSessions.length > 0 ||
+    Boolean(deptTOData && (deptTOData.timetable?.sessionsCount ?? 0) > 0);
 
   const conflicts = localSessions.filter((s) => s.conflict);
   const rejection = localTimeline.find((t) => t.state === "rejected");
@@ -77,10 +104,51 @@ export default function Dashboard(props?: {
     status === "Submitted to Acad Pl. T.O" ||
     status === "Published";
 
-  const approvalPct = submitted ? 50 : 22;
-  const approvalLabel = submitted
-    ? "Step 2 of 4 · awaiting HOD decision"
-    : "Step 1 of 4 · draft in progress";
+  const matchingHOD = accounts.find(
+    (a) => a.role === "hod" && a.department?.toLowerCase() === deptName.toLowerCase()
+  );
+  const hodName = matchingHOD?.name || "the Department Head";
+
+  const parentSchool = getParentSchool(deptName);
+  const matchingDean = accounts.find(
+    (a) => a.role === "dean" && (a.school === parentSchool || a.school?.includes(parentSchool))
+  );
+  const deanName = matchingDean?.name || "the School Dean";
+
+  const approvalPct =
+    status === "Published"
+      ? 100
+      : status === "Submitted to Acad Pl. T.O"
+      ? 75
+      : status === "Submitted to Dean"
+      ? 50
+      : status === "Submitted to HOD"
+      ? 25
+      : hasSessions
+      ? 15
+      : 0;
+
+  const approvalLabel =
+    status === "Published"
+      ? "Step 4 of 4 · Master schedule published"
+      : status === "Submitted to Acad Pl. T.O"
+      ? "Step 3 of 4 · Awaiting Academic Planning publication"
+      : status === "Submitted to Dean"
+      ? `Step 2 of 4 · Awaiting ${deanName} (Dean)`
+      : status === "Submitted to HOD"
+      ? `Step 1 of 4 · Awaiting ${hodName} (HOD)`
+      : hasSessions
+      ? "Step 0 of 4 · Draft in progress"
+      : "Step 0 of 4 · Timetable not yet generated";
+
+  if (context.isLoadingBackend && !hasSessions && allocations.length === 0 && !context.dashboardData) {
+    return (
+      <div className="space-y-4">
+        <CardSkeleton count={4} />
+        <TableSkeleton rows={6} cols={4} />
+      </div>
+    );
+  }
 
   return (
     <div className="bp-fade grid grid-cols-1 gap-5 xl:grid-cols-3">
@@ -98,13 +166,17 @@ export default function Dashboard(props?: {
                 </Pill>
               ) : (
                 <Button onClick={() => (props?.setView ? props.setView("generate") : router.push("/generate"))}>
-                  <Sparkles size={16} /> Open draft
+                  <Sparkles size={16} /> {hasSessions ? "Open draft" : "Generate timetable"}
                 </Button>
               )
             }
           />
           <div className="flex flex-col gap-3 px-5 pb-5 sm:flex-row">
-            <Stat label="Courses allocated" value={String(allocations.length)} hint="9 lecturers assigned" />
+            <Stat
+              label="Courses allocated"
+              value={String(allocatedCount)}
+              hint={totalCourses > 0 ? `${totalCourses} total courses` : "Allocations live"}
+            />
             <Stat
               label="Scheduling rules active"
               value={String(localConstraints.length)}
@@ -113,9 +185,9 @@ export default function Dashboard(props?: {
             />
             <Stat
               label="Open conflicts"
-              value={String(conflicts.length)}
-              hint={conflicts.length === 0 ? "All clear" : "Blocking submission"}
-              tone={conflicts.length === 0 ? "ink" : "bad"}
+              value={String(conflictCount)}
+              hint={conflictCount === 0 ? "All clear" : "Blocking submission"}
+              tone={conflictCount === 0 ? "ink" : "bad"}
             />
           </div>
           <div className="mx-5 mb-5 rounded-xl border border-line bg-panel px-4 py-3.5">
@@ -151,22 +223,11 @@ export default function Dashboard(props?: {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     onClick={() => {
-                      context.setActiveRevisionTarget({ code: "BU-GST 205" });
                       if (props?.setView) props.setView("generate");
                       else router.push("/generate");
                     }}
                   >
-                    Fix BU-GST 205 <ArrowUpRight size={15} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      context.setActiveRevisionTarget({ code: "COSC 204", day: "Thu", slot: "10:00" });
-                      if (props?.setView) props.setView("generate");
-                      else router.push("/generate");
-                    }}
-                  >
-                    Fix Thu Clash <ArrowUpRight size={15} />
+                    Revise Timetable <ArrowUpRight size={15} />
                   </Button>
                   <Button
                     variant="outline"
@@ -188,17 +249,29 @@ export default function Dashboard(props?: {
               </div>
               <div className="flex-1">
                 <p className="text-[14px] font-semibold text-ink">
-                  Timetable submitted to HOD
+                  {status === "Published"
+                    ? "Timetable Published"
+                    : status === "Submitted to Acad Pl. T.O"
+                    ? "Approved by Dean — Forwarded to Academic Planning"
+                    : status === "Submitted to Dean"
+                    ? "Approved by HOD — Forwarded to Dean"
+                    : "Timetable Submitted to HOD"}
                 </p>
                 <p className="mt-1 text-[13.5px] leading-relaxed text-subink">
-                  Awaiting review by Dr. A. Olumide. You will be notified of the decision.
+                  {status === "Published"
+                    ? "The master timetable is approved, locked, and active campus-wide."
+                    : status === "Submitted to Acad Pl. T.O"
+                    ? "The schedule has passed school review and is awaiting final master publication by Academic Planning."
+                    : status === "Submitted to Dean"
+                    ? `The timetable has been approved by ${hodName} and is currently under school-level review by ${deanName}.`
+                    : `Awaiting review and sign-off by ${hodName}. You will be notified of the decision.`}
                 </p>
                 <Button
                   variant="outline"
                   className="mt-3"
                   onClick={() => (props?.setView ? props.setView("history") : router.push("/history"))}
                 >
-                  View submission status <ArrowUpRight size={15} />
+                  View submission history <ArrowUpRight size={15} />
                 </Button>
               </div>
             </div>
@@ -236,42 +309,90 @@ export default function Dashboard(props?: {
         <Card>
           <CardHead title="Approval chain" sub="Live status of this submission" />
           <div className="px-5 pb-5">
-            {localTimeline.map((s, i) => {
-              const dot =
-                s.state === "done"
-                  ? "bg-good text-white"
-                  : s.state === "rejected"
+            {localTimeline.length > 0 ? (
+              localTimeline.map((s, i) => {
+                const dot =
+                  s.state === "done"
+                    ? "bg-good text-white"
+                    : s.state === "rejected"
                     ? "bg-bad text-white"
                     : s.state === "current"
-                      ? "bg-brand text-white"
-                      : "bg-line text-muted";
-              return (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <span
-                      className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${dot}`}
-                    >
-                      {s.state === "done" ? (
-                        <CheckCircle2 size={14} />
-                      ) : (
-                        i + 1
-                      )}
-                    </span>
-                    {i < localTimeline.length - 1 && (
-                      <span className="my-0.5 w-px flex-1 bg-line" />
-                    )}
+                    ? "bg-brand text-white"
+                    : "bg-line text-muted";
+                return (
+                  <div key={i} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <span
+                        className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${dot}`}
+                      >
+                        {s.state === "done" ? <CheckCircle2 size={14} /> : i + 1}
+                      </span>
+                      {i < localTimeline.length - 1 && <span className="my-0.5 w-px flex-1 bg-line" />}
+                    </div>
+                    <div className={`pb-4 ${i === localTimeline.length - 1 ? "pb-0" : ""}`}>
+                      <p className="text-[13.5px] font-semibold text-ink">{s.action}</p>
+                      <p className="text-[12px] text-muted">
+                        {s.actor ? `${s.actor} · ` : ""}{s.role} · {s.at}
+                      </p>
+                    </div>
                   </div>
-                  <div className={`pb-4 ${i === localTimeline.length - 1 ? "pb-0" : ""}`}>
-                    <p className="text-[13.5px] font-semibold text-ink">
-                      {s.action}
-                    </p>
-                    <p className="text-[12px] text-muted">
-                      {s.role} · {s.at}
-                    </p>
+                );
+              })
+            ) : (
+              [
+                {
+                  tier: "1. Formulation",
+                  role: "Dept T.O",
+                  actor: context.currentUser?.name || "Departmental T.O",
+                  state: hasSessions ? ("current" as const) : ("pending" as const),
+                  desc: hasSessions ? "Draft in progress" : "Not yet generated",
+                },
+                {
+                  tier: "2. Sign-Off",
+                  role: "HOD",
+                  actor: hodName,
+                  state: "pending" as const,
+                  desc: "Awaiting submission",
+                },
+                {
+                  tier: "3. Verification",
+                  role: "Dean",
+                  actor: deanName,
+                  state: "pending" as const,
+                  desc: "School-level review",
+                },
+                {
+                  tier: "4. Master Publication",
+                  role: "Acad Pl. T.O",
+                  actor: "Academic Planning",
+                  state: "pending" as const,
+                  desc: "Campus master lock",
+                },
+              ].map((tier, i) => {
+                const dot =
+                  tier.state === "current"
+                    ? "bg-brand text-white"
+                    : "bg-line text-muted";
+                return (
+                  <div key={i} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <span
+                        className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${dot}`}
+                      >
+                        {i + 1}
+                      </span>
+                      {i < 3 && <span className="my-0.5 w-px flex-1 bg-line" />}
+                    </div>
+                    <div className={`pb-4 ${i === 3 ? "pb-0" : ""}`}>
+                      <p className="text-[13.5px] font-semibold text-ink">{tier.tier}</p>
+                      <p className="text-[12px] text-muted">
+                        {tier.actor} · {tier.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </Card>
 
@@ -279,9 +400,15 @@ export default function Dashboard(props?: {
           <CardHead title="Resource snapshot" />
           <div className="space-y-2.5 px-5 pb-5 text-[13px]">
             {[
-              ["Venues available", `${venues.length}`],
-              ["Total seat capacity", `${venues.reduce((a, v) => a + v.capacity, 0)}`],
-              ["Largest cohort", `${Math.max(...allocations.map((a) => a.size))} students`],
+              ["Venues available", `${(context.localVenues || []).length}`],
+              [
+                "Total seat capacity",
+                `${(context.localVenues || []).reduce((a, v) => a + v.capacity, 0)}`,
+              ],
+              [
+                "Largest cohort",
+                `${allocations.length > 0 ? Math.max(...allocations.map((a) => a.size)) : 0} students`,
+              ],
               ["Total teaching units", `${allocations.reduce((a, c) => a + c.units, 0)}`],
             ].map(([k, v]) => (
               <div

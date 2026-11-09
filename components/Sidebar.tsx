@@ -43,7 +43,7 @@ export type View =
 
 type NavItem = { id: View; label: string; href: string; icon: typeof Users };
 
-const navByRole: Record<UserRole, NavItem[]> = {
+export const navByRole: Record<UserRole, NavItem[]> = {
   deptTO: [
     { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { id: "allocations", label: "Allocations", href: "/allocations", icon: Users },
@@ -66,6 +66,14 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { id: "acadAnalytics", label: "Analytics", href: "/academic-planning/analytics", icon: BarChart2 },
     { id: "acadAudit", label: "Audit Log", href: "/academic-planning/audit", icon: ScrollText },
   ],
+  superAdmin: [
+    { id: "acadPlanning", label: "Review Queue", href: "/academic-planning", icon: ClipboardCheck },
+    { id: "acadPublished", label: "Published Timetables", href: "/academic-planning/published", icon: Globe },
+    { id: "acadConstraints", label: "Constraints", href: "/academic-planning/constraints", icon: ShieldCheck },
+    { id: "acadClashes", label: "Venue Clashes", href: "/academic-planning/clashes", icon: AlertTriangle },
+    { id: "acadAnalytics", label: "Analytics", href: "/academic-planning/analytics", icon: BarChart2 },
+    { id: "acadAudit", label: "Audit Log", href: "/academic-planning/audit", icon: ScrollText },
+  ],
 };
 
 const activeColorByRole: Record<UserRole, string> = {
@@ -73,6 +81,7 @@ const activeColorByRole: Record<UserRole, string> = {
   hod: "bg-brand-soft text-brand-ink",
   dean: "bg-good-soft text-good",
   acadPlanningTO: "bg-violet-soft text-violet",
+  superAdmin: "bg-violet-soft text-violet",
 };
 
 const activeIconByRole: Record<UserRole, string> = {
@@ -80,6 +89,7 @@ const activeIconByRole: Record<UserRole, string> = {
   hod: "text-brand",
   dean: "text-good",
   acadPlanningTO: "text-violet",
+  superAdmin: "text-violet",
 };
 
 const sectionLabel: Record<UserRole, string> = {
@@ -87,6 +97,7 @@ const sectionLabel: Record<UserRole, string> = {
   hod: "HOD Workspace",
   dean: "Dean Workspace",
   acadPlanningTO: "Planning Office",
+  superAdmin: "Admin Workspace",
 };
 
 export default function Sidebar({
@@ -156,18 +167,12 @@ export default function Sidebar({
             {sectionLabel[currentUser.role]}
           </p>
           {navItems.map(({ id, label, href, icon: Icon }) => {
-            const active = view ? view === id : (pathname === href || (href !== "/" && pathname?.startsWith(href + "/")));
+            const active = view ? view === id : pathname === href;
             return (
               <Link
                 key={id}
                 href={href}
-                onClick={(e) => {
-                  if (setView) {
-                    e.preventDefault();
-                    setView(id);
-                  }
-                  onClose();
-                }}
+                onClick={onClose}
                 className={`group mb-0.5 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-colors ${
                   active ? activeClass : "text-subink hover:bg-line-soft"
                 }`}

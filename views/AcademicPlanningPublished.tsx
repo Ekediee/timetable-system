@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Globe,
   Download,
@@ -11,10 +11,13 @@ import {
   Search,
   Send,
 } from "lucide-react";
-import { Card, CardHead, Pill, Button } from "../components/ui";
+import { Card, CardHead, Pill, Button, DataUnavailableState, Skeleton, CardSkeleton, TableSkeleton, ConfirmationModal } from "../components/ui";
 import TimetableModal, { exportTimetable } from "../components/TimetableModal";
-import { type DeptSubmission, type AuditEntry } from "../lib/data";
+import { type DeptSubmission, type AuditEntry, department, isApprovedByDean } from "../lib/data";
 import { useApp } from "../lib/AppContext";
+import { workflowApi } from "../lib/api";
+import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
+import { toast } from "../components/Toast";
 
 function stamp() {
   const d = new Date();
@@ -38,56 +41,165 @@ export default function AcademicPlanningPublished(props?: {
 
   const [viewSub, setViewSub] = useState<DeptSubmission | null>(null);
   const [search, setSearch] = useState("");
+  const [confirmPublish, setConfirmPublish] = useState<
+    { type: "single"; sub: DeptSubmission } | { type: "all"; count: number } | null
+  >(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(!context.submissionsLoaded);
+
+  useEffect(() => {
+    if (!context.submissionsLoaded) {
+      setLoading(true);
+      context
+        .refreshSubmissions()
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [context.submissionsLoaded, context.refreshSubmissions]);
+
+  if (loading && !context.submissionsLoaded) {
+    return (
+      <div className="bp-fade flex flex-col gap-5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <CardSkeleton count={4} />
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <Skeleton className="h-9 w-64 rounded-xl" />
+            <Skeleton className="h-9 w-36 rounded-xl" />
+          </div>
+          <TableSkeleton rows={6} cols={5} />
+        </div>
+      </div>
+    );
+  }
 
   if (!submissions) return null;
 
-  function handlePublish(id: string) {
-    const sub = submissions.find((s) => s.id === id)!;
-    const at = stamp();
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        s.id === id ? { ...s, status: "published" as const, publishedAt: at } : s,
-      ),
+  const visible = submissions.filter(
+    (s) =>
+      isApprovedByDean(s.rawStatus || s.status) &&
+      (s.status === "published" || s.status === "approved"),
+  );
+
+  if (visible.length === 0 && !context.isLoadingBackend && !loading) {
+    return (
+      <DataUnavailableState
+        tone="neutral"
+        title="No published timetables yet"
+        description="Department timetables will appear here once approved by the Academic Planning Office and published to the master schedule."
+      />
     );
-    onAuditEntry({
-      action: "published",
-      department: sub.department,
-      school: sub.school,
-      level: sub.level,
-    });
+  }
+
+  function handlePublish(id: string) {
+    const sub = submissions.find((s) => s.id === id);
+    if (!sub) return;
+    setConfirmPublish({ type: "single", sub });
   }
 
   function handlePublishAll() {
-    const at = stamp();
     const toPublish = submissions.filter((s) => s.status === "approved");
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        s.status === "approved"
-          ? { ...s, status: "published" as const, publishedAt: at }
-          : s,
-      ),
-    );
-    toPublish.forEach((s) => {
-      onAuditEntry({
-        action: "published",
-        department: s.department,
-        school: s.school,
-        level: s.level,
-      });
-    });
+    if (toPublish.length === 0) return;
+    setConfirmPublish({ type: "all", count: toPublish.length });
   }
 
-  const visible = submissions.filter(
-    (s) => s.status === "published" || s.status === "approved",
-  );
+  async function executePublish() {
+    if (!confirmPublish) return;
+    setIsProcessing(true);
+
+    try {
+      if (confirmPublish.type === "single") {
+        const { sub } = confirmPublish;
+        const at = stamp();
+        await workflowApi.publish(sub.department, CURRENT_SEMESTER, CURRENT_SESSION);
+        const res = await context.updateTimetableStatus("Published", undefined, sub.department);
+        if (!res.success) {
+          return;
+        }
+
+        setSubmissions((prev) =>
+          prev.map((s) =>
+            s.id === sub.id ? { ...s, status: "published" as const, publishedAt: at } : s,
+          ),
+        );
+        onAuditEntry({
+          action: "published",
+          department: sub.department,
+          school: sub.school,
+          level: sub.level || "All Levels",
+        });
+        toast.success(`${sub.department} timetable published to master schedule.`);
+        await context.refreshWorkflowAndAudit();
+      } else if (confirmPublish.type === "all") {
+        const at = stamp();
+        const toPublish = submissions.filter((s) => s.status === "approved");
+
+        const succeededIds = new Set<string>();
+        const failedDepts: string[] = [];
+
+        for (const s of toPublish) {
+          try {
+            await workflowApi.publish(s.department, CURRENT_SEMESTER, CURRENT_SESSION);
+            const res = await context.updateTimetableStatus("Published", undefined, s.department);
+            if (!res.success) {
+              failedDepts.push(s.department);
+              continue;
+            }
+
+            succeededIds.add(s.id);
+            onAuditEntry({
+              action: "published",
+              department: s.department,
+              school: s.school,
+              level: s.level || "All Levels",
+            });
+          } catch (err) {
+            console.warn(`Publish all failed for ${s.department}:`, err);
+            failedDepts.push(s.department);
+          }
+        }
+
+        if (succeededIds.size > 0) {
+          setSubmissions((prev) =>
+            prev.map((s) =>
+              succeededIds.has(s.id)
+                ? { ...s, status: "published" as const, publishedAt: at }
+                : s,
+            ),
+          );
+          toast.success(
+            `Published ${succeededIds.size} department timetable${succeededIds.size > 1 ? "s" : ""} to master schedule.`
+          );
+        }
+
+        if (failedDepts.length > 0) {
+          toast.error(
+            `Failed to publish ${failedDepts.length} department${failedDepts.length > 1 ? "s" : ""}: ${failedDepts.join(", ")}.`
+          );
+        }
+
+        await context.refreshWorkflowAndAudit();
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed publishing timetable.");
+    } finally {
+      setIsProcessing(false);
+      setConfirmPublish(null);
+    }
+  }
 
   const filtered = visible.filter((s) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
-      s.department.toLowerCase().includes(q) ||
-      s.school.toLowerCase().includes(q) ||
-      s.level.toLowerCase().includes(q)
+      (s.department || "").toLowerCase().includes(q) ||
+      (s.school || "").toLowerCase().includes(q) ||
+      (s.level || "").toLowerCase().includes(q)
     );
   });
 
@@ -123,7 +235,7 @@ export default function AcademicPlanningPublished(props?: {
         <CardHead
           icon={<Globe size={16} />}
           title="Published & Approved Timetables"
-          sub={`First Semester 2025/26 · ${filtered.length} timetable${filtered.length !== 1 ? "s" : ""}`}
+          sub={`${department.semester} ${department.session} · ${filtered.length} timetable${filtered.length !== 1 ? "s" : ""}`}
           action={
             <div className="flex items-center gap-2">
               {approvedOnly.length > 0 && (
@@ -297,6 +409,38 @@ export default function AcademicPlanningPublished(props?: {
           ))}
         </div>
       </Card>
+
+      {/* Confirmation Modal for Publishing */}
+      <ConfirmationModal
+        isOpen={confirmPublish !== null}
+        onClose={() => {
+          if (!isProcessing) setConfirmPublish(null);
+        }}
+        onConfirm={executePublish}
+        isLoading={isProcessing}
+        title={
+          confirmPublish?.type === "single"
+            ? `Publish ${confirmPublish.sub.department} Timetable`
+            : `Publish ${confirmPublish?.count} Approved Timetables`
+        }
+        description={
+          confirmPublish?.type === "single" ? (
+            <span>
+              Are you sure you want to publish the <strong>{confirmPublish.sub.department}</strong> timetable to the master schedule? It will immediately be active and viewable by all university members.
+            </span>
+          ) : confirmPublish?.type === "all" ? (
+            <span>
+              Are you sure you want to publish all <strong>{confirmPublish.count}</strong> approved timetables to the master university schedule?
+            </span>
+          ) : undefined
+        }
+        confirmText={
+          confirmPublish?.type === "single"
+            ? "Publish Timetable"
+            : `Publish All (${confirmPublish?.count})`
+        }
+        variant="primary"
+      />
     </div>
   );
 }

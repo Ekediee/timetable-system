@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   CheckCircle2,
   Clock,
@@ -18,11 +18,13 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
-import { Card, CardHead, Pill, Button } from "../components/ui";
+import { Card, CardHead, Pill, Button, DataUnavailableState, Skeleton, CardSkeleton, TableSkeleton, ConfirmationModal } from "../components/ui";
 import TimetableModal from "../components/TimetableModal";
-import { type DeptSubmission, type AuditEntry } from "../lib/data";
+import { type DeptSubmission, type AuditEntry, department, isApprovedByDean } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 import { workflowApi } from "../lib/api";
+import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
+import { toast } from "../components/Toast";
 
 type FilterTab = "all" | "pending" | "approved" | "returned" | "published";
 
@@ -42,16 +44,18 @@ function stamp() {
   return `${month} ${day}, ${h}:${m}`;
 }
 
-function initials(name: string) {
-  return name
-    .split(" ")
+function initials(name?: string | null) {
+  if (!name) return "AP";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "AP";
+  return parts
     .slice(0, 2)
     .map((n) => n[0])
     .join("")
     .toUpperCase();
 }
 
-function Avatar({ name, tone = "brand" }: { name: string; tone?: string }) {
+function Avatar({ name, tone = "brand" }: { name?: string | null; tone?: string }) {
   const bg: Record<string, string> = {
     brand: "bg-brand-soft text-brand-ink",
     violet: "bg-violet-soft text-violet",
@@ -87,13 +91,16 @@ function StatTile({
 }
 
 function ApprovalChain({ sub }: { sub: DeptSubmission }) {
+  const context = useApp();
+  const acadPlannerName = context.currentUser?.name || "Academic Planning";
+
   const steps = [
-    { label: "Dept T.O", name: sub.deptTO, done: true },
-    { label: "HOD", name: sub.hod, done: true },
-    { label: "Dean", name: sub.dean, done: true },
+    { label: "Dept T.O", name: sub.deptTO || "Dept T.O", done: true },
+    { label: "HOD", name: sub.hod || "HOD", done: true },
+    { label: "Dean", name: sub.dean || "Dean", done: true },
     {
       label: "Acad Pl. T.O",
-      name: "M. Danladi",
+      name: acadPlannerName,
       done: sub.status === "approved" || sub.status === "published",
       current: sub.status === "pending",
       returned: sub.status === "returned",
@@ -110,6 +117,10 @@ function ApprovalChain({ sub }: { sub: DeptSubmission }) {
             : step.current
               ? "bg-brand text-white"
               : "bg-line text-muted";
+        const shortName = step.name
+          ? (step.name.trim().split(/\s+/).slice(-1)[0] || step.label)
+          : step.label;
+
         return (
           <div key={i} className="flex flex-1 flex-col items-center">
             <div className="flex w-full items-center">
@@ -141,7 +152,7 @@ function ApprovalChain({ sub }: { sub: DeptSubmission }) {
               {step.label}
             </p>
             <p className="text-center text-[10px] text-muted/70 leading-tight max-w-[68px] truncate">
-              {step.name.split(" ").slice(-1)[0]}
+              {shortName}
             </p>
           </div>
         );
@@ -240,10 +251,10 @@ function ReviewPanel({
         </button>
 
         <div className="flex items-center gap-2.5 rounded-xl border border-line bg-panel px-3.5 py-3">
-          <Avatar name={sub.dean} tone="good" />
+          <Avatar name={sub.dean || "Dean"} tone="good" />
           <div>
-            <p className="text-[12.5px] font-semibold text-ink">{sub.dean}</p>
-            <p className="text-[11.5px] text-muted">Dean · signed {sub.deanSignedAt}</p>
+            <p className="text-[12.5px] font-semibold text-ink">{sub.dean || "School Dean"}</p>
+            <p className="text-[11.5px] text-muted">Dean · signed {sub.deanSignedAt || "Recently"}</p>
           </div>
           <CheckCircle2 size={16} className="ml-auto shrink-0 text-good" />
         </div>
@@ -260,13 +271,22 @@ function ReviewPanel({
         )}
 
         {sub.status === "approved" && (
-          <div className="rounded-xl border border-good/20 bg-good-soft/40 px-3.5 py-3">
-            <p className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-good mb-1">
-              Approved — ready to publish
-            </p>
-            <p className="text-[12.5px] text-subink">
-              This timetable has been approved. Visit Published Timetables to make it live.
-            </p>
+          <div className="rounded-xl border border-good/20 bg-good-soft/40 px-3.5 py-3 space-y-2.5">
+            <div>
+              <p className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-good mb-0.5">
+                Approved — ready to publish
+              </p>
+              <p className="text-[12.5px] text-subink">
+                This timetable has been approved by Academic Planning. You can publish it directly to the master schedule.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              className="w-full text-[12.5px] gap-2"
+              onClick={() => onApprove(sub.id, true)}
+            >
+              <Globe size={13} /> Publish to Master Schedule
+            </Button>
           </div>
         )}
 
@@ -347,144 +367,237 @@ export default function AcademicPlanning(props?: {
 }) {
   const context = useApp();
 
-  const submissions = props?.submissions ?? context.deptSubs;
+  const rawSubmissions = props?.submissions ?? context.deptSubs;
   const setSubmissions = props?.setSubmissions ?? context.setDeptSubs;
   const onAuditEntry = props?.onAuditEntry ?? context.addAuditEntry;
 
+  // Double-layer defense: Academic Planning queue displays ONLY Dean-approved schedules
+  const submissions = useMemo(() => {
+    return (rawSubmissions || []).filter((s) =>
+      isApprovedByDean(s.rawStatus || s.status),
+    );
+  }, [rawSubmissions]);
+
+  const isPlanningDashboard =
+    context.dashboardData?.role === "acadPlanningTO" ||
+    context.dashboardData?.role === "superAdmin";
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterTab, setFilterTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmDialog, setConfirmDialog] = useState<
+    | { type: "approve"; sub: DeptSubmission; publish: boolean }
+    | { type: "return"; sub: DeptSubmission; comment: string }
+    | { type: "bulk"; publish: boolean; count: number }
+    | null
+  >(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(
+    !context.submissionsLoaded && !isPlanningDashboard,
+  );
 
   useEffect(() => {
-    workflowApi
-      .getSubmissions()
-      .then((res) => {
-        if (res && res.submissions && res.submissions.length > 0) {
-          setSubmissions((prev) => {
-            const updated = [...prev];
-            res.submissions.forEach((dbSub: any) => {
-              const idx = updated.findIndex((s) => s.department === dbSub.department);
-              const validStatus = (["pending", "approved", "returned", "published"].includes(dbSub.status)
-                ? dbSub.status
-                : "pending") as "pending" | "approved" | "returned" | "published";
-              if (idx !== -1) {
-                updated[idx] = {
-                  ...updated[idx],
-                  status: validStatus,
-                  courses: dbSub.courses || updated[idx].courses,
-                  publishedAt: dbSub.publishedAt || updated[idx].publishedAt,
-                };
-              } else {
-                updated.push({
-                  id: dbSub.id || dbSub.timetableId,
-                  department: dbSub.department,
-                  school: dbSub.school || "School of Computing & Engineering",
-                  level: "All Levels",
-                  semester: "First Semester 2026/27",
-                  deptTO: dbSub.deptTO || "Dept T.O",
-                  hod: "HOD",
-                  dean: "Dean",
-                  deanSignedAt: dbSub.deanSignedAt || "Recently",
-                  courses: dbSub.courses || 0,
-                  units: dbSub.units || 0,
-                  conflicts: 0,
-                  status: validStatus,
-                  publishedAt: dbSub.publishedAt,
-                  sessions: [],
-                });
-              }
-            });
-            return updated;
-          });
-        }
-      })
-      .catch((e) => console.warn("Could not fetch submissions from DB:", e));
-  }, [setSubmissions]);
+    if (context.submissionsLoaded || isPlanningDashboard) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    context
+      .refreshSubmissions()
+      .catch((e) => console.warn("Could not fetch submissions from DB:", e))
+      .finally(() => setLoading(false));
+  }, [context.submissionsLoaded, isPlanningDashboard, context.refreshSubmissions]);
+
+  if (loading && !context.submissionsLoaded) {
+    return (
+      <div className="bp-fade flex flex-col gap-5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <CardSkeleton count={4} />
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <Skeleton className="h-9 w-64 rounded-xl" />
+            <Skeleton className="h-9 w-36 rounded-xl" />
+          </div>
+          <TableSkeleton rows={6} cols={5} />
+        </div>
+      </div>
+    );
+  }
 
   if (!submissions) return null;
+
+  if (submissions.length === 0 && !context.isLoadingBackend && !loading) {
+    return (
+      <DataUnavailableState
+        tone="neutral"
+        title="No academic planning submissions received"
+        description="There are currently no departmental timetable submissions awaiting review from academic units. Submissions appear here after School Dean sign-off."
+      />
+    );
+  }
 
   const selected = submissions.find((s) => s.id === selectedId) ?? null;
 
   function handleApprove(id: string, publish: boolean) {
-    const sub = submissions.find((s) => s.id === id)!;
-    const at = stamp();
-    const newStatus = publish ? "published" as const : "approved" as const;
-
-    if (publish) {
-      workflowApi.publish(sub.department).catch(() => {});
-      context.updateTimetableStatus("Published", undefined, sub.department);
-    } else {
-      context.updateTimetableStatus("Submitted to Acad Pl. T.O", undefined, sub.department);
-    }
-
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? { ...s, status: newStatus, ...(publish ? { publishedAt: at } : {}) }
-          : s,
-      ),
-    );
-    onAuditEntry({
-      action: publish ? "published" : "approved",
-      department: sub.department,
-      school: sub.school,
-      level: sub.level,
-    });
-    setSelectedId(null);
+    const sub = submissions.find((s) => s.id === id);
+    if (!sub) return;
+    setConfirmDialog({ type: "approve", sub, publish });
   }
 
   function handleReturn(id: string, comment: string) {
-    const sub = submissions.find((s) => s.id === id)!;
-    workflowApi.hodReject(sub.department, comment).catch(() => {});
-    context.updateTimetableStatus("Draft generated", comment, sub.department);
-
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        s.id === id ? { ...s, status: "returned" as const, returnComment: comment } : s,
-      ),
-    );
-    onAuditEntry({
-      action: "returned",
-      department: sub.department,
-      school: sub.school,
-      level: sub.level,
-      note: comment,
-    });
-    setSelectedId(null);
+    const sub = submissions.find((s) => s.id === id);
+    if (!sub) return;
+    setConfirmDialog({ type: "return", sub, comment });
   }
 
   function handleBulkAction(publish: boolean) {
-    const at = stamp();
-    const newStatus = publish ? "published" as const : "approved" as const;
     const toProcess = submissions.filter(
       (s) => selectedIds.has(s.id) && s.status === "pending",
     );
+    if (toProcess.length === 0) return;
+    setConfirmDialog({ type: "bulk", publish, count: toProcess.length });
+  }
 
-    toProcess.forEach((s) => {
-      if (publish) {
-        workflowApi.publish(s.department).catch(() => {});
-        context.updateTimetableStatus("Published", undefined, s.department);
-      } else {
-        context.updateTimetableStatus("Submitted to Acad Pl. T.O", undefined, s.department);
+  async function executeConfirm() {
+    if (!confirmDialog) return;
+    setIsProcessing(true);
+
+    try {
+      if (confirmDialog.type === "approve") {
+        const { sub, publish } = confirmDialog;
+        const at = stamp();
+        const newStatus = publish ? ("published" as const) : ("approved" as const);
+
+        if (publish) {
+          await workflowApi.academicPlanningApprove(sub.department, true, CURRENT_SEMESTER, CURRENT_SESSION);
+          const res = await context.updateTimetableStatus("Published", undefined, sub.department);
+          if (!res.success) {
+            return;
+          }
+        } else {
+          await workflowApi.academicPlanningApprove(sub.department, false, CURRENT_SEMESTER, CURRENT_SESSION);
+          const res = await context.updateTimetableStatus("Approved", undefined, sub.department);
+          if (!res.success) {
+            return;
+          }
+        }
+
+        setSubmissions((prev) =>
+          prev.map((s) =>
+            s.id === sub.id
+              ? { ...s, status: newStatus, ...(publish ? { publishedAt: at } : {}) }
+              : s,
+          ),
+        );
+        onAuditEntry({
+          action: publish ? "published" : "approved",
+          department: sub.department,
+          school: sub.school,
+          level: sub.level || "All Levels",
+        });
+        setSelectedId(null);
+        await context.refreshWorkflowAndAudit();
+      } else if (confirmDialog.type === "return") {
+        const { sub, comment } = confirmDialog;
+        const res = await context.updateTimetableStatus("Draft generated", comment, sub.department);
+        if (!res.success) {
+          return;
+        }
+
+        setSubmissions((prev) =>
+          prev.map((s) =>
+            s.id === sub.id ? { ...s, status: "returned" as const, returnComment: comment } : s,
+          ),
+        );
+        onAuditEntry({
+          action: "returned",
+          department: sub.department,
+          school: sub.school,
+          level: sub.level || "All Levels",
+          note: comment,
+        });
+        setSelectedId(null);
+        await context.refreshWorkflowAndAudit();
+      } else if (confirmDialog.type === "bulk") {
+        const { publish } = confirmDialog;
+        const at = stamp();
+        const newStatus = publish ? ("published" as const) : ("approved" as const);
+        const toProcess = submissions.filter(
+          (s) => selectedIds.has(s.id) && s.status === "pending",
+        );
+
+        const succeededIds = new Set<string>();
+        const failedDepts: string[] = [];
+
+        for (const s of toProcess) {
+          try {
+            await workflowApi.academicPlanningApprove(
+              s.department,
+              publish,
+              CURRENT_SEMESTER,
+              CURRENT_SESSION,
+            );
+            const res = await context.updateTimetableStatus(
+              publish ? "Published" : "Approved",
+              undefined,
+              s.department,
+            );
+            if (!res.success) {
+              failedDepts.push(s.department);
+              continue;
+            }
+
+            succeededIds.add(s.id);
+            onAuditEntry({
+              action: publish ? "published" : "approved",
+              department: s.department,
+              school: s.school,
+              level: s.level || "All Levels",
+            });
+          } catch (err: any) {
+            console.warn(`Bulk action failed for ${s.department}:`, err);
+            failedDepts.push(s.department);
+          }
+        }
+
+        if (succeededIds.size > 0) {
+          setSubmissions((prev) =>
+            prev.map((s) =>
+              succeededIds.has(s.id)
+                ? { ...s, status: newStatus, ...(publish ? { publishedAt: at } : {}) }
+                : s,
+            ),
+          );
+          toast.success(
+            publish
+              ? `Published ${succeededIds.size} department timetable${succeededIds.size > 1 ? "s" : ""}.`
+              : `Approved ${succeededIds.size} department timetable${succeededIds.size > 1 ? "s" : ""}.`
+          );
+        }
+
+        if (failedDepts.length > 0) {
+          toast.error(
+            `Failed to ${publish ? "publish" : "approve"} ${failedDepts.length} department${failedDepts.length > 1 ? "s" : ""}: ${failedDepts.join(", ")}.`
+          );
+        }
+
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          succeededIds.forEach((id) => next.delete(id));
+          return next;
+        });
+        setSelectedId(null);
+        await context.refreshWorkflowAndAudit();
       }
-      onAuditEntry({
-        action: publish ? "published" : "approved",
-        department: s.department,
-        school: s.school,
-        level: s.level,
-      });
-    });
-
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        selectedIds.has(s.id) && s.status === "pending"
-          ? { ...s, status: newStatus, ...(publish ? { publishedAt: at } : {}) }
-          : s,
-      ),
-    );
-    setSelectedIds(new Set());
-    setSelectedId(null);
+    } catch (err: any) {
+      toast.error(err?.message || "Action failed.");
+    } finally {
+      setIsProcessing(false);
+      setConfirmDialog(null);
+    }
   }
 
   function toggleSelect(id: string, e: React.MouseEvent) {
@@ -507,11 +620,12 @@ export default function AcademicPlanning(props?: {
 
   const filtered = submissions.filter((s) => {
     const matchesTab = filterTab === "all" || s.status === filterTab;
+    const q = search.toLowerCase();
     const matchesSearch =
       !search ||
-      s.department.toLowerCase().includes(search.toLowerCase()) ||
-      s.school.toLowerCase().includes(search.toLowerCase()) ||
-      s.dean.toLowerCase().includes(search.toLowerCase());
+      (s.department || "").toLowerCase().includes(q) ||
+      (s.school || "").toLowerCase().includes(q) ||
+      (s.dean || "").toLowerCase().includes(q);
     return matchesTab && matchesSearch;
   });
 
@@ -535,7 +649,7 @@ export default function AcademicPlanning(props?: {
             Review Queue
           </h1>
           <p className="mt-0.5 text-[13px] text-muted">
-            First Semester 2025/26 · {counts.pending} submission{counts.pending !== 1 ? "s" : ""} awaiting review
+            {department.semester} {department.session} · {counts.pending} submission{counts.pending !== 1 ? "s" : ""} awaiting review
           </p>
         </div>
       </div>
@@ -710,9 +824,9 @@ export default function AcademicPlanning(props?: {
 
                       <div className="mt-2 flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <Avatar name={sub.dean} tone="violet" />
+                          <Avatar name={sub.dean || "Dean"} tone="violet" />
                           <span className="text-[12px] text-muted">
-                            {sub.dean} · {sub.deanSignedAt}
+                            {sub.dean || "School Dean"} · {sub.deanSignedAt || "Recently"}
                           </span>
                         </div>
                         <ChevronRight
@@ -748,6 +862,72 @@ export default function AcademicPlanning(props?: {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal for Academic Planning Decisions */}
+      <ConfirmationModal
+        isOpen={confirmDialog !== null}
+        onClose={() => {
+          if (!isProcessing) setConfirmDialog(null);
+        }}
+        onConfirm={executeConfirm}
+        isLoading={isProcessing}
+        title={
+          confirmDialog?.type === "approve"
+            ? confirmDialog.publish
+              ? `Publish ${confirmDialog.sub.department} Timetable`
+              : `Approve ${confirmDialog.sub.department} Timetable`
+            : confirmDialog?.type === "return"
+            ? `Return ${confirmDialog.sub.department} Timetable`
+            : confirmDialog?.type === "bulk"
+            ? `${confirmDialog.publish ? "Publish" : "Approve"} ${confirmDialog.count} Timetables`
+            : "Confirm Action"
+        }
+        description={
+          confirmDialog?.type === "approve" ? (
+            confirmDialog.publish ? (
+              <span>
+                Are you sure you want to <strong>publish</strong> the{" "}
+                <strong>{confirmDialog.sub.department}</strong> timetable to the master schedule? This will make the timetable live across the university.
+              </span>
+            ) : (
+              <span>
+                Are you sure you want to <strong>approve</strong> the{" "}
+                <strong>{confirmDialog.sub.department}</strong> timetable? It will be marked as cleared by Academic Planning.
+              </span>
+            )
+          ) : confirmDialog?.type === "return" ? (
+            <span>
+              Are you sure you want to return the <strong>{confirmDialog.sub.department}</strong> timetable? The department will be notified to adjust and resubmit.
+            </span>
+          ) : confirmDialog?.type === "bulk" ? (
+            <span>
+              Are you sure you want to {confirmDialog.publish ? "publish" : "approve"} all{" "}
+              <strong>{confirmDialog.count}</strong> selected pending departmental submissions?
+            </span>
+          ) : undefined
+        }
+        confirmText={
+          confirmDialog?.type === "approve"
+            ? confirmDialog.publish
+              ? "Publish to Master Schedule"
+              : "Approve Timetable"
+            : confirmDialog?.type === "return"
+            ? "Confirm Return"
+            : confirmDialog?.type === "bulk"
+            ? confirmDialog.publish
+              ? `Publish (${confirmDialog.count})`
+              : `Approve (${confirmDialog.count})`
+            : "Confirm"
+        }
+        variant={confirmDialog?.type === "return" ? "destructive" : "primary"}
+      >
+        {confirmDialog?.type === "return" && confirmDialog.comment && (
+          <div className="rounded-xl border border-line bg-panel p-3 text-[13px] text-subink">
+            <p className="font-semibold text-muted text-[11px] uppercase tracking-[0.06em] mb-1">Feedback note</p>
+            <p className="italic">{confirmDialog.comment}</p>
+          </div>
+        )}
+      </ConfirmationModal>
     </div>
   );
 }

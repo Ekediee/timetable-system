@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   Search,
   Users,
@@ -11,9 +11,8 @@ import {
   Globe,
   Layers,
 } from "lucide-react";
-import { Card, Pill } from "../components/ui";
+import { Card, Pill, DataUnavailableState, CardSkeleton, TableSkeleton, Button, CustomSelect } from "../components/ui";
 import {
-  allocations as defaultAllocations,
   type Allocation,
 } from "../lib/data";
 import { useApp } from "../lib/AppContext";
@@ -52,13 +51,72 @@ function DetailModal({
   alloc: Allocation;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // E3: Escape key listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  // E3: Focus trap inside modal
+  useEffect(() => {
+    const dialogEl = dialogRef.current;
+    if (!dialogEl) return;
+
+    const focusable = dialogEl.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    } else {
+      dialogEl.focus();
+    }
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const elements = dialogEl.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (elements.length === 0) return;
+
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleTab);
+    return () => window.removeEventListener("keydown", handleTab);
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bp-fade w-full max-w-sm rounded-2xl border border-line bg-card p-6 shadow-2xl"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="alloc-detail-title"
+        tabIndex={-1}
+        className="bp-fade w-full max-w-sm rounded-2xl border border-line bg-card p-6 shadow-2xl outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-3">
@@ -73,12 +131,13 @@ function DetailModal({
                 </span>
               )}
             </div>
-            <h3 className="mt-1 text-[20px] font-bold tracking-[-0.02em] text-ink">
+            <h3 id="alloc-detail-title" className="mt-1 text-[20px] font-bold tracking-[-0.02em] text-ink">
               {alloc.code}
             </h3>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close details"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-panel hover:text-ink cursor-pointer"
           >
             <X size={16} />
@@ -159,24 +218,48 @@ export default function Allocations() {
   const currentProgram =
     context.currentUser?.department ||
     context.currentProgram ||
-    "Computer Science";
-  const currentAllocations = context.localAllocations ?? defaultAllocations;
+    "";
+  const currentAllocations = context.localAllocations || [];
 
-  useEffect(() => {
-    if (
-      context.currentUser?.department &&
-      context.currentProgram !== context.currentUser.department
-    ) {
-      context.loadDepartmentData(
-        context.currentUser.department,
-        context.currentUser.school,
-      );
+  const [loading, setLoading] = useState(
+    currentAllocations.length === 0 && Boolean(currentProgram),
+  );
+
+  const lastLoadedDeptRef = useRef<string | null>(null);
+
+  const loadAllocations = useCallback(async () => {
+    const dept =
+      context.currentUser?.department || context.currentProgram || "";
+    if (!dept) return;
+    setLoading(true);
+    try {
+      await context.refreshAllocations(dept);
+      lastLoadedDeptRef.current = dept;
+    } catch (err) {
+      console.warn("Failed loading allocations:", err);
+    } finally {
+      setLoading(false);
     }
   }, [
     context.currentUser?.department,
-    context.currentUser?.school,
     context.currentProgram,
-    context.loadDepartmentData,
+    context.refreshAllocations,
+  ]);
+
+  useEffect(() => {
+    const dept = context.currentUser?.department || context.currentProgram;
+    if (
+      dept &&
+      lastLoadedDeptRef.current !== dept &&
+      currentAllocations.length === 0
+    ) {
+      loadAllocations();
+    }
+  }, [
+    currentAllocations.length,
+    context.currentUser?.department,
+    context.currentProgram,
+    loadAllocations,
   ]);
 
   const [q, setQ] = useState("");
@@ -215,6 +298,40 @@ export default function Allocations() {
       return matchQ && matchType && matchLevel && matchGroup;
     });
   }, [currentAllocations, q, typeFilter, levelFilter, groupFilter]);
+
+  if ((loading || context.isLoadingBackend) && currentAllocations.length === 0) {
+    return (
+      <div className="space-y-4">
+        <CardSkeleton count={4} />
+        <TableSkeleton rows={8} cols={6} />
+      </div>
+    );
+  }
+
+  if (!loading && !context.isLoadingBackend && currentAllocations.length === 0) {
+    return (
+      <DataUnavailableState
+        tone="neutral"
+        title="No course allocations found"
+        description={
+          currentProgram
+            ? `No teaching course allocations have been loaded for ${currentProgram}.`
+            : "No departmental course allocations currently loaded from the backend."
+        }
+        action={
+          currentProgram ? (
+            <Button
+              variant="outline"
+              onClick={loadAllocations}
+              className="cursor-pointer"
+            >
+              Fetch Teaching Allocations
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
 
   return (
     <div className="bp-fade space-y-4">
@@ -264,30 +381,30 @@ export default function Allocations() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
           <div className="flex flex-wrap items-center gap-2">
             {/* Level Filter */}
-            <select
+            <CustomSelect
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value as any)}
-              className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-semibold text-ink outline-none focus:border-brand"
+              className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
             >
               {levelFilters.map((l) => (
                 <option key={l} value={l}>
                   {l === "All" ? "All Levels" : l}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
 
             {/* Sub-group Filter */}
-            <select
+            <CustomSelect
               value={groupFilter}
               onChange={(e) => setGroupFilter(e.target.value as any)}
-              className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-semibold text-ink outline-none focus:border-brand"
+              className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
             >
               {groupFilters.map((g) => (
                 <option key={g} value={g}>
                   {g === "All" ? "All Groups" : g}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
 
             {/* Type buttons */}
             <div className="flex gap-1 border-l border-line pl-2">
@@ -333,86 +450,128 @@ export default function Allocations() {
         </div>
 
         {/* Table */}
-        <div className="px-2 pb-3">
-          {/* Header */}
-          <div className="grid grid-cols-[110px_1fr_160px_80px_70px_76px_74px] items-center gap-3 px-3 pb-2 pt-3">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Code
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Course Title
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Lecturer
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Group
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Level
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Type
-            </span>
-            <span className="text-right text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-              Units
-            </span>
-          </div>
+        <div className="overflow-x-auto px-2 pb-3" style={{ scrollbarWidth: "thin" }}>
+          <table className="w-full min-w-[700px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-line">
+                <th
+                  scope="col"
+                  className="w-[110px] px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Code
+                </th>
+                <th
+                  scope="col"
+                  className="px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Course Title
+                </th>
+                <th
+                  scope="col"
+                  className="w-[160px] px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Lecturer
+                </th>
+                <th
+                  scope="col"
+                  className="w-[80px] px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Group
+                </th>
+                <th
+                  scope="col"
+                  className="w-[70px] px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Level
+                </th>
+                <th
+                  scope="col"
+                  className="w-[76px] px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Type
+                </th>
+                <th
+                  scope="col"
+                  className="w-[74px] px-3 pb-2 pt-3 text-right text-[11px] font-semibold uppercase tracking-[0.07em] text-muted"
+                >
+                  Units
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line-soft">
+              {rows.map((a, i) => (
+                <tr
+                  key={a.code + a.group + i}
+                  onClick={() => setSelected(a)}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`${a.code}: ${a.title}, taught by ${a.lecturer}, ${a.units} units`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(a);
+                    }
+                  }}
+                  className="group transition-colors hover:bg-panel cursor-pointer focus:outline-none focus:bg-panel focus:ring-1 focus:ring-inset focus:ring-brand"
+                >
+                  <td className="px-3 py-3 align-middle">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[13.5px] font-bold tracking-[-0.01em] text-ink truncate">
+                        {a.code}
+                      </span>
+                      {a.isVirtual && (
+                        <span title="Virtual Course" className="text-violet shrink-0">
+                          <Globe size={11} />
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <span
+                      className="block truncate text-[13px] font-medium text-subink max-w-[280px]"
+                      title={a.title}
+                    >
+                      {a.title}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <span
+                      className="block truncate text-[12.5px] text-muted max-w-[150px]"
+                      title={a.lecturer}
+                    >
+                      {a.lecturer}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <span className="rounded bg-panel px-1.5 py-0.5 text-[10.5px] font-semibold text-subink">
+                      {a.group || "Unified"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-brand">
+                      {a.level ? a.level.replace(" Level", "L") : "200L"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <Pill tone={typeTone[a.type] ?? "neutral"}>{a.type}</Pill>
+                  </td>
+                  <td className="px-3 py-3 text-right align-middle">
+                    <span className="rounded bg-panel px-2 py-0.5 text-[11px] font-bold text-ink">
+                      {a.units}u
+                    </span>
+                  </td>
+                </tr>
+              ))}
 
-          {rows.map((a, i) => (
-            <button
-              key={a.code + a.group + i}
-              onClick={() => setSelected(a)}
-              className="group grid w-full grid-cols-[110px_1fr_160px_80px_70px_76px_74px] items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-panel cursor-pointer border-b border-line-soft last:border-0"
-            >
-              <div className="flex items-center gap-1 min-w-0">
-                <span className="text-[13.5px] font-bold tracking-[-0.01em] text-ink truncate">
-                  {a.code}
-                </span>
-                {a.isVirtual && (
-                  <span title="Virtual Course" className="text-violet shrink-0">
-                    <Globe size={11} />
-                  </span>
-                )}
-              </div>
-              <span
-                className="truncate text-[13px] font-medium text-subink"
-                title={a.title}
-              >
-                {a.title}
-              </span>
-              <span
-                className="truncate text-[12.5px] text-muted"
-                title={a.lecturer}
-              >
-                {a.lecturer}
-              </span>
-              <div>
-                <span className="rounded bg-panel px-1.5 py-0.5 text-[10.5px] font-semibold text-subink">
-                  {a.group || "Unified"}
-                </span>
-              </div>
-              <div>
-                <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-brand">
-                  {a.level ? a.level.replace(" Level", "L") : "200L"}
-                </span>
-              </div>
-              <div>
-                <Pill tone={typeTone[a.type] ?? "neutral"}>{a.type}</Pill>
-              </div>
-              <div className="flex justify-end">
-                <span className="rounded bg-panel px-2 py-0.5 text-[11px] font-bold text-ink">
-                  {a.units}u
-                </span>
-              </div>
-            </button>
-          ))}
-
-          {rows.length === 0 && (
-            <p className="px-3 py-12 text-center text-[13px] text-muted">
-              No course allocations match your search or active filters.
-            </p>
-          )}
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-12 text-center text-[13px] text-muted">
+                    No course allocations match your search or active filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="flex items-center justify-between border-t border-line px-5 py-3 text-[12.5px] text-muted">

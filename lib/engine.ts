@@ -6,7 +6,6 @@ import {
   days,
   slots,
   VenueRecord,
-  venueRecords,
   ExternalBooking,
   DynamicTimeLockConfig,
   defaultTimeLockConfig,
@@ -48,11 +47,19 @@ export interface DecomposedSession {
   totalSessionsForCourse: number;
 }
 
+export type EngineProgressCallback = (progress: {
+  stage: string;
+  percent: number;
+  current?: number;
+  total?: number;
+}) => void;
+
 export interface DecomposeOptions {
   externalBookings?: ExternalBooking[];
   exemptedDepartments?: string[];
   departmentName?: string;
   timeLockConfig?: DynamicTimeLockConfig;
+  onProgress?: EngineProgressCallback;
 }
 
 /**
@@ -661,6 +668,10 @@ export function generateTimetable(
       : { ...(options || {}), departmentName };
   const externalBookings = opts?.externalBookings || explicitExternalBookings || [];
   const isExempt = isDepartmentExemptFromChapel(departmentName, opts?.exemptedDepartments);
+  opts?.onProgress?.({
+    stage: "Decomposing course allocations and groups...",
+    percent: 10,
+  });
   const decomposed = decomposeAllocations(allocations, opts);
   const scheduledSessions: Session[] = [];
   const violations: ConstraintViolation[] = [];
@@ -739,7 +750,27 @@ export function generateTimetable(
   // Filter venues with capacity >= minimum session size
   const validVenues = availableVenues.filter((v) => v.capacity >= 30);
 
-  for (const item of sortedSessions) {
+  opts?.onProgress?.({
+    stage: "Locking institutional chapel and external bookings...",
+    percent: 20,
+  });
+
+  const totalSessionsCount = sortedSessions.length;
+  for (let sIdx = 0; sIdx < totalSessionsCount; sIdx++) {
+    const item = sortedSessions[sIdx];
+    if (sIdx % 4 === 0 || sIdx === totalSessionsCount - 1) {
+      const pct = Math.min(
+        90,
+        Math.round(20 + ((sIdx + 1) / totalSessionsCount) * 70),
+      );
+      opts?.onProgress?.({
+        stage: `Scheduling ${item.code} (${sIdx + 1}/${totalSessionsCount})...`,
+        percent: pct,
+        current: sIdx + 1,
+        total: totalSessionsCount,
+      });
+    }
+
     const courseGroupKey = `${item.code}-${item.group || "All"}`;
     if (!courseScheduledDays[courseGroupKey]) {
       courseScheduledDays[courseGroupKey] = new Set();
@@ -1083,6 +1114,15 @@ export function generateTimetable(
       assigned = true;
     }
   }
+
+  opts?.onProgress?.({
+    stage: "Validating constraints and finalizing schedule...",
+    percent: 95,
+  });
+  opts?.onProgress?.({
+    stage: "Timetable generated successfully",
+    percent: 100,
+  });
 
   return {
     sessions: scheduledSessions,

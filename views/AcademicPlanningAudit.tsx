@@ -1,24 +1,84 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Globe,
   CheckCircle2,
   RotateCcw,
   MessageSquare,
   Clock,
+  Building2,
+  Calendar,
+  FileText,
+  Sliders,
 } from "lucide-react";
-import { Card, CardHead, Pill } from "../components/ui";
-import { type AuditEntry, type DeptSubmission } from "../lib/data";
+import { Card, CardHead, Pill, DataUnavailableState, Skeleton, CardSkeleton, TableSkeleton, TimelineSkeleton } from "../components/ui";
+import { type AuditEntry, type DeptSubmission, department, isApprovedByDean } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 
 type AuditFilter = "all" | "approved" | "returned" | "published";
 
-const actionConfig = {
+type ActionConfig = {
+  label: string;
+  tone: "brand" | "good" | "bad" | "warn" | "violet" | "muted";
+  Icon: React.ComponentType<{ size?: number; className?: string }>;
+};
+
+const actionConfig: Record<string, ActionConfig> = {
   published: { label: "Published", tone: "brand", Icon: Globe },
   approved: { label: "Approved", tone: "good", Icon: CheckCircle2 },
   returned: { label: "Returned", tone: "bad", Icon: RotateCcw },
+  created_venue: { label: "Venue Added", tone: "brand", Icon: Building2 },
+  updated_venue: { label: "Venue Configured", tone: "violet", Icon: Building2 },
+  deleted_venue: { label: "Venue Removed", tone: "bad", Icon: Building2 },
+  created_departmental_event: { label: "Event Milestone", tone: "warn", Icon: Calendar },
+  updated_time_locks: { label: "Time Locks Updated", tone: "warn", Icon: Sliders },
 };
+
+const toneClasses: Record<string, string> = {
+  brand: "bg-brand-soft text-brand",
+  good: "bg-good-soft text-good",
+  bad: "bg-bad-soft text-bad",
+  warn: "bg-warn-soft text-warn",
+  violet: "bg-violet-soft text-violet",
+  muted: "bg-panel text-muted",
+};
+
+function getActionConfig(action?: string): ActionConfig {
+  if (!action) {
+    return { label: "Activity", tone: "muted", Icon: FileText };
+  }
+  const key = action.toLowerCase();
+  if (actionConfig[key]) {
+    return actionConfig[key];
+  }
+
+  const label = action
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+  if (key.includes("venue")) {
+    return { label, tone: key.includes("delete") ? "bad" : "brand", Icon: Building2 };
+  }
+  if (key.includes("event") || key.includes("calendar")) {
+    return { label, tone: "warn", Icon: Calendar };
+  }
+  if (key.includes("time") || key.includes("lock")) {
+    return { label, tone: "warn", Icon: Sliders };
+  }
+  if (key.includes("approve")) {
+    return { label, tone: "good", Icon: CheckCircle2 };
+  }
+  if (key.includes("return") || key.includes("reject")) {
+    return { label, tone: "bad", Icon: RotateCcw };
+  }
+  if (key.includes("publish")) {
+    return { label, tone: "brand", Icon: Globe };
+  }
+
+  return { label, tone: "muted", Icon: FileText };
+}
 
 export default function AcademicPlanningAudit(props?: {
   submissions?: DeptSubmission[];
@@ -28,18 +88,141 @@ export default function AcademicPlanningAudit(props?: {
   const submissions = props?.submissions ?? context.deptSubs;
   const auditEntries = props?.auditEntries ?? context.auditEntries;
   const [filter, setFilter] = useState<AuditFilter>("all");
+  const [loading, setLoading] = useState(!context.auditLogsLoaded);
+
+  useEffect(() => {
+    if (!context.auditLogsLoaded) {
+      setLoading(true);
+      context
+        .refreshAuditLogs()
+        .catch((e) => console.warn("Could not fetch audit logs:", e))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [context.auditLogsLoaded, context.refreshAuditLogs]);
+
+  // Academic Planning only receives audit logs that concern Academic Planning directly.
+  // Internal departmental/HOD approval lifecycle before reaching Academic Planning is excluded.
+  const approvedDeptSet = useMemo(() => {
+    return new Set(
+      (submissions || [])
+        .filter((s) => isApprovedByDean(s.rawStatus || s.status))
+        .map((s) => s.department.toLowerCase().trim()),
+    );
+  }, [submissions]);
+
+  const visibleAuditEntries = useMemo(() => {
+    return (auditEntries || []).filter((entry) => {
+      const note = (entry.note || "").toLowerCase();
+      const action = (entry.action || "").toLowerCase();
+      const actor = (entry.actor || "").toLowerCase();
+      const dept = (entry.department || "").toLowerCase().trim();
+
+      // 1. Exclude all internal approval processes that occurred before reaching Academic Planning:
+      // (Dept TO draft generation, submission to HOD, HOD review, HOD return, submission to Dean)
+      if (
+        note.includes("submitted to hod") ||
+        note.includes("submitted to dean") ||
+        note.includes("draft generated") ||
+        note.includes("draft submitted") ||
+        note.includes("hod review") ||
+        note.includes("hod approved") ||
+        note.includes("returned to dept") ||
+        note.includes("returned to hod")
+      ) {
+        return false;
+      }
+
+      // 2. Central institutional configurations (venues, campus time locks, constraint types)
+      if (!dept || dept.includes("academic planning")) {
+        return true;
+      }
+
+      // 3. For departmental logs, department must have reached Academic Planning (Dean-approved / published)
+      if (approvedDeptSet.size > 0 && !approvedDeptSet.has(dept)) {
+        return false;
+      }
+
+      // 4. Submission arrival at Academic Planning (Dean sign-off forwarded to Academic Planning)
+      if (
+        note.includes("submitted to acad pl") ||
+        note.includes("academic planning") ||
+        note.includes("forwarded to academic planning") ||
+        note.includes("dean sign-off") ||
+        note.includes("dean approved")
+      ) {
+        return true;
+      }
+
+      // 5. Final publishing decisions
+      if (action === "published") {
+        return true;
+      }
+
+      // 6. Returns from Academic Planning
+      if (action === "returned") {
+        return (
+          actor.includes("academic planning") ||
+          actor.includes("planning") ||
+          actor.includes("admin") ||
+          note.includes("academic planning") ||
+          note.includes("acad pl")
+        );
+      }
+
+      // 7. Any action performed by Academic Planning or Admin actors
+      if (
+        actor.includes("academic planning") ||
+        actor.includes("planning") ||
+        actor.includes("admin")
+      ) {
+        return true;
+      }
+
+      // If generic "approved", only show if it relates to Academic Planning approval
+      if (action === "approved") {
+        return note.includes("acad") || note.includes("planning");
+      }
+
+      return false;
+    });
+  }, [auditEntries, approvedDeptSet]);
+
+  if (loading && !context.auditLogsLoaded) {
+    return (
+      <div className="bp-fade flex flex-col gap-5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <CardSkeleton count={4} />
+        <TimelineSkeleton count={6} />
+      </div>
+    );
+  }
 
   if (!submissions || !auditEntries) return null;
 
+  if (visibleAuditEntries.length === 0 && !context.isLoadingBackend && !loading) {
+    return (
+      <DataUnavailableState
+        tone="neutral"
+        title="Audit trail empty"
+        description="No timetable governance decisions concerning Academic Planning have been recorded yet."
+      />
+    );
+  }
+
   const counts = {
-    all: auditEntries.length,
-    approved: auditEntries.filter((e) => e.action === "approved").length,
-    returned: auditEntries.filter((e) => e.action === "returned").length,
-    published: auditEntries.filter((e) => e.action === "published").length,
+    all: visibleAuditEntries.length,
+    approved: visibleAuditEntries.filter((e) => e.action === "approved").length,
+    returned: visibleAuditEntries.filter((e) => e.action === "returned").length,
+    published: visibleAuditEntries.filter((e) => e.action === "published").length,
   };
 
   const filtered =
-    filter === "all" ? auditEntries : auditEntries.filter((e) => e.action === filter);
+    filter === "all" ? visibleAuditEntries : visibleAuditEntries.filter((e) => e.action === filter);
 
   const tabs: { id: AuditFilter; label: string }[] = [
     { id: "all", label: "All decisions" },
@@ -48,7 +231,9 @@ export default function AcademicPlanningAudit(props?: {
     { id: "returned", label: "Returned" },
   ];
 
-  const pendingCount = submissions.filter((s) => s.status === "pending").length;
+  const pendingCount = submissions.filter(
+    (s) => s.status === "pending" && isApprovedByDean(s.rawStatus || s.status),
+  ).length;
 
   return (
     <div className="bp-fade grid grid-cols-1 gap-5 xl:grid-cols-3">
@@ -58,7 +243,7 @@ export default function AcademicPlanningAudit(props?: {
           <CardHead
             icon={<Clock size={16} />}
             title="Decision log"
-            sub={`${auditEntries.length} decision${auditEntries.length !== 1 ? "s" : ""} recorded this semester`}
+            sub={`${visibleAuditEntries.length} decision${visibleAuditEntries.length !== 1 ? "s" : ""} recorded this semester`}
           />
 
           <div className="flex gap-1 border-b border-line px-5 pb-3">
@@ -91,16 +276,13 @@ export default function AcademicPlanningAudit(props?: {
               </p>
             )}
             {filtered.map((entry, i) => {
-              const cfg = actionConfig[entry.action];
+              const cfg = getActionConfig(entry.action);
+              const toneClass = toneClasses[cfg.tone] || toneClasses.muted;
               return (
                 <div key={entry.id} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
-                        ${entry.action === "published" ? "bg-brand-soft text-brand" : ""}
-                        ${entry.action === "approved" ? "bg-good-soft text-good" : ""}
-                        ${entry.action === "returned" ? "bg-bad-soft text-bad" : ""}
-                      `}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${toneClass}`}
                     >
                       <cfg.Icon size={16} />
                     </span>
@@ -114,13 +296,17 @@ export default function AcademicPlanningAudit(props?: {
                       <Pill tone={cfg.tone}>
                         <cfg.Icon size={10} /> {cfg.label}
                       </Pill>
-                      <p className="text-[14px] font-semibold text-ink">
-                        {entry.department}
-                      </p>
-                      <span className="text-[13px] text-muted">{entry.level}</span>
+                      {entry.department && (
+                        <p className="text-[14px] font-semibold text-ink">
+                          {entry.department}
+                        </p>
+                      )}
+                      {entry.level && (
+                        <span className="text-[13px] text-muted">{entry.level}</span>
+                      )}
                     </div>
                     <p className="mt-0.5 text-[12.5px] text-muted">
-                      {entry.actor} · {entry.school} · {entry.at}
+                      {entry.actor || "Official"} · {entry.school || "University"} · {entry.at || "Recently"}
                     </p>
                     {entry.note && (
                       <div className="mt-2.5 flex gap-2 rounded-xl border border-line bg-panel px-3.5 py-3">
@@ -141,7 +327,10 @@ export default function AcademicPlanningAudit(props?: {
       {/* Right: summary sidebar */}
       <div className="flex flex-col gap-5">
         <Card>
-          <CardHead title="Decision summary" sub="First Semester 2025/26" />
+          <CardHead
+            title="Decision summary"
+            sub={`${department.semester} ${department.session}`}
+          />
           <div className="space-y-2.5 px-5 pb-5">
             {[
               { label: "Timetables published", value: counts.published, color: "text-brand" },

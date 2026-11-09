@@ -52,13 +52,14 @@ const roleDescriptions: Record<string, string> = {
 export default function LoginScreen({
   onLogin,
 }: {
-  onLogin: (account: UserAccount) => void;
+  onLogin: (account: UserAccount) => Promise<void> | void;
 }) {
   // Mode toggle: "api" (live login against Laravel backend for Dept T.O) vs "quick" (instant test switch)
   const [authMode, setAuthMode] = useState<"api" | "quick">("api");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingAccount, setLoadingAccount] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleApiLogin(e: React.FormEvent) {
@@ -66,22 +67,23 @@ export default function LoginScreen({
     if (!email.trim() || !password) return;
 
     setLoading(true);
+    setLoadingAccount("api");
     setError(null);
 
     try {
       const res = await authApi.login(email.trim(), password);
-        const u = res.user as any;
-        onLogin({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
-          roleLabel: u.roleLabel || u.role_label || "Departmental T.O",
-          department: u.department,
-          school: u.school,
-          avatarTone: u.avatarTone || u.avatar_tone || "violet",
-          initials: u.initials || "YO",
-        });
+      const u = res.user as any;
+      await onLogin({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        roleLabel: u.roleLabel || u.role_label || "Departmental T.O",
+        department: u.department,
+        school: u.school,
+        avatarTone: u.avatarTone || u.avatar_tone || "violet",
+        initials: u.initials || "YO",
+      });
     } catch (err: any) {
       console.error("API login failed:", err);
       setError(
@@ -90,6 +92,35 @@ export default function LoginScreen({
       );
     } finally {
       setLoading(false);
+      setLoadingAccount(null);
+    }
+  }
+
+  async function handleQuickLogin(account: UserAccount) {
+    setLoading(true);
+    setLoadingAccount(account.id);
+    setError(null);
+
+    try {
+      const res = await authApi.login(account.email, "password123");
+      const u = res.user as any;
+      await onLogin({
+        id: u.id || account.id,
+        name: u.name || account.name,
+        email: u.email || account.email,
+        role: u.role || account.role,
+        roleLabel: u.roleLabel || u.role_label || account.roleLabel,
+        department: u.department !== undefined ? u.department : account.department,
+        school: u.school !== undefined ? u.school : account.school,
+        avatarTone: u.avatarTone || account.avatarTone,
+        initials: u.initials || account.initials,
+      });
+    } catch (err: any) {
+      console.warn("Quick login live exchange failed, falling back to local:", err);
+      await onLogin(account);
+    } finally {
+      setLoading(false);
+      setLoadingAccount(null);
     }
   }
 
@@ -159,7 +190,10 @@ export default function LoginScreen({
             )}
 
             <div>
-              <label className="block mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">
+              <label
+                htmlFor="login-email"
+                className="block mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted cursor-pointer"
+              >
                 Institutional Email
               </label>
               <div className="relative">
@@ -168,7 +202,9 @@ export default function LoginScreen({
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
                 />
                 <input
-                  type="text"
+                  id="login-email"
+                  type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. onomey@babacock.edu.ng"
@@ -179,7 +215,10 @@ export default function LoginScreen({
             </div>
 
             <div>
-              <label className="block mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">
+              <label
+                htmlFor="login-password"
+                className="block mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted cursor-pointer"
+              >
                 Password
               </label>
               <div className="relative">
@@ -188,7 +227,9 @@ export default function LoginScreen({
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
                 />
                 <input
+                  id="login-password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
@@ -225,25 +266,38 @@ export default function LoginScreen({
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {accounts.map((account) => {
                 const tone = toneClasses[account.avatarTone];
+                const isCurrentLoading = loadingAccount === account.id;
                 return (
                   <button
                     key={account.id}
-                    onClick={() => onLogin(account)}
-                    className="group flex w-full items-start gap-3 rounded-xl border border-line bg-card p-3.5 text-left transition hover:border-brand/40 hover:bg-brand-soft/20 cursor-pointer"
+                    disabled={loading}
+                    onClick={() => handleQuickLogin(account)}
+                    className={`group flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition cursor-pointer disabled:opacity-60 ${
+                      isCurrentLoading
+                        ? "border-brand bg-brand-soft/30 shadow-xs"
+                        : "border-line bg-card hover:border-brand/40 hover:bg-brand-soft/20"
+                    }`}
                   >
                     <div
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[13px] font-bold ${tone.bg} ${tone.text}`}
                     >
-                      {account.initials}
+                      {isCurrentLoading ? (
+                        <Loader2 size={18} className="animate-spin text-brand" />
+                      ) : (
+                        account.initials
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold text-ink">
                         {account.name}
                       </p>
                       <p className="text-[11.5px] text-muted">
-                        {account.roleLabel}
+                        {isCurrentLoading ? "Signing in…" : account.roleLabel}
                       </p>
                     </div>
+                    {isCurrentLoading && (
+                      <Loader2 size={16} className="animate-spin text-brand shrink-0 self-center" />
+                    )}
                   </button>
                 );
               })}

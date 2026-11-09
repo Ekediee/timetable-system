@@ -46,20 +46,24 @@ import {
   RotateCcw,
   ArrowLeftRight,
   Ban,
+  Download,
+  ChevronDown,
+  FileSpreadsheet,
+  Printer,
 } from "lucide-react";
-import { Card, CardHead, Pill, Button } from "../components/ui";
+import { Card, CardHead, Pill, Button, CustomSelect, DataUnavailableState, TimetableGridSkeleton } from "../components/ui";
 import {
   days,
   slots,
-  allocations as defaultAllocations,
-  venues as defaultVenues,
   defaultTimeLockConfig,
+  isVenueAccessibleToDepartment,
   type Session,
   type Status,
   type TimelineStep,
   type Constraint,
   type DepartmentalEvent,
   type CustomTimeLock,
+  accounts,
 } from "../lib/data";
 import {
   validateLiveSessions,
@@ -68,9 +72,14 @@ import {
   isCitizenshipOrientationCourse,
   type LiveConflict,
 } from "../lib/engine";
+import { workflowApi } from "../lib/api";
+import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
 import type { View } from "../components/Sidebar";
 import { useRouter } from "next/navigation";
 import { useApp } from "../lib/AppContext";
+import { exportToCsv, printTimetablePdf } from "../lib/export";
+import type { EngineWorkerResponse } from "../lib/engine.worker";
+import TimetableGrid from "../components/TimetableGrid";
 
 const conflictLabel: Record<string, string> = {
   venue: "Room Double-Booked",
@@ -179,8 +188,17 @@ export default function Generate(props?: {
   const setStatus = props?.setStatus ?? context.setStatus;
   const setLocalTimeline = props?.setLocalTimeline ?? context.setLocalTimeline;
   const localConstraints = context.localConstraints;
-  const allocations = context.localAllocations ?? defaultAllocations;
-  const venues = context.localVenues ?? defaultVenues;
+  const allocations = context.localAllocations || [];
+  const currentDept = context.currentUser?.department || context.currentProgram || "";
+  const venues = useMemo(() => {
+    const raw = context.localVenues || [];
+    if (context.currentUser?.role === "deptTO" || context.currentUser?.role === "hod") {
+      if (currentDept) {
+        return raw.filter((v: any) => isVenueAccessibleToDepartment(v, currentDept));
+      }
+    }
+    return raw;
+  }, [context.localVenues, context.currentUser?.role, currentDept]);
   const isAcadPlanningTO = context.currentUser?.role === "acadPlanningTO";
 
   // Screen flow: "snapshot" (Constraints & Setup screen) -> "generated" (Current Timetable screen)
@@ -218,7 +236,80 @@ export default function Generate(props?: {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isCheckingConstraints, setIsCheckingConstraints] = useState(false);
   const [submitModal, setSubmitModal] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [hasPendingEdits, setHasPendingEdits] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<{
+    stage: string;
+    percent: number;
+    current?: number;
+    total?: number;
+  } | null>(null);
+  const workerRef = useRef<Worker | null>(null);
+
+  // Terminate any ongoing Web Worker on unmount
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, []);
+
+  // C8: Guard against accidental tab close or page refresh when manual edits are pending
+  useEffect(() => {
+    if (!hasPendingEdits) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+      return "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasPendingEdits]);
+
+  // C8: Intercept in-app link clicks when manual edits are pending
+  useEffect(() => {
+    if (!hasPendingEdits) return;
+
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("a");
+      if (target && target.href && !target.href.startsWith("javascript:")) {
+        const confirmLeave = window.confirm(
+          "You have pending timetable edits that are still being saved. Are you sure you want to leave this page?"
+        );
+        if (!confirmLeave) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick, true);
+    return () => {
+      document.removeEventListener("click", handleAnchorClick, true);
+    };
+  }, [hasPendingEdits]);
+
+  useEffect(() => {
+    if (
+      context.currentUser?.department &&
+      (!context.localAllocations || context.localAllocations.length === 0) &&
+      !context.isLoadingBackend
+    ) {
+      context.refreshAllocations(context.currentUser.department);
+    }
+  }, [
+    context.currentUser?.department,
+    context.localAllocations,
+    context.isLoadingBackend,
+    context.refreshAllocations,
+  ]);
   const [highlightCell, setHighlightCell] = useState<{
     day: string;
     slot: string;
@@ -269,6 +360,12 @@ export default function Generate(props?: {
     slot: (typeof slots)[number];
   } | null>(null);
   const dragOverRef = useRef<{ day: string; slot: string } | null>(null);
+
+  // Keyboard Selection & Navigation State for Grid Accessibility (C4)
+  const [keyboardPickedSession, setKeyboardPickedSession] = useState<{
+    session: Session;
+    globalIndex: number;
+  } | null>(null);
 
   // Undo history for drag and drop moves & swaps
   const [historyStack, setHistoryStack] = useState<{
@@ -490,69 +587,141 @@ export default function Generate(props?: {
   // ───────────────────────────────────────────────────────────────────────────
   // ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
-  function handleProceedToGenerate() {
+  function handleCancelGeneration() {
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+    setIsRegenerating(false);
+    setGenerationProgress(null);
+    setToastMessage("Timetable generation cancelled.");
+    setTimeout(() => setToastMessage(null), 3500);
+  }
+
+  function startEngineGeneration(isInitial: boolean) {
     setIsRegenerating(true);
     setHighlightCell(null);
+    setGenerationProgress({
+      stage: "Initializing timetable engine...",
+      percent: 0,
+    });
 
-    setTimeout(() => {
-      import("../lib/engine").then(({ generateTimetable }) => {
-        const result = generateTimetable(
-          allocations,
-          venues,
-          context.localConstraints,
-          context.currentProgram,
-          {
-            externalBookings: context.externalBookings,
-            timeLockConfig: context.timeLockConfig,
-          }
-        );
-        setLocalSessions(result.sessions);
-        context.saveTimetableDraft("Draft generated", result.sessions).then((saved) => {
-          setToastMessage(
-            saved
+    const onGenerationComplete = (sessions: Session[]) => {
+      setLocalSessions(sessions);
+      context.saveTimetableDraft("Draft generated", sessions).then((saved) => {
+        setToastMessage(
+          saved
+            ? isInitial
               ? "Draft timetable generated and saved successfully!"
-              : "Draft timetable generated."
-          );
-          setTimeout(() => setToastMessage(null), 3500);
-        });
-        setIsRegenerating(false);
-        setScreenMode("generated");
+              : "Timetable regenerated and saved successfully!"
+            : isInitial
+              ? "Draft timetable generated."
+              : "Timetable regenerated."
+        );
+        setTimeout(() => setToastMessage(null), 3500);
       });
-    }, 1200);
+      setIsRegenerating(false);
+      setGenerationProgress(null);
+      if (isInitial) {
+        setScreenMode("generated");
+      }
+    };
+
+    const runSyncFallback = () => {
+      import("../lib/engine").then(({ generateTimetable }) => {
+        try {
+          const result = generateTimetable(
+            allocations,
+            venues,
+            context.localConstraints,
+            context.currentProgram,
+            {
+              externalBookings: context.externalBookings,
+              timeLockConfig: context.timeLockConfig,
+              onProgress: (p) => setGenerationProgress(p),
+            }
+          );
+          onGenerationComplete(result.sessions);
+        } catch (err: any) {
+          setIsRegenerating(false);
+          setGenerationProgress(null);
+          setToastMessage(`Generation error: ${err?.message || "Failed"}`);
+          setTimeout(() => setToastMessage(null), 4000);
+        }
+      });
+    };
+
+    if (typeof window !== "undefined" && typeof Worker !== "undefined") {
+      try {
+        if (workerRef.current) {
+          workerRef.current.terminate();
+        }
+
+        const worker = new Worker(
+          new URL("../lib/engine.worker.ts", import.meta.url)
+        );
+        workerRef.current = worker;
+
+        worker.onmessage = (e: MessageEvent<EngineWorkerResponse>) => {
+          const data = e.data;
+          if (!data) return;
+
+          if (data.type === "PROGRESS") {
+            setGenerationProgress(data.payload);
+          } else if (data.type === "SUCCESS") {
+            worker.terminate();
+            workerRef.current = null;
+            onGenerationComplete(data.payload.sessions);
+          } else if (data.type === "ERROR") {
+            worker.terminate();
+            workerRef.current = null;
+            setIsRegenerating(false);
+            setGenerationProgress(null);
+            setToastMessage(`Generation error: ${data.error}`);
+            setTimeout(() => setToastMessage(null), 4000);
+          }
+        };
+
+        worker.onerror = (err) => {
+          console.error("Worker error encountered, falling back to sync engine:", err);
+          worker.terminate();
+          workerRef.current = null;
+          runSyncFallback();
+        };
+
+        worker.postMessage({
+          type: "START",
+          payload: {
+            allocations,
+            venues,
+            activeConstraints: context.localConstraints,
+            departmentName: context.currentProgram,
+            options: {
+              externalBookings: context.externalBookings,
+              timeLockConfig: context.timeLockConfig,
+            },
+          },
+        });
+        return;
+      } catch (err) {
+        console.warn("Could not instantiate Web Worker, using main thread fallback:", err);
+      }
+    }
+
+    runSyncFallback();
+  }
+
+  function handleProceedToGenerate() {
+    startEngineGeneration(true);
   }
 
   function handleRegenerate() {
-    setIsRegenerating(true);
-    setHighlightCell(null);
-
-    setTimeout(() => {
-      import("../lib/engine").then(({ generateTimetable }) => {
-        const result = generateTimetable(
-          allocations,
-          venues,
-          context.localConstraints,
-          context.currentProgram,
-          {
-            externalBookings: context.externalBookings,
-            timeLockConfig: context.timeLockConfig,
-          }
-        );
-        setLocalSessions(result.sessions);
-        context.saveTimetableDraft("Draft generated", result.sessions).then((saved) => {
-          setToastMessage(
-            saved
-              ? "Timetable regenerated and saved successfully!"
-              : "Timetable regenerated."
-          );
-          setTimeout(() => setToastMessage(null), 3500);
-        });
-        setIsRegenerating(false);
-      });
-    }, 1000);
+    startEngineGeneration(false);
   }
 
   function handleManualSaveDraft() {
     context.saveTimetableDraft(status, localSessions).then((saved) => {
+      setHasPendingEdits(false);
       setToastMessage(
         saved
           ? `Draft saved to database (${localSessions.length} sessions).`
@@ -595,12 +764,15 @@ export default function Generate(props?: {
       slot: editSlot,
       venue: editVenue,
     };
+    setHasPendingEdits(true);
     setLocalSessions(copy);
     context.saveTimetableDraft(status, copy).then((saved) => {
       setToastMessage(
         `Updated ${s.code} to ${editDay} ${editSlot} in ${editVenue}${saved ? " (saved to DB)" : ""}`
       );
       setTimeout(() => setToastMessage(null), 3500);
+    }).finally(() => {
+      setHasPendingEdits(false);
     });
     setEditingSessionIndex(null);
   }
@@ -819,11 +991,14 @@ export default function Generate(props?: {
 
   const triggerBackgroundSave = useCallback(
     (sessionsToSave: Session[]) => {
+      setHasPendingEdits(true);
       if (saveDraftTimerRef.current) {
         clearTimeout(saveDraftTimerRef.current);
       }
       saveDraftTimerRef.current = setTimeout(() => {
-        context.saveTimetableDraft(status, sessionsToSave);
+        context.saveTimetableDraft(status, sessionsToSave).finally(() => {
+          setHasPendingEdits(false);
+        });
       }, 500);
     },
     [context.saveTimetableDraft, status]
@@ -898,32 +1073,22 @@ export default function Generate(props?: {
     }
   }
 
-  function handleDrop(
-    e: React.DragEvent,
+  function applyMoveOrSwap(
+    session: Session,
+    globalIndex: number,
     targetDay: (typeof days)[number],
     targetSlot: (typeof slots)[number]
-  ) {
-    e.preventDefault();
-
-    const dragging = draggedSessionRef.current;
-    draggedSessionRef.current = null;
-    dragOverRef.current = null;
-    setDraggedSession(null);
-    setDragOverTarget(null);
-
-    if (!dragging) return;
-    const { session, globalIndex } = dragging;
-
+  ): boolean {
     // Dropped on same slot -> no-op
     if (session.day === targetDay && session.slot === targetSlot) {
-      return;
+      return false;
     }
 
     const feasibility = checkDropFeasibility(session, targetDay, targetSlot);
     if (feasibility.status === "blocked") {
       setToastMessage(`Cannot move: ${feasibility.reason}`);
       setTimeout(() => setToastMessage(null), 3500);
-      return;
+      return false;
     }
 
     const previousSessions = [...localSessions];
@@ -931,15 +1096,17 @@ export default function Generate(props?: {
     // SWAP action
     if (feasibility.status === "swap" && feasibility.swapWith) {
       const targetSwap = feasibility.swapWith;
-      const targetIdx = sessionIndexMap.get(
-        `${targetSwap.code}|${targetSwap.day}|${targetSwap.slot}|${targetSwap.venue}`
-      ) ?? localSessions.findIndex(
-        (ls) =>
-          ls.code === targetSwap.code &&
-          ls.day === targetSwap.day &&
-          ls.slot === targetSwap.slot &&
-          ls.venue === targetSwap.venue
-      );
+      const targetIdx =
+        sessionIndexMap.get(
+          `${targetSwap.code}|${targetSwap.day}|${targetSwap.slot}|${targetSwap.venue}`
+        ) ??
+        localSessions.findIndex(
+          (ls) =>
+            ls.code === targetSwap.code &&
+            ls.day === targetSwap.day &&
+            ls.slot === targetSwap.slot &&
+            ls.venue === targetSwap.venue
+        );
 
       if (targetIdx !== -1) {
         const updated = [...localSessions];
@@ -971,7 +1138,7 @@ export default function Generate(props?: {
 
         // 2. Background Auto-Save (no UI block)
         triggerBackgroundSave(updated);
-        return;
+        return true;
       }
     }
 
@@ -1002,6 +1169,149 @@ export default function Generate(props?: {
 
     // 2. Background Auto-Save (no UI block)
     triggerBackgroundSave(updated);
+    return true;
+  }
+
+  function handleDrop(
+    e: React.DragEvent,
+    targetDay: (typeof days)[number],
+    targetSlot: (typeof slots)[number]
+  ) {
+    e.preventDefault();
+
+    const dragging = draggedSessionRef.current;
+    draggedSessionRef.current = null;
+    dragOverRef.current = null;
+    setDraggedSession(null);
+    setDragOverTarget(null);
+
+    if (!dragging) return;
+    const { session, globalIndex } = dragging;
+
+    applyMoveOrSwap(session, globalIndex, targetDay, targetSlot);
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // KEYBOARD ACCESSIBILITY (C4)
+  // ───────────────────────────────────────────────────────────────────────────
+  function handlePickupSession(session: Session, globalIndex: number) {
+    setKeyboardPickedSession({ session, globalIndex });
+    draggedSessionRef.current = { session, globalIndex };
+    setDraggedSession({ session, globalIndex });
+    setToastMessage(
+      `Picked up ${session.code}. Navigate slots with Arrow keys, press Enter/Space to place or swap, Esc to cancel.`
+    );
+    setTimeout(() => setToastMessage(null), 5500);
+  }
+
+  function handleCancelKeyboardMove() {
+    setKeyboardPickedSession(null);
+    draggedSessionRef.current = null;
+    dragOverRef.current = null;
+    setDraggedSession(null);
+    setDragOverTarget(null);
+    setToastMessage("Keyboard move cancelled.");
+    setTimeout(() => setToastMessage(null), 2500);
+  }
+
+  function handleExecuteKeyboardDrop(
+    targetDay: (typeof days)[number],
+    targetSlot: (typeof slots)[number]
+  ) {
+    if (!keyboardPickedSession) return;
+    const { session, globalIndex } = keyboardPickedSession;
+    const success = applyMoveOrSwap(session, globalIndex, targetDay, targetSlot);
+    if (success) {
+      setKeyboardPickedSession(null);
+      draggedSessionRef.current = null;
+      dragOverRef.current = null;
+      setDraggedSession(null);
+      setDragOverTarget(null);
+    }
+  }
+
+  function focusGridCell(
+    targetDay: (typeof days)[number],
+    targetSlot: (typeof slots)[number]
+  ) {
+    const el = document.getElementById(`grid-cell-${targetDay}-${targetSlot}`);
+    if (el) {
+      el.focus();
+    }
+    if (keyboardPickedSession) {
+      dragOverRef.current = { day: targetDay, slot: targetSlot };
+      setDragOverTarget({ day: targetDay, slot: targetSlot });
+    }
+  }
+
+  function handleGridCellKeyDown(
+    e: React.KeyboardEvent,
+    currentDay: (typeof days)[number],
+    currentSlot: (typeof slots)[number]
+  ) {
+    const dayIdx = days.indexOf(currentDay);
+    const slotIdx = slots.indexOf(currentSlot);
+
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextDay = days[Math.min(days.length - 1, dayIdx + 1)];
+      focusGridCell(nextDay, currentSlot);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prevDay = days[Math.max(0, dayIdx - 1)];
+      focusGridCell(prevDay, currentSlot);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const nextSlot = slots[Math.min(slots.length - 1, slotIdx + 1)];
+      focusGridCell(currentDay, nextSlot);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prevSlot = slots[Math.max(0, slotIdx - 1)];
+      focusGridCell(currentDay, prevSlot);
+    } else if (e.key === "Enter" || e.key === " ") {
+      if (keyboardPickedSession) {
+        e.preventDefault();
+        handleExecuteKeyboardDrop(currentDay, currentSlot);
+      }
+    } else if (e.key === "Escape") {
+      if (keyboardPickedSession) {
+        e.preventDefault();
+        handleCancelKeyboardMove();
+      }
+    }
+  }
+
+  function handleSessionItemKeyDown(
+    e: React.KeyboardEvent,
+    item: Session,
+    globalIdx: number,
+    currentDay: (typeof days)[number],
+    currentSlot: (typeof slots)[number]
+  ) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!keyboardPickedSession) {
+        if (globalIdx !== -1) {
+          handlePickupSession(item, globalIdx);
+        }
+      } else {
+        handleExecuteKeyboardDrop(currentDay, currentSlot);
+      }
+    } else if (e.key === "Escape") {
+      if (keyboardPickedSession) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleCancelKeyboardMove();
+      }
+    } else if (
+      e.key === "ArrowRight" ||
+      e.key === "ArrowLeft" ||
+      e.key === "ArrowDown" ||
+      e.key === "ArrowUp"
+    ) {
+      handleGridCellKeyDown(e, currentDay, currentSlot);
+    }
   }
 
   function handleUndo() {
@@ -1073,76 +1383,58 @@ export default function Generate(props?: {
     context.setActiveRevisionTarget(null);
   }, [context.activeRevisionTarget, localSessions]);
 
-  function handleSubmit() {
-    const now = new Date().toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    setStatus("Submitted to HOD");
-    context.saveTimetableDraft("Submitted to HOD", localSessions);
-    context.updateTimetableStatus("Submitted to HOD");
-    setLocalTimeline([
-      {
-        actor: "Yakubu Onome",
-        role: "Dept T.O",
-        action: "Draft generated & submitted",
-        at: "Mar 04, 09:12",
-        state: "done",
-      },
-      {
-        actor: "Dr. A. Olumide",
-        role: "HOD",
-        action: "Rejected with comment",
-        at: "Mar 04, 15:40",
-        state: "rejected",
-        comment:
-          "BU-GST 205 exceeds LT 12 capacity — relocate to CST Hall A. Also resolve the Thu 12:00 venue clash in CST Hall A before resubmitting.",
-      },
-      {
-        actor: "Yakubu Onome",
-        role: "Dept T.O",
-        action: "Revised & resubmitted",
-        at: now,
-        state: "done",
-      },
-      {
-        actor: "Dr. A. Olumide",
-        role: "HOD",
-        action: "Reviewing revised draft",
-        at: "Pending",
-        state: "current",
-      },
-      {
-        actor: "Prof. E. Bassey",
-        role: "Dean",
-        action: "School-level approval",
-        at: "Pending",
-        state: "pending",
-      },
-      {
-        actor: "M. Danladi",
-        role: "Acad Pl. T.O",
-        action: "Final approval & publish",
-        at: "Pending",
-        state: "pending",
-      },
-    ]);
-    setSubmitModal(false);
-    if (props?.setView) {
-      props.setView("history");
-    } else {
-      router.push("/history");
+  const [isSubmittingToHod, setIsSubmittingToHod] = useState(false);
+
+  async function handleSubmit() {
+    const activeDept = context.currentProgram || context.currentUser?.department || "";
+    if (!activeDept) {
+      alert("A department is required before submitting this timetable.");
+      return;
+    }
+    setIsSubmittingToHod(true);
+    try {
+      // Persist the latest sessions as a draft. The workflow endpoint below
+      // is the single operation that submits to HOD.
+      await context.saveTimetableDraft("Draft generated", localSessions, activeDept);
+      await workflowApi.submitToHOD(activeDept, CURRENT_SEMESTER, CURRENT_SESSION);
+      setStatus("Submitted to HOD");
+      context.setStatus("Submitted to HOD");
+
+      const tlRes = await workflowApi.getTimeline(activeDept);
+      if (tlRes && Array.isArray(tlRes.timeline)) {
+        setLocalTimeline(tlRes.timeline);
+        context.setLocalTimeline(tlRes.timeline);
+      }
+
+      setSubmitModal(false);
+      if (props?.setView) {
+        props.setView("history");
+      } else {
+        router.push("/history");
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to submit draft to HOD.");
+    } finally {
+      setIsSubmittingToHod(false);
     }
   }
 
   function navigateToView(viewName: View, path: string) {
+    if (hasPendingEdits) {
+      const confirmLeave = window.confirm(
+        "You have pending timetable edits that are still being saved. Are you sure you want to leave this page?"
+      );
+      if (!confirmLeave) return;
+    }
     if (props?.setView) {
       props.setView(viewName);
     } else {
       router.push(path);
     }
+  }
+
+  if (context.isLoadingBackend && localSessions.length === 0 && allocations.length === 0) {
+    return <TimetableGridSkeleton daysCount={5} slotsCount={8} />;
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -1201,18 +1493,40 @@ export default function Generate(props?: {
         {/* Generating Overlay Card */}
         {isRegenerating && (
           <Card className="border-brand/30 bg-brand-soft/30 p-6">
-            <div className="flex items-start gap-4">
-              <Loader2 size={24} className="mt-0.5 animate-spin text-brand" />
-              <div className="space-y-1.5">
-                <p className="text-[15px] font-bold text-brand-ink">
-                  Building Conflict-Free Timetable…
-                </p>
-                <p className="text-[13px] text-muted leading-relaxed">
-                  Reviewing {venues.length} teaching venues, {allocations.length} course
-                  allocations, and lecturer teaching preferences. Scheduling class hours,
-                  spacing out multi-day courses, and making sure no classrooms or lecturers are double-booked.
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <Loader2 size={24} className="mt-0.5 animate-spin text-brand shrink-0" />
+                <div className="space-y-2">
+                  <p className="text-[15px] font-bold text-brand-ink">
+                    Building Conflict-Free Timetable…
+                  </p>
+                  <p className="text-[13px] text-muted leading-relaxed">
+                    {generationProgress?.stage || `Reviewing ${venues.length} teaching venues, ${allocations.length} course allocations, and lecturer teaching preferences.`}
+                  </p>
+                  {generationProgress && (
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-semibold text-brand">
+                        <span>Optimization Progress</span>
+                        <span>{generationProgress.percent}%</span>
+                      </div>
+                      <div className="h-2 w-full max-w-md overflow-hidden rounded-full bg-brand/15">
+                        <div
+                          className="h-full bg-brand transition-all duration-200 ease-out"
+                          style={{ width: `${generationProgress.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
+              <Button
+                variant="outline"
+                onClick={handleCancelGeneration}
+                className="shrink-0 border-rose-200 text-rose-700 hover:bg-rose-50 self-start text-xs py-1.5 px-3"
+              >
+                <Ban size={14} className="mr-1" />
+                Cancel
+              </Button>
             </div>
           </Card>
         )}
@@ -1257,26 +1571,12 @@ export default function Generate(props?: {
         <Card className="flex flex-col overflow-hidden">
           <CardHead
             icon={<Clock size={17} />}
-            title={
-              isAcadPlanningTO
-                ? "University Hours & Mandatory Breaks (Academic Planning Configuration)"
-                : "University Hours & Mandatory Breaks (Institutional Policy)"
-            }
-            sub={
-              isAcadPlanningTO
-                ? "Babcock University operational hours, daily lunch break, and early closing rules (dynamic and editable by Academic Planning)"
-                : "Standard Babcock University institutional hours and locked break periods. Governed strictly by Academic Planning."
-            }
+            title="University Hours & Mandatory Breaks (Institutional Policy)"
+            sub="Standard Babcock University institutional hours and locked break periods configured on the backend administration panel."
             action={
-              isAcadPlanningTO ? (
-                <Pill tone="brand">
-                  <Settings2 size={12} className="inline mr-1" /> Academic Planning Editor
-                </Pill>
-              ) : (
-                <Pill tone="neutral">
-                  <Lock size={12} className="inline mr-1" /> Institutional Policy Locked
-                </Pill>
-              )
+              <Pill tone="neutral">
+                <Lock size={12} className="inline mr-1" /> Backend Configured
+              </Pill>
             }
           />
           <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 bg-panel/30">
@@ -1287,22 +1587,9 @@ export default function Generate(props?: {
                   <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10.5px] font-bold text-amber-600 uppercase tracking-wide">
                     Daily Break
                   </span>
-                  {isAcadPlanningTO ? (
-                    <button
-                      onClick={() => context.toggleLunchBreak()}
-                      className={`rounded px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide cursor-pointer transition ${
-                        context.timeLockConfig.lunchBreak.enabled
-                          ? "bg-amber-500/15 text-amber-700 hover:bg-amber-500/25"
-                          : "bg-panel text-muted hover:bg-line"
-                      }`}
-                    >
-                      {context.timeLockConfig.lunchBreak.enabled ? "Active" : "Disabled"}
-                    </button>
-                  ) : (
-                    <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10.5px] font-bold text-amber-700">
-                      {context.timeLockConfig.lunchBreak.enabled ? "Active" : "Disabled"}
-                    </span>
-                  )}
+                  <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10.5px] font-bold text-amber-700">
+                    {context.timeLockConfig.lunchBreak.enabled ? "Active" : "Disabled"}
+                  </span>
                 </div>
                 <h4 className="mt-2 text-[14px] font-bold text-ink">University Lunch Break</h4>
                 <p className="mt-1 text-[12px] text-muted leading-relaxed">
@@ -1311,21 +1598,9 @@ export default function Generate(props?: {
               </div>
               <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
                 <span className="font-semibold text-muted">Break Hour:</span>
-                {isAcadPlanningTO ? (
-                  <select
-                    value={context.timeLockConfig.lunchBreak.slot}
-                    onChange={(e) => context.updateLunchBreak(e.target.value as any)}
-                    className="rounded-md border border-line bg-card px-2 py-0.5 text-[11px] font-bold text-amber-800 outline-none cursor-pointer"
-                  >
-                    <option value="12:00">12:00 – 13:00</option>
-                    <option value="13:00">1:00 PM – 2:00 PM (Default)</option>
-                    <option value="14:00">2:00 PM – 3:00 PM</option>
-                  </select>
-                ) : (
-                  <span className="font-bold text-amber-800">
-                    {context.timeLockConfig.lunchBreak.slot} – {getEndSlot(context.timeLockConfig.lunchBreak.slot, context.timeLockConfig.lunchBreak.duration)}
-                  </span>
-                )}
+                <span className="font-bold text-amber-800">
+                  {context.timeLockConfig.lunchBreak.slot} – {getEndSlot(context.timeLockConfig.lunchBreak.slot, context.timeLockConfig.lunchBreak.duration)}
+                </span>
               </div>
             </div>
 
@@ -1339,22 +1614,9 @@ export default function Generate(props?: {
                       <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10.5px] font-bold text-blue-600 uppercase tracking-wide">
                         Wednesday
                       </span>
-                      {isAcadPlanningTO ? (
-                        <button
-                          onClick={() => context.toggleEarlyClosing("wed-closing")}
-                          className={`rounded px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide cursor-pointer transition ${
-                            wedClosing?.enabled
-                              ? "bg-blue-500/15 text-blue-700 hover:bg-blue-500/25"
-                              : "bg-panel text-muted hover:bg-line"
-                          }`}
-                        >
-                          {wedClosing?.enabled ? "Active" : "Disabled"}
-                        </button>
-                      ) : (
-                        <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10.5px] font-bold text-blue-700">
-                          {wedClosing?.enabled ? "Active" : "Disabled"}
-                        </span>
-                      )}
+                      <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10.5px] font-bold text-blue-700">
+                        {wedClosing?.enabled ? "Active" : "Disabled"}
+                      </span>
                     </div>
                     <h4 className="mt-2 text-[14px] font-bold text-ink">Midweek Fellowship Closing</h4>
                     <p className="mt-1 text-[12px] text-muted leading-relaxed">
@@ -1363,20 +1625,9 @@ export default function Generate(props?: {
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
                     <span className="font-semibold text-muted">Concludes by:</span>
-                    {isAcadPlanningTO ? (
-                      <select
-                        value={wedClosing?.cutoffSlot || "17:00"}
-                        onChange={(e) => context.updateEarlyClosing("wed-closing", e.target.value as any)}
-                        className="rounded-md border border-line bg-card px-2 py-0.5 text-[11px] font-bold text-blue-800 outline-none cursor-pointer"
-                      >
-                        <option value="16:00">4:00 PM (16:00)</option>
-                        <option value="17:00">5:00 PM (17:00 Default)</option>
-                      </select>
-                    ) : (
-                      <span className="font-bold text-blue-800">
-                        {wedClosing?.cutoffSlot || "17:00"} (5:00 PM)
-                      </span>
-                    )}
+                    <span className="font-bold text-blue-800">
+                      {wedClosing?.cutoffSlot || "17:00"}
+                    </span>
                   </div>
                 </div>
               );
@@ -1392,22 +1643,9 @@ export default function Generate(props?: {
                       <span className="rounded bg-violet-500/10 px-2 py-0.5 text-[10.5px] font-bold text-violet uppercase tracking-wide">
                         Friday
                       </span>
-                      {isAcadPlanningTO ? (
-                        <button
-                          onClick={() => context.toggleEarlyClosing("fri-closing")}
-                          className={`rounded px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide cursor-pointer transition ${
-                            friClosing?.enabled
-                              ? "bg-violet-soft text-violet hover:bg-violet-soft/80"
-                              : "bg-panel text-muted hover:bg-line"
-                          }`}
-                        >
-                          {friClosing?.enabled ? "Active" : "Disabled"}
-                        </button>
-                      ) : (
-                        <span className="rounded bg-violet-soft px-2 py-0.5 text-[10.5px] font-bold text-violet">
-                          {friClosing?.enabled ? "Active" : "Disabled"}
-                        </span>
-                      )}
+                      <span className="rounded bg-violet-soft px-2 py-0.5 text-[10.5px] font-bold text-violet">
+                        {friClosing?.enabled ? "Active" : "Disabled"}
+                      </span>
                     </div>
                     <h4 className="mt-2 text-[14px] font-bold text-ink">Friday Sabbath Closing</h4>
                     <p className="mt-1 text-[12px] text-muted leading-relaxed">
@@ -1416,27 +1654,15 @@ export default function Generate(props?: {
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
                     <span className="font-semibold text-muted">Concludes by:</span>
-                    {isAcadPlanningTO ? (
-                      <select
-                        value={friClosing?.cutoffSlot || "13:00"}
-                        onChange={(e) => context.updateEarlyClosing("fri-closing", e.target.value as any)}
-                        className="rounded-md border border-line bg-card px-2 py-0.5 text-[11px] font-bold text-violet outline-none cursor-pointer"
-                      >
-                        <option value="12:00">12:00 PM</option>
-                        <option value="13:00">1:00 PM (13:00 Default)</option>
-                        <option value="14:00">2:00 PM</option>
-                      </select>
-                    ) : (
-                      <span className="font-bold text-violet">
-                        {friClosing?.cutoffSlot || "13:00"} (1:00 PM)
-                      </span>
-                    )}
+                    <span className="font-bold text-violet">
+                      {friClosing?.cutoffSlot || "13:00"}
+                    </span>
                   </div>
                 </div>
               );
             })()}
 
-            {/* Daily Band: Standard Teaching Hours (Dynamic & Controlled by Academic Planning) */}
+            {/* Daily Band: Standard Teaching Hours (Configured on Backend) */}
             <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between gap-2">
@@ -1459,62 +1685,24 @@ export default function Generate(props?: {
                     {context.timeLockConfig.operatingWindow.startSlot} – {context.timeLockConfig.operatingWindow.endSlot}
                   </span>
                 </div>
-                {isAcadPlanningTO ? (
-                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
-                    <select
-                      value={context.timeLockConfig.operatingWindow.startSlot}
-                      onChange={(e) =>
-                        context.updateOperatingWindow(
-                          e.target.value as any,
-                          context.timeLockConfig.operatingWindow.endSlot
-                        )
-                      }
-                      className="w-full rounded-md border border-line bg-card px-1.5 py-1 text-[11px] font-bold text-emerald-800 outline-none cursor-pointer text-center"
-                    >
-                      <option value="07:00">07:00 AM</option>
-                      <option value="08:00">08:00 AM</option>
-                      <option value="09:00">09:00 AM</option>
-                    </select>
-                    <span className="text-muted font-bold text-[10px]">to</span>
-                    <select
-                      value={context.timeLockConfig.operatingWindow.endSlot}
-                      onChange={(e) =>
-                        context.updateOperatingWindow(
-                          context.timeLockConfig.operatingWindow.startSlot,
-                          e.target.value as any
-                        )
-                      }
-                      className="w-full rounded-md border border-line bg-card px-1.5 py-1 text-[11px] font-bold text-emerald-800 outline-none cursor-pointer text-center"
-                    >
-                      <option value="16:00">04:00 PM</option>
-                      <option value="17:00">05:00 PM</option>
-                      <option value="18:00">06:00 PM</option>
-                      <option value="19:00">07:00 PM</option>
-                      <option value="20:00">08:00 PM</option>
-                    </select>
-                  </div>
-                ) : (
-                  <p className="text-[10.5px] text-muted leading-tight">
-                    Locked institutional policy. Controlled by Academic Planning.
-                  </p>
-                )}
+                <p className="text-[10.5px] text-muted leading-tight">
+                  Locked institutional policy configured on the backend administration panel.
+                </p>
               </div>
             </div>
           </div>
 
-          {!isAcadPlanningTO && (
-            <div className="border-t border-line bg-card/60 px-5 py-2.5 text-[12px] text-muted flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Lock size={13} className="text-muted shrink-0" />
-                <span>
-                  <strong>Locked Institutional Policy:</strong> University operational hours and locked break periods can only be altered by the <strong>Academic Planning Directorate</strong>.
-                </span>
-              </div>
-              <span className="rounded bg-panel px-2 py-0.5 text-[10.5px] font-semibold text-subink border border-line">
-                Academic Planning Controlled
+          <div className="border-t border-line bg-card/60 px-5 py-2.5 text-[12px] text-muted flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Lock size={13} className="text-muted shrink-0" />
+              <span>
+                <strong>Locked Institutional Policy:</strong> University operational hours and locked break periods are configured on the backend administration panel.
               </span>
             </div>
-          )}
+            <span className="rounded bg-panel px-2 py-0.5 text-[10.5px] font-semibold text-subink border border-line">
+              Backend Admin Configured
+            </span>
+          </div>
         </Card>
 
         {/* Section 2: Schoolwide Chapel Seminar & Citizenship Orientation Schedule */}
@@ -1546,56 +1734,91 @@ export default function Generate(props?: {
               <Pill tone="neutral">All Students in Level</Pill>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
               {(["100 Level", "200 Level", "300 Level", "400 Level"] as const).map((lvl, index) => {
                 const colors = ["bg-brand", "bg-blue-500", "bg-violet", "bg-emerald-500"];
                 const textColors = ["text-brand", "text-blue-600", "text-violet", "text-emerald-600"];
-                const item = context.timeLockConfig.chapelSeminarSchedule[lvl];
-                const activeDay = item?.day || (index === 0 ? "Mon" : index === 1 ? "Tue" : index === 2 ? "Wed" : "Thu");
-                const activeSlot = item?.slot || "09:00";
+                const item = context.timeLockConfig?.chapelSeminarSchedule?.[lvl];
+
+                // Normalization helpers so options always match without blank select displays
+                const rawDay = item?.day;
+                const dayMap: Record<string, (typeof days)[number]> = {
+                  mon: "Mon", monday: "Mon",
+                  tue: "Tue", tuesday: "Tue",
+                  wed: "Wed", wednesday: "Wed",
+                  thu: "Thu", thursday: "Thu",
+                  fri: "Fri", friday: "Fri",
+                };
+                const fallbackDay = index === 0 ? "Mon" : index === 1 ? "Tue" : index === 2 ? "Wed" : "Thu";
+                const activeDay = (rawDay ? dayMap[rawDay.trim().toLowerCase()] || rawDay : fallbackDay) as (typeof days)[number];
+
+                const rawSlot = item?.slot;
+                const cleanSlot = rawSlot
+                  ? (rawSlot.trim().length === 4 && rawSlot.trim()[1] === ":" ? `0${rawSlot.trim()}` : rawSlot.trim().slice(0, 5))
+                  : "09:00";
+                const activeSlot = (slots.includes(cleanSlot as any) ? cleanSlot : "09:00") as (typeof slots)[number];
 
                 return (
-                  <div key={lvl} className="rounded-xl border border-line bg-card p-4 relative overflow-hidden flex flex-col justify-between">
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${colors[index]}`} />
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[13px] font-bold text-ink">{lvl}</span>
-                        <span className={`rounded bg-panel px-2 py-0.5 text-[11px] font-bold ${textColors[index]}`}>
+                  <div key={lvl} className="rounded-xl border border-line bg-card p-4 relative flex flex-col justify-between min-w-0 shadow-2xs">
+                    <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl ${colors[index]}`} />
+                    <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <span className="text-[13px] font-bold text-ink shrink-0">{lvl}</span>
+                        <span className={`rounded bg-panel px-2 py-0.5 text-[11px] font-bold shrink-0 ${textColors[index]}`}>
                           {activeDay} {activeSlot}
                         </span>
                       </div>
-                      <p className="mt-2 text-[12.5px] font-bold text-ink">{item?.code || "BU-GST Seminar"}</p>
-                      <p className="text-[11.5px] text-muted">{item?.title || "Chapel Seminar"}</p>
+                      <p className="mt-2 text-[12.5px] font-bold text-ink truncate">{item?.code || "BU-GST Seminar"}</p>
+                      <p className="text-[11.5px] text-muted line-clamp-1">{item?.title || "Chapel Seminar"}</p>
                       <div className="mt-3 space-y-1 text-[11px] text-subink pt-2 border-t border-line">
-                        <p>📍 {item?.venue || "University Amphitheatre"}</p>
-                        <p>👤 {item?.lecturer || "Pastor Chilaka Uzoma"}</p>
-                        <p>👥 All {lvl} Students</p>
+                        <p className="truncate">📍 {item?.venue || "University Amphitheatre"}</p>
+                        <p className="truncate">👤 {item?.lecturer || "Pastor Chilaka Uzoma"}</p>
+                        <p className="truncate">👥 All {lvl} Students</p>
                       </div>
                     </div>
                     {isAcadPlanningTO ? (
-                      <div className="mt-3 pt-2 border-t border-line/60 flex items-center justify-between gap-2">
-                        <span className="text-[10.5px] font-semibold text-muted">Adjust Slot:</span>
-                        <div className="flex items-center gap-1">
-                          <select
-                            value={activeDay}
-                            onChange={(e) => context.updateChapelSlot(lvl, e.target.value as any, activeSlot)}
-                            className="rounded border border-line bg-panel px-1.5 py-0.5 text-[10.5px] font-semibold text-ink cursor-pointer"
-                          >
-                            <option value="Mon">Mon</option>
-                            <option value="Tue">Tue</option>
-                            <option value="Wed">Wed</option>
-                            <option value="Thu">Thu</option>
-                          </select>
-                          <select
-                            value={activeSlot}
-                            onChange={(e) => context.updateChapelSlot(lvl, activeDay, e.target.value as any)}
-                            className="rounded border border-line bg-panel px-1.5 py-0.5 text-[10.5px] font-semibold text-ink cursor-pointer"
-                          >
-                            <option value="08:00">08:00</option>
-                            <option value="09:00">09:00</option>
-                            <option value="10:00">10:00</option>
-                            <option value="11:00">11:00</option>
-                          </select>
+                      <div className="mt-4 pt-3 border-t border-line/60 min-w-0">
+                        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted mb-1.5 min-w-0">
+                          <span className="shrink-0">Adjust Window:</span>
+                          <span className="font-mono text-[10.5px] font-bold text-ink shrink-0">
+                            {activeDay} · {activeSlot}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="min-w-0">
+                            <label className="block text-[9.5px] font-bold uppercase tracking-wider text-muted mb-1 truncate">
+                              Day
+                            </label>
+                            <CustomSelect
+                              value={activeDay}
+                              onChange={(e) => context.updateChapelSlot(lvl, e.target.value as any, activeSlot)}
+                              className="h-8.5 w-full min-w-0 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                            >
+                              {["Mon", "Tue", "Wed", "Thu", "Fri"].map((d) => (
+                                <option key={d} value={d}>
+                                  {d}
+                                </option>
+                              ))}
+                            </CustomSelect>
+                          </div>
+                          <div className="min-w-0">
+                            <label className="block text-[9.5px] font-bold uppercase tracking-wider text-muted mb-1 truncate">
+                              Time Slot
+                            </label>
+                            <CustomSelect
+                              value={activeSlot}
+                              onChange={(e) => context.updateChapelSlot(lvl, activeDay, e.target.value as any)}
+                              className="h-8.5 w-full min-w-0 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                            >
+                              {slots
+                                .filter((s) => s !== "17:00")
+                                .map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                            </CustomSelect>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -2238,6 +2461,54 @@ export default function Generate(props?: {
             <SlidersHorizontal size={14} /> Constraints
           </Button>
 
+          {/* Export Timetable Dropdown (C1) */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              title="Export timetable as CSV or Printable PDF"
+              className="cursor-pointer"
+            >
+              <Download size={14} /> Export{" "}
+              <ChevronDown size={12} className="text-muted" />
+            </Button>
+
+            {showExportMenu && (
+              <div className="dropdown-surface absolute right-0 z-50 mt-2 w-52 space-y-0.5 p-1.5">
+                <button
+                  onClick={() => {
+                    exportToCsv(localSessions, {
+                      department: currentDept,
+                      level: selectedLevel !== "all" ? selectedLevel : undefined,
+                      semester: "First Semester",
+                      status,
+                    });
+                    setShowExportMenu(false);
+                  }}
+                  className="dropdown-item flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] font-medium text-ink transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet size={15} className="text-good" />
+                  <span>Download CSV (.csv)</span>
+                </button>
+                <button
+                  onClick={() => {
+                    printTimetablePdf(localSessions, {
+                      department: currentDept,
+                      level: selectedLevel !== "all" ? selectedLevel : undefined,
+                      semester: "First Semester",
+                      status,
+                    });
+                    setShowExportMenu(false);
+                  }}
+                  className="dropdown-item flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] font-medium text-ink transition-colors cursor-pointer"
+                >
+                  <Printer size={15} className="text-brand" />
+                  <span>Print / Save PDF</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           {!isSubmitted && (
             <>
               <Button
@@ -2341,21 +2612,21 @@ export default function Generate(props?: {
           {/* Cohort Perspective Filters */}
           {perspective === "cohort" && (
             <div className="flex items-center gap-2">
-              <select
+              <CustomSelect
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-semibold text-ink outline-none focus:border-brand"
+                className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
               >
                 <option value="all">All Levels</option>
                 <option value="100 Level">100 Level</option>
                 <option value="200 Level">200 Level</option>
                 <option value="300 Level">300 Level</option>
                 <option value="400 Level">400 Level</option>
-              </select>
-              <select
+              </CustomSelect>
+              <CustomSelect
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
-                className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-semibold text-ink outline-none focus:border-brand"
+                className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
               >
                 <option value="all">All Sub-groups</option>
                 <option value="Group A">Group A</option>
@@ -2365,7 +2636,7 @@ export default function Generate(props?: {
                 <option value="Group E">Group E</option>
                 <option value="Group F">Group F</option>
                 <option value="Direct Entry">Direct Entry</option>
-              </select>
+              </CustomSelect>
             </div>
           )}
 
@@ -2375,7 +2646,7 @@ export default function Generate(props?: {
               <span className="text-[12px] font-medium text-muted">
                 Lecturer:
               </span>
-              <select
+              <CustomSelect
                 value={selectedLecturer}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -2384,7 +2655,7 @@ export default function Generate(props?: {
                     setMode("grid");
                   }
                 }}
-                className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12.5px] font-semibold text-ink outline-none focus:border-brand"
+                className="h-8.5 max-w-[240px] rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
               >
                 <option value="all">
                   All Department Lecturers ({allLecturers.length})
@@ -2394,17 +2665,17 @@ export default function Generate(props?: {
                     {lec}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
           )}
 
           {/* Course Perspective Filter & Search */}
           {perspective === "course" && (
             <div className="flex items-center gap-2">
-              <select
+              <CustomSelect
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
-                className="h-8 rounded-lg border border-line bg-card px-2.5 text-[12px] font-semibold text-ink outline-none focus:border-brand"
+                className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
               >
                 <option value="all">
                   All Courses ({allCourseCodes.length})
@@ -2414,7 +2685,7 @@ export default function Generate(props?: {
                     {c}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
               <div className="relative">
                 <Search
                   size={13}
@@ -2606,11 +2877,34 @@ export default function Generate(props?: {
 
       {/* Regenerating overlay */}
       {isRegenerating && (
-        <div className="flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft/40 px-5 py-4">
-          <Loader2 size={18} className="animate-spin text-brand" />
-          <span className="text-[13.5px] font-semibold text-brand-ink">
-            Updating timetable — checking classroom availability and lecture hours…
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-brand/20 bg-brand-soft/40 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Loader2 size={18} className="animate-spin text-brand shrink-0 mt-0.5" />
+            <div className="space-y-1.5">
+              <span className="text-[13.5px] font-semibold text-brand-ink">
+                {generationProgress?.stage || "Updating timetable — checking classroom availability and lecture hours…"}
+              </span>
+              {generationProgress && (
+                <div className="flex items-center gap-3 text-xs text-muted">
+                  <div className="h-1.5 w-36 overflow-hidden rounded-full bg-brand/20">
+                    <div
+                      className="h-full bg-brand transition-all duration-200"
+                      style={{ width: `${generationProgress.percent}%` }}
+                    />
+                  </div>
+                  <span className="font-semibold text-brand">{generationProgress.percent}%</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleCancelGeneration}
+            className="shrink-0 border-rose-200 text-rose-700 hover:bg-rose-50 self-start sm:self-auto text-xs py-1.5 px-3"
+          >
+            <Ban size={14} className="mr-1" />
+            Cancel
+          </Button>
         </div>
       )}
 
@@ -2644,7 +2938,7 @@ export default function Generate(props?: {
                       </button>
                     </div>
                     <p className="text-[12px] text-muted mt-0.5">
-                      Department of Computer Science · Teaching Load:{" "}
+                      Department of {currentDept || "Unavailable"} · Teaching Load:{" "}
                       <span className="font-semibold text-subink">
                         {lecturerFilteredSessions.reduce(
                           (acc, s) => acc + (s.duration ?? 1),
@@ -2733,7 +3027,7 @@ export default function Generate(props?: {
                           </div>
                         }
                         title={lecName}
-                        sub={`Dept. of Computer Science · ${lecAllocations.length} Course${
+                        sub={`Dept. of ${currentDept || "Unavailable"} · ${lecAllocations.length} Course${
                           lecAllocations.length !== 1 ? "s" : ""
                         } Assigned`}
                         action={
@@ -2871,539 +3165,123 @@ export default function Generate(props?: {
             /* Calendar Grid or List Mode */
             <Card className="overflow-hidden">
               {mode === "grid" ? (
-                <div>
-                  {/* Top synchronized horizontal scrollbar for easy navigation */}
-                  <div
-                    ref={topScrollRef}
-                    onScroll={handleTopScroll}
-                    className="overflow-x-auto border-b border-line/40 bg-panel/30 px-3 py-1 text-[11px] text-muted select-none"
-                    style={{ scrollbarWidth: "thin" }}
-                  >
-                    <div className="flex items-center justify-between text-[10.5px] font-medium text-muted/80 pb-0.5" style={{ minWidth: 700 }}>
-                      <span className="flex items-center gap-1.5 text-brand">
-                        <GripVertical size={12} className="shrink-0" />
-                        <span className="font-semibold">Drag & drop any class to reschedule or swap slots instantly</span>
-                      </span>
-                      <span className="text-[10px] text-muted/60">
-                        Showing all 5 days (Mon–Fri)
-                      </span>
+                <TimetableGrid
+                  topScrollRef={topScrollRef}
+                  tableContainerRef={tableContainerRef}
+                  handleTopScroll={handleTopScroll}
+                  handleMainScroll={handleMainScroll}
+                  handleContainerDragLeave={handleContainerDragLeave}
+                  scrollWidth={scrollWidth}
+                  keyboardPickedSession={keyboardPickedSession}
+                  handleCancelKeyboardMove={handleCancelKeyboardMove}
+                  perspective={perspective}
+                  selectedLecturer={selectedLecturer}
+                  localConstraints={context.localConstraints}
+                  timeLockConfig={context.timeLockConfig}
+                  highlightCell={highlightCell}
+                  cell={cell}
+                  dragOverTarget={dragOverTarget}
+                  draggedSession={draggedSession}
+                  currentDropFeasibility={currentDropFeasibility}
+                  viewDensity={viewDensity}
+                  sessionIndexMap={sessionIndexMap}
+                  handleDragEnter={handleDragEnter}
+                  handleDragOver={handleDragOver}
+                  handleDrop={handleDrop}
+                  handleDragStart={handleDragStart}
+                  handleDragEnd={handleDragEnd}
+                  handleGridCellKeyDown={handleGridCellKeyDown}
+                  handleSessionItemKeyDown={handleSessionItemKeyDown}
+                  setCellDetail={setCellDetail}
+                  handleOpenEdit={handleOpenEdit}
+                  onCellFocus={(d, s) => {
+                    if (keyboardPickedSession) {
+                      dragOverRef.current = { day: d, slot: s };
+                      setDragOverTarget({ day: d, slot: s });
+                    }
+                  }}
+                />
+              ) : (
+                <div className="overflow-x-auto px-2 py-2" style={{ scrollbarWidth: "thin" }}>
+                  <div className="min-w-[680px]">
+                    <div className="grid grid-cols-[100px_1fr_140px_120px_90px_80px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line">
+                      {[
+                        "Code",
+                        "Lecturer",
+                        "Venue",
+                        "Day / Time",
+                        "Status",
+                        "Action",
+                      ].map((h) => (
+                        <span
+                          key={h}
+                          className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted last:text-right"
+                        >
+                          {h}
+                        </span>
+                      ))}
                     </div>
-                    <div style={{ width: scrollWidth || "100%", height: 1 }} />
-                  </div>
+                    {(perspective === "lecturer"
+                      ? lecturerFilteredSessions
+                      : cohortFilteredSessions
+                    ).map((s, i) => {
+                      const globalIdx = localSessions.findIndex(
+                        (ls) =>
+                          ls.code === s.code &&
+                          ls.day === s.day &&
+                          ls.slot === s.slot &&
+                          ls.venue === s.venue,
+                      );
 
-                  <div
-                    ref={tableContainerRef}
-                    onScroll={handleMainScroll}
-                    onDragLeave={handleContainerDragLeave}
-                    className="overflow-x-auto p-2 sm:p-3"
-                    style={{ scrollbarWidth: "thin" }}
-                  >
-                    <div className="w-full min-w-[700px]">
-                    <div className="grid grid-cols-[56px_repeat(5,1fr)] gap-1.5 sm:gap-2">
-                      <div className="pb-2 text-center text-[10.5px] font-bold uppercase tracking-wider text-muted">
-                        Time
-                      </div>
-                      {days.map((d) => {
-                        const dayRestriction =
-                          perspective === "lecturer"
-                            ? getLecturerDayRestriction(
-                                selectedLecturer,
-                                d,
-                                localConstraints,
-                              )
-                            : { isOff: false };
-
-                        return (
-                          <div
-                            key={d}
-                            className="pb-2 text-center text-[11.5px] font-bold uppercase tracking-wider text-ink border-b border-line/60"
-                          >
-                            {d}
-                            {dayRestriction.isOff && (
-                              <span className="block text-[9px] text-warn font-semibold">
-                                ({dayRestriction.label})
+                      return (
+                        <div
+                          key={i}
+                          className="grid grid-cols-[100px_1fr_140px_120px_90px_80px] items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] transition hover:bg-panel border-b border-line-soft last:border-0"
+                        >
+                          <div>
+                            <span className="font-bold text-ink">{s.code}</span>
+                            {s.group && s.group !== "All" && (
+                              <span className="ml-1.5 text-[10px] text-brand font-semibold">
+                                {s.group}
+                              </span>
+                            )}
+                            {s.isVirtual && (
+                              <span className="ml-1.5 inline-flex items-center gap-0.5 rounded bg-violet-soft px-1 py-0.2 text-[9.5px] font-semibold text-violet">
+                                <Globe size={9} /> Virtual
                               </span>
                             )}
                           </div>
-                        );
-                      })}
-                      {slots.map((s) => (
-                        <div key={s} className="contents">
-                          <div className="flex items-start justify-center pt-2 text-[11px] font-semibold text-muted">
-                            {s}
+                          <span className="truncate text-muted">
+                            {s.lecturer}
+                          </span>
+                          <span className="truncate text-subink">{s.venue}</span>
+                          <span className="text-subink">
+                            {s.day} · {s.slot}{" "}
+                            {s.duration && s.duration > 1
+                              ? `(${s.duration}h)`
+                              : ""}
+                          </span>
+                          <div>
+                            {s.conflict ? (
+                              <Pill tone="bad">Conflict</Pill>
+                            ) : (
+                              <Pill tone="good">OK</Pill>
+                            )}
                           </div>
-                          {days.map((d) => {
-                            const items = cell(d, s);
-                            const isHighlighted =
-                              highlightCell?.day === d &&
-                              highlightCell?.slot === s;
-
-                            // Dynamic Time Lock evaluation
-                            const lunchCfg = context.timeLockConfig?.lunchBreak;
-                            const isBreak = !!lunchCfg?.enabled && s === (lunchCfg.slot || "13:00");
-
-                            const earlyClosings = context.timeLockConfig?.earlyClosings || [];
-                            const activeClosing = earlyClosings.find(
-                              (ec) => ec.enabled && ec.day === d && slots.indexOf(s as any) >= slots.indexOf((ec.cutoffSlot || "17:00") as any)
-                            );
-                            const isEarlyClosingOff = !!activeClosing;
-
-                            const opWin = context.timeLockConfig?.operatingWindow || defaultTimeLockConfig.operatingWindow;
-                            const startWinIdx = slots.indexOf((opWin.startSlot || "07:00") as any);
-                            const endWinIdx = slots.indexOf((opWin.endSlot || "17:00") as any);
-                            const currentIdx = slots.indexOf(s as any);
-                            const isOutsideOperatingHours =
-                              (startWinIdx !== -1 && currentIdx < startWinIdx) ||
-                              (endWinIdx !== -1 && currentIdx > endWinIdx);
-
-                            // Dynamic slot restriction for selected lecturer
-                            const slotRestriction =
-                              perspective === "lecturer"
-                                ? getLecturerSlotRestriction(
-                                    selectedLecturer,
-                                    d,
-                                    s,
-                                    localConstraints,
-                                  )
-                                : { isRestricted: false };
-
-                            const isHoveredBreak =
-                              dragOverTarget?.day === d && dragOverTarget?.slot === s;
-
-                            if (isOutsideOperatingHours) {
-                              return (
-                                <div
-                                  key={d + s}
-                                  onDragEnter={(e) => handleDragEnter(e, d, s)}
-                                  onDragOver={(e) => handleDragOver(e, d, s)}
-                                  onDrop={(e) => handleDrop(e, d, s)}
-                                  className={`flex min-h-[48px] items-center justify-center rounded-lg border p-1 text-[9.5px] font-medium text-center transition ${
-                                    isHoveredBreak
-                                      ? "border-red-400 bg-red-500/15 text-red-700 ring-2 ring-red-400/40 cursor-not-allowed"
-                                      : "border-line bg-panel/30 text-muted/50"
-                                  }`}
-                                >
-                                  {isHoveredBreak ? (
-                                    <span className="flex items-center gap-1 text-[9.5px] font-bold text-red-700">
-                                      <Ban size={11} /> Outside Window
-                                    </span>
-                                  ) : (
-                                    "Outside Hours"
-                                  )}
-                                </div>
-                              );
-                            }
-
-                            if (isBreak) {
-                              return (
-                                <div
-                                  key={d + s}
-                                  onDragEnter={(e) => handleDragEnter(e, d, s)}
-                                  onDragOver={(e) => handleDragOver(e, d, s)}
-                                  onDrop={(e) => handleDrop(e, d, s)}
-                                  className={`flex min-h-[48px] items-center justify-center rounded-lg border border-dashed p-1 text-[10px] font-semibold text-center transition ${
-                                    isHoveredBreak
-                                      ? "border-red-400 bg-red-500/15 text-red-700 ring-2 ring-red-400/40 cursor-not-allowed"
-                                      : "border-line bg-panel/60 text-muted"
-                                  }`}
-                                >
-                                  {isHoveredBreak ? (
-                                    <span className="flex items-center gap-1 text-[9.5px] font-bold text-red-700">
-                                      <Ban size={11} /> Lunch Break
-                                    </span>
-                                  ) : (
-                                    "Lunch Break"
-                                  )}
-                                </div>
-                              );
-                            }
-
-                            if (isEarlyClosingOff) {
-                              return (
-                                <div
-                                  key={d + s}
-                                  onDragEnter={(e) => handleDragEnter(e, d, s)}
-                                  onDragOver={(e) => handleDragOver(e, d, s)}
-                                  onDrop={(e) => handleDrop(e, d, s)}
-                                  className={`flex min-h-[48px] items-center justify-center rounded-lg border p-1 text-[9.5px] font-medium text-center transition ${
-                                    isHoveredBreak
-                                      ? "border-red-400 bg-red-500/15 text-red-700 ring-2 ring-red-400/40 cursor-not-allowed"
-                                      : "border-line bg-panel/30 text-muted/60"
-                                  }`}
-                                >
-                                  {isHoveredBreak ? (
-                                    <span className="flex items-center gap-1 text-[9.5px] font-bold text-red-700">
-                                      <Ban size={11} /> {activeClosing.label || "Closed"}
-                                    </span>
-                                  ) : (
-                                    activeClosing.label || "Closed"
-                                  )}
-                                </div>
-                              );
-                            }
-
-                            const isTargetCell =
-                              dragOverTarget?.day === d && dragOverTarget?.slot === s;
-                            const isSecondHourOfTarget =
-                              draggedSession &&
-                              (draggedSession.session.duration ?? 1) === 2 &&
-                              dragOverTarget?.day === d &&
-                              getEndSlot(dragOverTarget.slot, 1) === s;
-                            const isDropPreview =
-                              isTargetCell || isSecondHourOfTarget;
-
-                            const dropFeasibility = isDropPreview ? currentDropFeasibility : null;
-
-                            const isHomeOfDragged =
-                              draggedSession &&
-                              (draggedSession.session.day === d &&
-                                (draggedSession.session.slot === s ||
-                                  ((draggedSession.session.duration ?? 1) === 2 &&
-                                    getEndSlot(draggedSession.session.slot, 1) === s)));
-
-                            const cellBorderClass = isDropPreview && dropFeasibility
-                              ? dropFeasibility.status === "valid"
-                                ? "border-2 border-emerald-500 bg-emerald-500/15 ring-3 ring-emerald-500/25 shadow-md"
-                                : dropFeasibility.status === "swap"
-                                  ? "border-2 border-indigo-500 bg-indigo-500/15 ring-3 ring-indigo-500/25 shadow-md"
-                                  : dropFeasibility.status === "warning"
-                                    ? "border-2 border-amber-500 bg-amber-500/15 ring-3 ring-amber-500/25 shadow-md"
-                                    : "border-2 border-red-500 bg-red-500/15 ring-3 ring-red-500/25 cursor-not-allowed shadow-md"
-                              : isHighlighted
-                                ? "border-brand bg-brand-soft/70 shadow-sm ring-3 ring-brand/40 animate-pulse"
-                                : isHomeOfDragged
-                                  ? "border-2 border-dashed border-brand/50 bg-brand-soft/20"
-                                  : draggedSession
-                                    ? "border-dashed border-line/80 bg-panel/30 hover:border-brand/40 hover:bg-card/70"
-                                    : slotRestriction.isRestricted
-                                      ? "border-warn/30 bg-warn-soft/20"
-                                      : "border-line/70 bg-panel/30 hover:border-line";
-
-                            return (
-                              <div
-                                key={d + s}
-                                onDragEnter={(e) => handleDragEnter(e, d, s)}
-                                onDragOver={(e) => handleDragOver(e, d, s)}
-                                onDrop={(e) => handleDrop(e, d, s)}
-                                className={`rounded-lg border p-1 ${draggedSession ? "transition-none" : "transition-colors duration-75"} ${
-                                  viewDensity === "compact"
-                                    ? "min-h-[58px]"
-                                    : "min-h-[72px]"
-                                } ${cellBorderClass}`}
-                              >
-                                {isDropPreview && dropFeasibility && (
-                                  <div
-                                    className={`mb-1.5 flex items-center justify-between gap-1 rounded-md px-1.5 py-1 text-left border shadow-2xs ${
-                                      dropFeasibility.status === "valid"
-                                        ? "border-emerald-400 bg-emerald-50/95 text-emerald-900"
-                                        : dropFeasibility.status === "swap"
-                                          ? "border-indigo-400 bg-indigo-50/95 text-indigo-900"
-                                          : dropFeasibility.status === "warning"
-                                            ? "border-amber-400 bg-amber-50/95 text-amber-900"
-                                            : "border-red-400 bg-red-50/95 text-red-900"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-1 min-w-0">
-                                      {dropFeasibility.status === "valid" && (
-                                        <Check size={11} className="text-emerald-600 shrink-0" />
-                                      )}
-                                      {dropFeasibility.status === "swap" && (
-                                        <ArrowLeftRight size={11} className="text-indigo-600 shrink-0" />
-                                      )}
-                                      {dropFeasibility.status === "warning" && (
-                                        <AlertTriangle size={11} className="text-amber-600 shrink-0" />
-                                      )}
-                                      {dropFeasibility.status === "blocked" && (
-                                        <Ban size={11} className="text-red-600 shrink-0" />
-                                      )}
-                                      <span className="text-[9.5px] font-bold truncate">
-                                        {isSecondHourOfTarget
-                                          ? "Hour 2 block"
-                                          : dropFeasibility.status === "swap"
-                                            ? `Swap ⇄ ${dropFeasibility.swapWith?.code}`
-                                            : dropFeasibility.status === "valid"
-                                              ? `Drop ${draggedSession?.session.code}`
-                                              : dropFeasibility.reason}
-                                      </span>
-                                    </div>
-                                    <span className="text-[8px] font-bold opacity-70 shrink-0">
-                                      {isSecondHourOfTarget
-                                        ? "2nd hr"
-                                        : (draggedSession?.session.duration ?? 1) > 1
-                                          ? "2h"
-                                          : "1h"}
-                                    </span>
-                                  </div>
-                                )}
-                                {slotRestriction.isRestricted &&
-                                  items.length === 0 &&
-                                  !isDropPreview && (
-                                    <div className="flex h-full min-h-[48px] flex-col items-center justify-center rounded border border-dashed border-warn/30 bg-card/60 p-1 text-center">
-                                      <span className="text-[9.5px] font-bold text-warn">
-                                        Unavailable
-                                      </span>
-                                      <span className="text-[8px] text-muted truncate max-w-[85px] mt-0.5">
-                                        {slotRestriction.reason}
-                                      </span>
-                                    </div>
-                                  )}
-                                {items.map((it, k) => {
-                                  // Fast O(1) global index in localSessions
-                                  const globalIdx =
-                                    sessionIndexMap.get(
-                                      `${it.code}|${it.day}|${it.slot}|${it.venue}`
-                                    ) ?? -1;
-
-                                  const isStartSlot = s === it.slot;
-                                  const dur = it.duration ?? 1;
-
-                                  const isBeingDragged =
-                                    draggedSession?.globalIndex === globalIdx;
-
-                                  // If this cell represents a continuation hour (e.g. Hour 2 of a 2-hour class)
-                                  if (!isStartSlot) {
-                                    return (
-                                      <div
-                                        key={k}
-                                        draggable={true}
-                                        onDragStart={(e) =>
-                                          handleDragStart(e, it, globalIdx)
-                                        }
-                                        onDragEnd={handleDragEnd}
-                                        onClick={() => setCellDetail(it)}
-                                        className={`group relative mb-1 w-full rounded-md border border-dashed px-1.5 py-1 text-left select-none cursor-grab active:cursor-grabbing hover:shadow-xs transition-colors duration-75 ${
-                                          isBeingDragged
-                                            ? "opacity-30 border-brand ring-2 ring-brand/40"
-                                            : it.conflict
-                                              ? "border-bad/40 bg-bad-soft/50"
-                                              : "border-brand/30 bg-card/80 hover:border-brand/50"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between gap-1">
-                                          <div className="flex items-center gap-1 min-w-0">
-                                            <GripVertical
-                                              size={10}
-                                              className="text-muted/40 group-hover:text-muted shrink-0"
-                                            />
-                                            <p className="text-[10px] font-bold text-subink truncate">
-                                              {it.code}
-                                            </p>
-                                          </div>
-                                          <div className="flex items-center gap-0.5 shrink-0">
-                                            <span className="rounded bg-brand/10 px-1 py-0.2 text-[8px] font-semibold text-brand-ink">
-                                              Hr 2
-                                            </span>
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (globalIdx !== -1)
-                                                  handleOpenEdit(globalIdx);
-                                              }}
-                                              title="Line edit venue & time"
-                                              className="rounded p-0.5 text-muted hover:bg-card hover:text-brand transition cursor-pointer"
-                                            >
-                                              <Pencil size={9} />
-                                            </button>
-                                          </div>
-                                        </div>
-                                        <p className="text-[8.5px] text-muted truncate mt-0.5">
-                                          {it.venue}
-                                        </p>
-                                        {(perspective === "cohort" ||
-                                          (perspective === "lecturer" &&
-                                            selectedLecturer === "all")) && (
-                                          <p className="truncate text-[8.5px] font-medium text-brand truncate">
-                                            {it.lecturer}
-                                          </p>
-                                        )}
-                                      </div>
-                                    );
-                                  }
-
-                                  return (
-                                    <div
-                                      key={k}
-                                      draggable={true}
-                                      onDragStart={(e) =>
-                                        handleDragStart(e, it, globalIdx)
-                                      }
-                                      onDragEnd={handleDragEnd}
-                                      className={`group relative mb-1 w-full rounded-md border px-1.5 py-1 text-left last:mb-0 select-none cursor-grab active:cursor-grabbing hover:shadow-xs transition-colors duration-75 ${
-                                        isBeingDragged
-                                          ? "opacity-30 border-brand ring-2 ring-brand/40"
-                                          : it.conflict
-                                            ? "border-bad/40 bg-bad-soft"
-                                            : "border-brand/25 bg-brand-soft/70 hover:bg-brand-soft hover:border-brand/50"
-                                      }`}
-                                    >
-                                      <div className="flex items-center justify-between gap-1">
-                                        <div className="flex items-center gap-1 min-w-0">
-                                          <GripVertical
-                                            size={10}
-                                            className="text-muted/40 group-hover:text-muted shrink-0"
-                                          />
-                                          <p
-                                            className={`text-[10.5px] font-bold truncate leading-tight ${
-                                              it.conflict
-                                                ? "text-bad"
-                                                : "text-brand-ink"
-                                            }`}
-                                          >
-                                            {it.code}
-                                          </p>
-                                        </div>
-                                        <div className="flex items-center gap-0.5 shrink-0">
-                                          {it.isVirtual && (
-                                            <span className="rounded bg-violet-soft px-1 py-0.2 text-[8px] font-bold text-violet">
-                                              Online
-                                            </span>
-                                          )}
-                                          {it.group && it.group !== "All" && (
-                                            <span className="rounded bg-brand/15 px-1 py-0.2 text-[8px] font-bold text-brand-ink">
-                                              {it.group.replace("Group ", "Gr.")}
-                                            </span>
-                                          )}
-                                          {dur > 1 && (
-                                            <span className="rounded bg-brand/15 px-1 py-0.2 text-[8px] font-bold text-brand-ink">
-                                              {dur}h
-                                            </span>
-                                          )}
-                                          {/* Line Edit trigger button */}
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              if (globalIdx !== -1)
-                                                handleOpenEdit(globalIdx);
-                                            }}
-                                            title="Line edit venue & time"
-                                            className="ml-0.5 rounded p-0.5 text-muted hover:bg-card hover:text-brand transition cursor-pointer"
-                                          >
-                                            <Pencil size={9} />
-                                          </button>
-                                        </div>
-                                      </div>
-
-                                      <div
-                                        onClick={() => setCellDetail(it)}
-                                        className="cursor-pointer mt-0.5"
-                                      >
-                                        <p className="truncate text-[9px] text-subink font-medium leading-tight">
-                                          {it.venue}
-                                        </p>
-                                        {/* In Cohort perspective OR when viewing All Lecturers: display lecturer name with badge */}
-                                        {(perspective === "cohort" ||
-                                          (perspective === "lecturer" &&
-                                            selectedLecturer === "all")) && (
-                                          <div className="flex items-center gap-0.5 truncate text-[8.5px] font-semibold text-brand leading-tight mt-0.5">
-                                            <User
-                                              size={8.5}
-                                              className="shrink-0"
-                                            />
-                                            <span className="truncate">
-                                              {it.lecturer}
-                                            </span>
-                                          </div>
-                                        )}
-                                        {/* In specific Lecturer perspective: display student group and level */}
-                                        {perspective === "lecturer" &&
-                                          selectedLecturer !== "all" && (
-                                            <p className="truncate text-[8.5px] text-subink font-medium leading-tight mt-0.5">
-                                              {it.level ?? "200 Level"} ·{" "}
-                                              {it.group ?? "Unified"}
-                                            </p>
-                                          )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => {
+                                if (globalIdx !== -1) handleOpenEdit(globalIdx);
+                              }}
+                              className="flex items-center gap-1 rounded-lg border border-line bg-card px-2.5 py-1 text-[11.5px] font-semibold text-brand hover:border-brand transition cursor-pointer"
+                            >
+                              <Pencil size={11} /> Edit
+                            </button>
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                </div>
-              </div>
-              ) : (
-                <div className="px-2 py-2">
-                  <div className="grid grid-cols-[100px_1fr_140px_120px_90px_80px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line">
-                    {[
-                      "Code",
-                      "Lecturer",
-                      "Venue",
-                      "Day / Time",
-                      "Status",
-                      "Action",
-                    ].map((h) => (
-                      <span
-                        key={h}
-                        className="text-[11px] font-semibold uppercase tracking-[0.07em] text-muted last:text-right"
-                      >
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-                  {(perspective === "lecturer"
-                    ? lecturerFilteredSessions
-                    : cohortFilteredSessions
-                  ).map((s, i) => {
-                    const globalIdx = localSessions.findIndex(
-                      (ls) =>
-                        ls.code === s.code &&
-                        ls.day === s.day &&
-                        ls.slot === s.slot &&
-                        ls.venue === s.venue,
-                    );
-
-                    return (
-                      <div
-                        key={i}
-                        className="grid grid-cols-[100px_1fr_140px_120px_90px_80px] items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] transition hover:bg-panel border-b border-line-soft last:border-0"
-                      >
-                        <div>
-                          <span className="font-bold text-ink">{s.code}</span>
-                          {s.group && s.group !== "All" && (
-                            <span className="ml-1.5 text-[10px] text-brand font-semibold">
-                              {s.group}
-                            </span>
-                          )}
-                          {s.isVirtual && (
-                            <span className="ml-1.5 inline-flex items-center gap-0.5 rounded bg-violet-soft px-1 py-0.2 text-[9.5px] font-semibold text-violet">
-                              <Globe size={9} /> Virtual
-                            </span>
-                          )}
-                        </div>
-                        <span className="truncate text-muted">
-                          {s.lecturer}
-                        </span>
-                        <span className="truncate text-subink">{s.venue}</span>
-                        <span className="text-subink">
-                          {s.day} · {s.slot}{" "}
-                          {s.duration && s.duration > 1
-                            ? `(${s.duration}h)`
-                            : ""}
-                        </span>
-                        <div>
-                          {s.conflict ? (
-                            <Pill tone="bad">Conflict</Pill>
-                          ) : (
-                            <Pill tone="good">OK</Pill>
-                          )}
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => {
-                              if (globalIdx !== -1) handleOpenEdit(globalIdx);
-                            }}
-                            className="flex items-center gap-1 rounded-lg border border-line bg-card px-2.5 py-1 text-[11.5px] font-semibold text-brand hover:border-brand transition cursor-pointer"
-                          >
-                            <Pencil size={11} /> Edit
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               )}
             </Card>
@@ -3592,13 +3470,13 @@ export default function Generate(props?: {
             <div className="space-y-4">
               {/* Day Selector */}
               <div>
-                <label className="mb-1 block text-[12px] font-semibold text-subink">
+                <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                   Day of the Week
                 </label>
-                <select
+                <CustomSelect
                   value={editDay}
                   onChange={(e) => setEditDay(e.target.value as any)}
-                  className="w-full rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px] font-semibold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                 >
                   {days.map((d) => (
                     <option key={d} value={d}>
@@ -3610,20 +3488,20 @@ export default function Generate(props?: {
                         "Friday (Half-day, classes close at 1:00 PM)"}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               {/* Time Slot Selector */}
               <div>
-                <label className="mb-1 block text-[12px] font-semibold text-subink">
+                <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                   Start Time Slot{" "}
                   {(localSessions[editingSessionIndex]?.duration ?? 1) === 2 &&
                     "(2-Hour Class)"}
                 </label>
-                <select
+                <CustomSelect
                   value={editSlot}
                   onChange={(e) => setEditSlot(e.target.value as any)}
-                  className="w-full rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px] font-semibold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                 >
                   {slots.map((s) => {
                     const dur =
@@ -3670,18 +3548,18 @@ export default function Generate(props?: {
                       </option>
                     );
                   })}
-                </select>
+                </CustomSelect>
               </div>
 
               {/* Venue Selector */}
               <div>
-                <label className="mb-1 block text-[12px] font-semibold text-subink">
+                <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                   Assigned Classroom / Lab
                 </label>
-                <select
+                <CustomSelect
                   value={editVenue}
                   onChange={(e) => setEditVenue(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px] font-semibold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                 >
                   {venues.map((v) => (
                     <option key={v.name} value={v.name}>
@@ -3691,7 +3569,7 @@ export default function Generate(props?: {
                         : `(${v.spaceType ?? "shared"})`}
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
               </div>
 
               {/* Live Real-Time Constraint Validation Preview in Modal */}
@@ -3839,16 +3717,23 @@ export default function Generate(props?: {
             </div>
             <p className="mb-5 text-[13.5px] leading-relaxed text-muted">
               This draft will be forwarded to{" "}
-              <b className="text-subink">Dr. A. Olumide (HOD)</b> and the
+              <b className="text-subink">
+                {(() => {
+                  const activeDept = context.currentProgram || context.currentUser?.department || "";
+                  const hod = accounts.find((a) => a.role === "hod" && a.department?.toLowerCase() === activeDept.toLowerCase());
+                  return hod?.name || "the Head of Department";
+                })()} (HOD)
+              </b> and the
               departmental status will transition to{" "}
               <b className="text-subink">Submitted to HOD</b>.
             </p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setSubmitModal(false)}>
+              <Button variant="outline" onClick={() => setSubmitModal(false)} disabled={isSubmittingToHod}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit}>
-                <Send size={15} /> Confirm submission
+              <Button onClick={handleSubmit} disabled={isSubmittingToHod}>
+                {isSubmittingToHod ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}{" "}
+                {isSubmittingToHod ? "Submitting..." : "Confirm submission"}
               </Button>
             </div>
           </div>
@@ -3912,13 +3797,13 @@ export default function Generate(props?: {
               {/* Category & Week Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Category
                   </label>
-                  <select
+                  <CustomSelect
                     value={newEventCategory}
                     onChange={(e) => setNewEventCategory(e.target.value as any)}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     <option value="Departmental Week">Departmental Week</option>
                     <option value="Symposium">Symposium</option>
@@ -3926,10 +3811,10 @@ export default function Generate(props?: {
                     <option value="Fellowship">Fellowship / Praise Hour</option>
                     <option value="Orientation">Orientation / Freshers</option>
                     <option value="Special Lecture">Special Lecture / Keynote</option>
-                  </select>
+                  </CustomSelect>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Semester Week *
                   </label>
                   <input
@@ -3945,13 +3830,13 @@ export default function Generate(props?: {
               {/* Day & Time Range Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Day / Span
                   </label>
-                  <select
+                  <CustomSelect
                     value={newEventDay}
                     onChange={(e) => setNewEventDay(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     <option value="All Week">All Week (Mon – Fri)</option>
                     <option value="Mon">Monday</option>
@@ -3959,10 +3844,10 @@ export default function Generate(props?: {
                     <option value="Wed">Wednesday</option>
                     <option value="Thu">Thursday</option>
                     <option value="Fri">Friday</option>
-                  </select>
+                  </CustomSelect>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Time Window
                   </label>
                   <input
@@ -3978,20 +3863,20 @@ export default function Generate(props?: {
               {/* Target Level & Venue Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Target Academic Level
                   </label>
-                  <select
+                  <CustomSelect
                     value={newEventLevel}
                     onChange={(e) => setNewEventLevel(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     <option value="All Levels">All Levels</option>
                     <option value="100 Level">100 Level</option>
                     <option value="200 Level">200 Level</option>
                     <option value="300 Level">300 Level</option>
                     <option value="400 Level">400 Level</option>
-                  </select>
+                  </CustomSelect>
                 </div>
                 <div>
                   <label className="mb-1 block text-[12px] font-semibold text-subink">
@@ -4118,68 +4003,68 @@ export default function Generate(props?: {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Day of Week
                   </label>
-                  <select
+                  <CustomSelect
                     value={newLockDay}
                     onChange={(e) => setNewLockDay(e.target.value as any)}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     {days.map((d) => (
                       <option key={d} value={d}>
                         {d}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Start Time Slot
                   </label>
-                  <select
+                  <CustomSelect
                     value={newLockSlot}
                     onChange={(e) => setNewLockSlot(e.target.value as any)}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     {slots.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Duration
                   </label>
-                  <select
+                  <CustomSelect
                     value={newLockDuration}
                     onChange={(e) => setNewLockDuration(Number(e.target.value))}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     <option value={1}>1 hour</option>
                     <option value={2}>2 hours</option>
-                  </select>
+                  </CustomSelect>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-subink">
+                  <label className="mb-1.5 block text-[12px] font-semibold text-subink">
                     Applies To
                   </label>
-                  <select
+                  <CustomSelect
                     value={newLockLevel}
                     onChange={(e) => setNewLockLevel(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-panel px-3 py-2 text-[12.5px] font-medium text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                   >
                     <option value="All Levels">All Levels</option>
                     <option value="100 Level">100 Level</option>
                     <option value="200 Level">200 Level</option>
                     <option value="300 Level">300 Level</option>
                     <option value="400 Level">400 Level</option>
-                  </select>
+                  </CustomSelect>
                 </div>
               </div>
 

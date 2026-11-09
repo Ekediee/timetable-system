@@ -1,8 +1,20 @@
-"use client";
-
-import { AlertTriangle, Building2, Clock, CheckCircle2, MapPin } from "lucide-react";
-import { Card, CardHead, Pill } from "../components/ui";
-import { type DeptSubmission } from "../lib/data";
+import { useState, useEffect } from "react";
+import {
+  AlertTriangle,
+  Building2,
+  Clock,
+  CheckCircle2,
+  MapPin,
+} from "lucide-react";
+import {
+  Card,
+  CardHead,
+  Pill,
+  Skeleton,
+  CardSkeleton,
+  TableSkeleton,
+} from "../components/ui";
+import { type DeptSubmission, slots, isApprovedByDean } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 
 type Booking = {
@@ -30,27 +42,56 @@ const statusTone: Record<string, string> = {
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
 function detectClashes(submissions: DeptSubmission[]): ClashEntry[] {
-  const active = submissions.filter((s) => s.status !== "returned");
+  // Academic planning only checks clashes on timetables signed off by the Dean
+  const active = submissions.filter(
+    (s) => s.status !== "returned" && isApprovedByDean(s.rawStatus || s.status),
+  );
   const map = new Map<string, Booking[]>();
 
   for (const sub of active) {
-    for (const sess of sub.sessions) {
-      const key = `${sess.venue}::${sess.day}::${sess.slot}`;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push({
-        dept: sub.department,
-        school: sub.school,
-        code: sess.code,
-        lecturer: sess.lecturer,
-        status: sub.status,
-      });
+    for (const sess of sub.sessions || []) {
+      if (
+        sess.isVirtual ||
+        !sess.venue ||
+        sess.venue.toLowerCase().includes("virtual") ||
+        sess.venue.trim().toLowerCase() === "tba"
+      ) {
+        continue;
+      }
+
+      const slotIdx = slots.indexOf(sess.slot as (typeof slots)[number]);
+      const dur = Math.max(1, sess.duration ?? 1);
+
+      // Expand multi-hour sessions across all occupied consecutive slots
+      const occupiedSlots: string[] = [];
+      if (slotIdx !== -1) {
+        for (let i = 0; i < dur; i++) {
+          if (slotIdx + i < slots.length) {
+            occupiedSlots.push(slots[slotIdx + i]);
+          }
+        }
+      } else if (sess.slot) {
+        occupiedSlots.push(sess.slot);
+      }
+
+      for (const slotName of occupiedSlots) {
+        const key = `${sess.venue}::${sess.day}::${slotName}`;
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push({
+          dept: sub.department || "General",
+          school: sub.school || "",
+          code: sess.code,
+          lecturer: sess.lecturer,
+          status: sub.status,
+        });
+      }
     }
   }
 
   const clashes: ClashEntry[] = [];
   for (const [key, bookings] of map.entries()) {
-    const depts = new Set(bookings.map((b) => b.dept));
-    if (depts.size > 1) {
+    // Detect clashes regardless of whether intra-dept or cross-dept
+    if (bookings.length > 1) {
       const [venue, day, slot] = key.split("::");
       clashes.push({ venue, day, slot, bookings });
     }
@@ -61,13 +102,18 @@ function detectClashes(submissions: DeptSubmission[]): ClashEntry[] {
     if (v !== 0) return v;
     const d = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day);
     if (d !== 0) return d;
+    const slotIdxA = slots.indexOf(a.slot as (typeof slots)[number]);
+    const slotIdxB = slots.indexOf(b.slot as (typeof slots)[number]);
+    if (slotIdxA !== -1 && slotIdxB !== -1) return slotIdxA - slotIdxB;
     return a.slot.localeCompare(b.slot);
   });
 }
 
-function deptAbbr(name: string) {
+function deptAbbr(name?: string | null) {
+  if (!name) return "??";
   return name
-    .split(" ")
+    .trim()
+    .split(/\s+/)
     .filter((w) => w.length > 2)
     .slice(0, 2)
     .map((w) => w[0])
@@ -80,6 +126,57 @@ export default function AcademicPlanningClashes(props?: {
 }) {
   const context = useApp();
   const submissions = props?.submissions ?? context.deptSubs;
+  const [loading, setLoading] = useState(!context.submissionsLoaded);
+
+  useEffect(() => {
+    if (!context.submissionsLoaded) {
+      setLoading(true);
+      context
+        .refreshSubmissions()
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [context.submissionsLoaded, context.refreshSubmissions]);
+
+  if (loading && !context.submissionsLoaded) {
+    return (
+      <div className="bp-fade flex flex-col gap-5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <CardSkeleton count={4} />
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-2xl border border-line bg-card p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-line bg-panel/40 p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-5 w-24 rounded-full" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Skeleton className="h-12 w-full rounded-lg" />
+                    <Skeleton className="h-12 w-full rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!submissions) return null;
 
   const clashes = detectClashes(submissions);
@@ -94,7 +191,10 @@ export default function AcademicPlanningClashes(props?: {
     clashes.flatMap((c) => c.bookings.map((b) => b.dept)),
   ).size;
 
-  const activeSubs = submissions.filter((s) => s.status !== "returned").length;
+  const deanApprovedSubs = submissions.filter((s) =>
+    isApprovedByDean(s.rawStatus || s.status),
+  );
+  const activeSubs = deanApprovedSubs.filter((s) => s.status !== "returned").length;
 
   return (
     <div className="bp-fade flex flex-col gap-5">
@@ -107,14 +207,20 @@ export default function AcademicPlanningClashes(props?: {
             color: clashes.length > 0 ? "text-bad" : "text-good",
           },
           { value: byVenue.size, label: "Venues affected", color: "text-ink" },
-          { value: deptsAffected, label: "Departments involved", color: "text-ink" },
+          {
+            value: deptsAffected,
+            label: "Departments involved",
+            color: "text-ink",
+          },
           { value: activeSubs, label: "Active submissions", color: "text-ink" },
         ].map(({ value, label, color }) => (
           <div
             key={label}
             className="rounded-xl border border-line bg-white px-4 py-3.5"
           >
-            <p className={`text-[26px] font-bold leading-none tracking-[-0.03em] ${color}`}>
+            <p
+              className={`text-[26px] font-bold leading-none tracking-[-0.03em] ${color}`}
+            >
               {value}
             </p>
             <p className="mt-2 text-[12.5px] font-medium text-muted">{label}</p>
@@ -129,9 +235,10 @@ export default function AcademicPlanningClashes(props?: {
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-good-soft">
               <CheckCircle2 size={28} className="text-good" />
             </div>
-            <p className="text-[15px] font-bold text-ink">No cross-department clashes</p>
+            <p className="text-[15px] font-bold text-ink">No venue clashes</p>
             <p className="max-w-[380px] text-center text-[13px] text-muted">
-              All active submissions use unique venue assignments across departments.
+              All active submissions use unique venue assignments without
+              double-bookings.
             </p>
           </div>
         </Card>
@@ -142,7 +249,7 @@ export default function AcademicPlanningClashes(props?: {
         <Card>
           <CardHead
             icon={<AlertTriangle size={16} className="text-bad" />}
-            title="Cross-department venue conflicts"
+            title="Venue conflicts & double-bookings"
             sub={`${clashes.length} time slot${clashes.length !== 1 ? "s" : ""} with double-booked venues`}
           />
 
@@ -171,14 +278,19 @@ export default function AcademicPlanningClashes(props?: {
                           {clash.day}, {clash.slot}
                         </p>
                         <span className="ml-auto rounded-full bg-bad-soft px-2 py-0.5 text-[10.5px] font-semibold text-bad">
-                          {clash.bookings.length} departments
+                          {new Set(clash.bookings.map((b) => b.dept)).size > 1
+                            ? `${clash.bookings.length} departments`
+                            : `${clash.bookings.length} classes`}
                         </span>
                       </div>
 
                       {/* Bookings */}
                       <div className="divide-y divide-line-soft bg-white">
                         {clash.bookings.map((b, j) => (
-                          <div key={j} className="flex items-center gap-3 px-4 py-3">
+                          <div
+                            key={j}
+                            className="flex items-center gap-3 px-4 py-3"
+                          >
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bad-soft text-[10.5px] font-bold text-bad">
                               {deptAbbr(b.dept)}
                             </div>
@@ -230,9 +342,14 @@ export default function AcademicPlanningClashes(props?: {
               desc: "Return the affected submission from the Review Queue with a note so the Dept T.O can reassign to a non-clashing venue.",
             },
           ].map(({ label, desc }) => (
-            <div key={label} className="rounded-xl border border-line bg-white px-4 py-3.5">
+            <div
+              key={label}
+              className="rounded-xl border border-line bg-white px-4 py-3.5"
+            >
               <p className="text-[13px] font-semibold text-ink">{label}</p>
-              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{desc}</p>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">
+                {desc}
+              </p>
             </div>
           ))}
         </div>

@@ -1,47 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import Sidebar, { type View } from "./components/Sidebar";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import Sidebar, { type View, navByRole } from "./components/Sidebar";
 import TopBar from "./components/TopBar";
-import LoginScreen from "./components/LoginScreen";
-import Dashboard from "./views/Dashboard";
-import Allocations from "./views/Allocations";
-import Venues from "./views/Venues";
-import Constraints from "./views/Constraints";
-import Generate from "./views/Generate";
-import History from "./views/History";
-import HODReview from "./views/HODReview";
-import DeanReview from "./views/DeanReview";
-import AcademicPlanning from "./views/AcademicPlanning";
-import AcademicPlanningPublished from "./views/AcademicPlanningPublished";
-import AcademicPlanningAudit from "./views/AcademicPlanningAudit";
-import AcademicPlanningClashes from "./views/AcademicPlanningClashes";
-import AcademicPlanningAnalytics from "./views/AcademicPlanningAnalytics";
-import AcademicPlanningConstraints from "./views/AcademicPlanningConstraints";
+import { ToastContainer } from "./components/Toast";
 import { useApp } from "./lib/AppContext";
 import {
-  sessions,
-  constraints,
-  timeline,
   department,
-  accounts,
-  deptSubmissions,
-  auditLog,
-  type Status,
-  type Session,
-  type Constraint,
-  type TimelineStep,
   type UserAccount,
   type UserRole,
-  type DeptSubmission,
-  type AuditEntry,
 } from "./lib/data";
 
 const defaultViewByRole: Record<UserRole, View> = {
-  deptTO: "generate",
+  deptTO: "dashboard",
   hod: "hodReview",
   dean: "deanReview",
   acadPlanningTO: "acadPlanning",
+  superAdmin: "acadPlanning",
 };
 
 const topBarTitleByView: Record<View, string> = {
@@ -61,58 +37,167 @@ const topBarTitleByView: Record<View, string> = {
   acadAnalytics: "Analytics",
 };
 
-export default function App() {
+const viewByPath: Record<string, View> = {
+  "/dashboard": "dashboard",
+  "/allocations": "allocations",
+  "/venues": "venues",
+  "/constraints": "constraints",
+  "/generate": "generate",
+  "/history": "history",
+  "/hod-review": "hodReview",
+  "/dean-review": "deanReview",
+  "/academic-planning": "acadPlanning",
+  "/academic-planning/published": "acadPublished",
+  "/academic-planning/audit": "acadAudit",
+  "/academic-planning/clashes": "acadClashes",
+  "/academic-planning/analytics": "acadAnalytics",
+  "/academic-planning/constraints": "acadConstraints",
+};
+
+const pathByView: Record<View, string> = {
+  dashboard: "/dashboard",
+  allocations: "/allocations",
+  venues: "/venues",
+  constraints: "/constraints",
+  generate: "/generate",
+  history: "/history",
+  hodReview: "/hod-review",
+  deanReview: "/dean-review",
+  acadPlanning: "/academic-planning",
+  acadPublished: "/academic-planning/published",
+  acadAudit: "/academic-planning/audit",
+  acadClashes: "/academic-planning/clashes",
+  acadAnalytics: "/academic-planning/analytics",
+  acadConstraints: "/academic-planning/constraints",
+};
+
+export default function App({ children }: { children?: ReactNode }) {
   const context = useApp();
   const currentUser = context.currentUser;
-  const [view, setView] = useState<View>("generate");
+  const router = useRouter();
+  const pathname = usePathname();
+  const normalizedPath =
+    pathname?.endsWith("/") && pathname.length > 1
+      ? pathname.slice(0, -1)
+      : pathname;
+  const routeView = viewByPath[normalizedPath] || null;
+
+  const [view, setView] = useState<View>(() => {
+    if (routeView) {
+      if (context.currentUser) {
+        const allowedViews =
+          navByRole[context.currentUser.role]?.map((item) => item.id) || [];
+        if (allowedViews.includes(routeView)) {
+          return routeView;
+        }
+      } else {
+        return routeView;
+      }
+    }
+    if (context.currentUser) {
+      return defaultViewByRole[context.currentUser.role] || "dashboard";
+    }
+    return "dashboard";
+  });
+
+  const handleSetView = useCallback(
+    (nextView: View) => {
+      setView(nextView);
+      const targetPath = pathByView[nextView];
+      if (targetPath && targetPath !== normalizedPath) {
+        router.push(targetPath);
+      }
+    },
+    [normalizedPath, router],
+  );
+
+  // Sync view when route changes via browser navigation or Next.js Link
+  useEffect(() => {
+    if (routeView) {
+      if (currentUser) {
+        const allowedViews =
+          navByRole[currentUser.role]?.map((item) => item.id) || [];
+        if (allowedViews.includes(routeView)) {
+          setView(routeView);
+        }
+      } else {
+        setView(routeView);
+      }
+    }
+  }, [routeView, currentUser]);
+
+  // Keep view strictly in sync with user role
+  useEffect(() => {
+    if (currentUser) {
+      const allowedViews =
+        navByRole[currentUser.role]?.map((item) => item.id) || [];
+      if (!allowedViews.includes(view)) {
+        handleSetView(defaultViewByRole[currentUser.role]);
+      }
+    }
+  }, [currentUser, view, handleSetView]);
+
   const sidebarOpen = context.sidebarOpen;
   const setSidebarOpen = context.setSidebarOpen;
   const status = context.status;
-  const setStatus = context.setStatus;
-  const constraintsComplete = context.constraintsComplete;
-  const setConstraintsComplete = context.setConstraintsComplete;
-  const localSessions = context.localSessions;
-  const setLocalSessions = context.setLocalSessions;
-  const localConstraints = context.localConstraints;
-  const setLocalConstraints = context.setLocalConstraints;
-  const localTimeline = context.localTimeline;
-  const setLocalTimeline = context.setLocalTimeline;
-  const deptSubs = context.deptSubs;
-  const setDeptSubs = context.setDeptSubs;
-  const auditEntries = context.auditEntries;
-  const addAuditEntry = context.addAuditEntry;
 
-  function handleLogin(account: UserAccount) {
-    context.handleLogin(account);
-    setView(defaultViewByRole[account.role]);
+  async function handleLogout() {
+    await context.handleLogout();
   }
 
-  function handleLogout() {
-    context.handleLogout();
-    setView("dashboard");
+  // Redirect to login if unauthenticated once auth check has finished
+  useEffect(() => {
+    if (!context.isAuthLoading && !currentUser && pathname !== "/login") {
+      router.replace("/login");
+    }
+  }, [context.isAuthLoading, currentUser, pathname, router]);
+
+  // Standalone login route renders without the app sidebar and top bar
+  if (pathname === "/login") {
+    return (
+      <>
+        {children}
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // Loading state while restoring session on initial app load
+  if (context.isAuthLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-canvas">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+          <p className="text-xs font-semibold text-muted">Loading BU Pulse session…</p>
+        </div>
+      </div>
+    );
   }
 
   if (!currentUser) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return null;
   }
 
-  const showStatus = currentUser.role === "deptTO" ? status : undefined;
+  const showStatus =
+    currentUser.role === "deptTO" && status !== "Draft generated"
+      ? status
+      : undefined;
   const userDept = currentUser.department || department.name;
   const userSchool = currentUser.school || department.school;
   const currentSubtitle =
     currentUser.role === "deptTO"
       ? `${userDept} — ${department.session}, ${department.semester}`
       : currentUser.role === "hod"
-      ? `Head of Department · ${userDept}`
-      : currentUser.role === "dean"
-      ? userSchool
-      : "Babcock University · First Semester 2025/26";
+        ? `Head of Department · ${userDept}`
+        : currentUser.role === "dean"
+          ? userSchool
+          : `Babcock University · ${department.semester} ${department.session}`;
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-canvas">
       <Sidebar
         view={view}
-        setView={setView}
+        setView={handleSetView}
         currentUser={currentUser}
         onLogout={handleLogout}
         isOpen={sidebarOpen}
@@ -120,108 +205,17 @@ export default function App() {
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
-          title={topBarTitleByView[view]}
+          title={topBarTitleByView[view] || "Timetable Management"}
           subtitle={currentSubtitle}
           status={showStatus}
           onMenuClick={() => setSidebarOpen(true)}
-          setView={setView}
+          setView={handleSetView}
         />
         <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
-          <div className="mx-auto max-w-[1200px]">
-            {/* Dept T.O views */}
-            {view === "dashboard" && (
-              <Dashboard
-                setView={setView}
-                status={status}
-                localSessions={localSessions}
-                localConstraints={localConstraints}
-                constraintsComplete={constraintsComplete}
-                localTimeline={localTimeline}
-              />
-            )}
-            {view === "allocations" && <Allocations />}
-            {view === "venues" && <Venues />}
-            {view === "constraints" && (
-              <Constraints
-                setView={setView}
-                localConstraints={localConstraints}
-                setLocalConstraints={setLocalConstraints}
-                constraintsComplete={constraintsComplete}
-                setConstraintsComplete={setConstraintsComplete}
-              />
-            )}
-            {view === "generate" && (
-              <Generate
-                localSessions={localSessions}
-                setLocalSessions={setLocalSessions}
-                constraintsComplete={constraintsComplete}
-                status={status}
-                setStatus={setStatus}
-                setLocalTimeline={setLocalTimeline}
-                setView={setView}
-              />
-            )}
-            {view === "history" && (
-              <History
-                status={status}
-                localTimeline={localTimeline}
-                setView={setView}
-              />
-            )}
-
-            {/* HOD view */}
-            {view === "hodReview" && (
-              <HODReview
-                status={status}
-                setStatus={setStatus}
-                localSessions={localSessions}
-                localTimeline={localTimeline}
-                setLocalTimeline={setLocalTimeline}
-              />
-            )}
-
-            {/* Dean view */}
-            {view === "deanReview" && (
-              <DeanReview
-                status={status}
-                setStatus={setStatus}
-                localSessions={localSessions}
-                localTimeline={localTimeline}
-                setLocalTimeline={setLocalTimeline}
-              />
-            )}
-
-            {/* Academic Planning T.O views */}
-            {view === "acadPlanning" && (
-              <AcademicPlanning
-                submissions={deptSubs}
-                setSubmissions={setDeptSubs}
-                onAuditEntry={addAuditEntry}
-              />
-            )}
-            {view === "acadPublished" && (
-              <AcademicPlanningPublished
-                submissions={deptSubs}
-                setSubmissions={setDeptSubs}
-                onAuditEntry={addAuditEntry}
-              />
-            )}
-            {view === "acadClashes" && (
-              <AcademicPlanningClashes submissions={deptSubs} />
-            )}
-            {view === "acadAnalytics" && (
-              <AcademicPlanningAnalytics submissions={deptSubs} />
-            )}
-            {view === "acadConstraints" && <AcademicPlanningConstraints />}
-            {view === "acadAudit" && (
-              <AcademicPlanningAudit
-                submissions={deptSubs}
-                auditEntries={auditEntries}
-              />
-            )}
-          </div>
+          <div className="mx-auto max-w-[1200px]">{children}</div>
         </main>
       </div>
+      <ToastContainer />
     </div>
   );
 }

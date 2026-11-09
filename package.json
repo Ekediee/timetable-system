@@ -5,12 +5,12 @@
   "scripts": {
     "dev": "next dev -p ${PORT:-8443} --hostname 0.0.0.0",
     "build": "next build",
-    "start": "next start -p 8443",
-    "preview": "next start -p 8443"
+    "start": "next start -p ${PORT:-3000}",
+    "preview": "next start -p ${PORT:-3000}"
   },
   "dependencies": {
     "lucide-react": "^0.469.0",
-    "next": "^16.3.8",
+    "next": "^16.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

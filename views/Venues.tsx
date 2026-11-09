@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Building2,
   Clock,
@@ -10,17 +10,55 @@ import {
   Info,
   Search,
 } from "lucide-react";
-import { Card, CardHead, Pill } from "../components/ui";
-import { venues as defaultVenues, days, slots, type Session, type Venue } from "../lib/data";
+import { Card, CardHead, Pill, DataUnavailableState, TimetableGridSkeleton, Button } from "../components/ui";
+import {
+  days,
+  slots,
+  type Session,
+  type Venue,
+  isVenueAccessibleToDepartment,
+} from "../lib/data";
 import { useApp } from "../lib/AppContext";
 
 export default function Venues() {
   const context = useApp();
-  const { localSessions, localVenues, externalBookings, timeLockConfig } = context;
-  const venueList = localVenues?.length ? localVenues : defaultVenues;
-  const [selectedVenue, setSelectedVenue] = useState<string>(
-    venueList[0]?.name ?? "BUC_LAB1",
-  );
+  const { localSessions, localVenues, externalBookings, timeLockConfig, currentUser, currentProgram } = context;
+
+  const currentDept = currentUser?.department || currentProgram || "";
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadVenues = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await context.refreshVenues(currentUser?.department || undefined);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load venues from server.");
+    } finally {
+      setLoading(false);
+    }
+  }, [context.refreshVenues, currentUser?.department]);
+
+  useEffect(() => {
+    if (!localVenues || localVenues.length === 0) {
+      loadVenues();
+    }
+  }, [localVenues, loadVenues]);
+
+  // Filter venues: for a Departmental T.O or HOD, display venues assigned to their department or shared within their parent school
+  const venueList = useMemo(() => {
+    const rawList = localVenues || [];
+    if (currentUser?.role === "deptTO" || currentUser?.role === "hod") {
+      if (currentDept) {
+        return rawList.filter((v: any) => isVenueAccessibleToDepartment(v, currentDept));
+      }
+    }
+    return rawList;
+  }, [localVenues, currentUser?.role, currentDept]);
+
+  const [selectedVenue, setSelectedVenue] = useState<string>("");
   const [search, setSearch] = useState("");
 
   const filteredVenues = useMemo(() => {
@@ -33,6 +71,50 @@ export default function Venues() {
         (v.floor && v.floor.toLowerCase().includes(q)),
     );
   }, [venueList, search]);
+
+  useEffect(() => {
+    if (venueList.length > 0 && (!selectedVenue || !venueList.some((v) => v.name === selectedVenue))) {
+      setSelectedVenue(venueList[0].name);
+    }
+  }, [venueList, selectedVenue]);
+
+  if (loading || (context.isLoadingBackend && (!localVenues || localVenues.length === 0))) {
+    return <TimetableGridSkeleton daysCount={5} slotsCount={8} />;
+  }
+
+  if (error) {
+    return (
+      <DataUnavailableState
+        tone="bad"
+        title="Unable to load venues & timeslots"
+        description={error}
+        action={
+          <Button variant="outline" onClick={loadVenues} className="cursor-pointer">
+            Retry Connection
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (venueList.length === 0) {
+    return (
+      <DataUnavailableState
+        tone="neutral"
+        title="No accessible venues found"
+        description={
+          currentUser?.department
+            ? `No venues are currently allocated to or shared with ${currentUser.department}.`
+            : "No venue allocations found in the institutional database."
+        }
+        action={
+          <Button variant="outline" onClick={loadVenues} className="cursor-pointer">
+            Refresh
+          </Button>
+        }
+      />
+    );
+  }
 
   const currentVenue =
     venueList.find((v) => v.name === selectedVenue) ??
@@ -210,9 +292,11 @@ export default function Venues() {
 
             {/* Read-Only Timetable Grid */}
             <div className="overflow-x-auto">
-              <div className="min-w-[560px]">
-                <div className="grid grid-cols-[64px_repeat(5,1fr)] gap-2">
-                  <div />
+              <div className="min-w-[720px]">
+                <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-3">
+                  <div className="sticky left-0 z-20 flex items-center justify-center bg-card pb-2 text-[11px] font-bold uppercase tracking-wider text-muted/60 border-r border-line/60">
+                    Time
+                  </div>
                   {days.map((d) => (
                     <div
                       key={d}
@@ -223,7 +307,7 @@ export default function Venues() {
                   ))}
                   {slots.map((s) => (
                     <div key={s} className="contents">
-                      <div className="flex items-center text-[12px] font-medium text-muted">
+                      <div className="sticky left-0 z-10 flex items-center justify-center bg-card text-[12px] font-semibold text-muted border-r border-line/60">
                         {s}
                       </div>
                       {days.map((d) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -14,17 +14,22 @@ import {
   MessageSquare,
   ShieldCheck,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
-import { Card, CardHead, Pill, Button } from "../components/ui";
+import { Card, CardHead, Pill, Button, DataUnavailableState, HODReviewSkeleton, ConfirmationModal } from "../components/ui";
 import {
   department,
+  accounts,
+  getParentSchool,
   type Status,
   type Session,
   type TimelineStep,
 } from "../lib/data";
 import { useApp } from "../lib/AppContext";
-
-import { accounts } from "../lib/data";
+import { workflowApi, timetableApi } from "../lib/api";
+import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
+import ReviewRequirements from "../components/ReviewRequirements";
+import { toast } from "../components/Toast";
 
 export default function HODReview(props?: {
   status?: Status;
@@ -34,32 +39,79 @@ export default function HODReview(props?: {
   setLocalTimeline?: (t: TimelineStep[]) => void;
 }) {
   const context = useApp();
-  const userDept = context.currentUser?.department;
-  const availableDepts = Array.from(
-    new Set([
-      ...(userDept ? [userDept] : []),
-      "Computer Science",
-      "Software Engineering",
-      "Accounting",
-      "Information Resource Management",
-      "Business Administration and Marketing",
-      "Finance",
-    ])
-  );
+  const selectedDept = context.currentUser?.department || "";
+  const hodDashboard =
+    context.dashboardData?.role === "hod" ? context.dashboardData : null;
 
-  const [selectedDept, setSelectedDept] = useState<string>(
-    userDept || "Computer Science"
-  );
+  const [loading, setLoading] = useState(!hodDashboard);
   const [returnNote, setReturnNote] = useState("");
   const [mode, setMode] = useState<"idle" | "returning">("idle");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"approve" | "return" | null>(null);
+
+  const [liveSessions, setLiveSessions] = useState<Session[]>(
+    hodDashboard?.submission?.sessions || [],
+  );
+  const [liveStatus, setLiveStatus] = useState<Status | null>(
+    hodDashboard?.submission?.status || null,
+  );
+  const [selectedTimeline, setSelectedTimeline] = useState<TimelineStep[]>(
+    hodDashboard?.timeline || [],
+  );
+
+  useEffect(() => {
+    if (!selectedDept) {
+      setLoading(false);
+      return;
+    }
+
+    // Unified GET /api/v1/dashboard provides submission & timeline in 1 call.
+    // Skip redundant network calls when dashboard payload is already hydrated.
+    if (
+      hodDashboard &&
+      hodDashboard.department?.toLowerCase() === selectedDept.toLowerCase() &&
+      hodDashboard.submission
+    ) {
+      setLiveSessions(hodDashboard.submission.sessions || []);
+      setLiveStatus(hodDashboard.submission.status || null);
+      setSelectedTimeline(hodDashboard.timeline || []);
+      setLoading(false);
+      return;
+    }
+
+    if (!hodDashboard) {
+      setLoading(true);
+    }
+    Promise.all([
+      timetableApi.getCurrent(selectedDept, CURRENT_SEMESTER, CURRENT_SESSION).catch(() => null),
+      workflowApi.getTimeline(selectedDept).catch(() => null),
+    ])
+      .then(([tRes, tlRes]) => {
+        if (tRes && Array.isArray(tRes.sessions)) {
+          setLiveSessions(tRes.sessions);
+          if (tRes.status) setLiveStatus(tRes.status as Status);
+        }
+        if (tlRes && Array.isArray(tlRes.timeline)) {
+          setSelectedTimeline(tlRes.timeline);
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [selectedDept, hodDashboard]);
 
   // Retrieve data specifically for selected department
   const isCurrentDept = selectedDept === context.currentProgram;
   const deptEntry = context.getDepartmentTimetable(selectedDept);
 
-  const deptStatus: Status = deptEntry?.status ?? (isCurrentDept ? context.status : "Draft generated");
-  const deptSessions: Session[] = deptEntry?.sessions ?? (isCurrentDept ? context.localSessions : []);
-  const deptTimeline: TimelineStep[] = deptEntry?.timeline ?? context.localTimeline;
+  const deptStatus: Status =
+    liveStatus ?? (deptEntry?.status ?? (isCurrentDept ? context.status : "Draft generated"));
+  const deptSessions: Session[] =
+    liveSessions.length > 0
+      ? liveSessions
+      : (deptEntry?.sessions ?? (isCurrentDept ? context.localSessions : []));
+  const deptTimeline: TimelineStep[] =
+    selectedTimeline.length > 0 ? selectedTimeline : (deptEntry?.timeline ?? context.localTimeline);
 
   const conflicts = deptSessions.filter((s) => s.conflict);
   const hasSubmission = deptStatus === "Submitted to HOD";
@@ -72,70 +124,96 @@ export default function HODReview(props?: {
   const matchingTO = accounts.find(
     (a) => a.role === "deptTO" && a.department?.toLowerCase() === selectedDept.toLowerCase()
   );
-  const deptTO = matchingTO?.name || (selectedDept === "Software Engineering" ? "Flourence Adeyemi" : "Yakubu Onome");
+  const deptTO =
+    hodDashboard?.deptTO?.name ||
+    matchingTO?.name ||
+    "Departmental Technical Officer";
 
-  function handleApprove() {
-    context.updateTimetableStatus("Submitted to Dean", undefined, selectedDept);
+  const deptSchool = getParentSchool(selectedDept);
+  const matchingDean = accounts.find(
+    (a) => a.role === "dean" && (a.school === deptSchool || a.school?.includes(deptSchool))
+  );
+  const deanName = matchingDean?.name || "the School Dean";
+
+  async function handleApprove() {
+    setIsProcessing(true);
+    try {
+      await workflowApi.hodApprove(selectedDept, CURRENT_SEMESTER, CURRENT_SESSION);
+      await context.updateTimetableStatus("Submitted to Dean", undefined, selectedDept);
+      setLiveStatus("Submitted to Dean");
+      setConfirmAction(null);
+      const tlRes = await workflowApi.getTimeline(selectedDept);
+      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(tlRes.timeline);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed approving submission as HOD.");
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
-  function handleReturn() {
-    context.updateTimetableStatus("Draft generated", returnNote, selectedDept);
-    setMode("idle");
-    setReturnNote("");
+  async function handleReturn() {
+    if (!returnNote.trim()) {
+      toast.error("Please provide a note explaining why this timetable is being returned.");
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await workflowApi.hodReject(selectedDept, returnNote, CURRENT_SEMESTER, CURRENT_SESSION);
+      await context.updateTimetableStatus("Draft generated", returnNote, selectedDept);
+      setLiveStatus("Draft generated");
+      setMode("idle");
+      setReturnNote("");
+      setConfirmAction(null);
+      const tlRes = await workflowApi.getTimeline(selectedDept);
+      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(tlRes.timeline);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed returning submission as HOD.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  if (!selectedDept) {
+    return (
+      <DataUnavailableState
+        tone="warn"
+        title="No Department Assigned"
+        description="Your Head of Department account is not currently assigned to an academic department. HODs can only review timetable submissions for their designated department."
+      />
+    );
+  }
+
+  if (loading) {
+    return <HODReviewSkeleton />;
   }
 
   return (
     <div className="bp-fade flex flex-col gap-5">
-      {/* Department Selector Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-card p-3 shadow-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.06em] text-muted px-2">
-            Department:
-          </span>
-          <div className="flex gap-1.5 flex-wrap">
-            {availableDepts.map((dept) => {
-              const entry = context.getDepartmentTimetable(dept);
-              const statusVal = entry?.status ?? (dept === context.currentProgram ? context.status : "Draft generated");
-              const isSelected = selectedDept === dept;
-              const isSub = statusVal === "Submitted to HOD";
-              const isApp = statusVal === "Submitted to Dean" || statusVal === "Submitted to Acad Pl. T.O" || statusVal === "Published";
-
-              return (
-                <button
-                  key={dept}
-                  onClick={() => {
-                    setSelectedDept(dept);
-                    setMode("idle");
-                  }}
-                  className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-semibold transition ${
-                    isSelected
-                      ? "bg-brand text-white shadow-xs"
-                      : "bg-panel text-ink hover:bg-line-soft"
-                  }`}
-                >
-                  <span>{dept}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold ${
-                      isSelected
-                        ? "bg-white/20 text-white"
-                        : isSub
-                        ? "bg-warn-soft text-warn"
-                        : isApp
-                        ? "bg-good-soft text-good"
-                        : "bg-line text-muted"
-                    }`}
-                  >
-                    {isSub ? "Ready" : isApp ? "Approved" : "Draft"}
-                  </span>
-                </button>
-              );
-            })}
+      {/* Department Scoped Header Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-card p-4 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-xs">
+            <ShieldCheck size={22} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-[17px] font-bold text-ink">
+                Department of {selectedDept}
+              </h2>
+              <Pill tone={hasSubmission ? "warn" : isApproved ? "good" : "neutral"}>
+                {deptStatus}
+              </Pill>
+            </div>
+            <p className="mt-0.5 text-[12.5px] text-muted">
+              Head of Department Review · {deptSchool} · {department.session}, {department.semester}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 pr-2 text-[12px] text-muted">
-          <ShieldCheck size={14} className="text-brand" />
-          <span>HOD Review Dashboard · School of Computing & Engineering</span>
+        <div className="flex items-center gap-2 pr-1 text-[12px] text-muted">
+          <span>
+            Assigned T.O: <strong className="text-ink font-medium">{deptTO}</strong>
+          </span>
         </div>
       </div>
 
@@ -152,7 +230,7 @@ export default function HODReview(props?: {
                 </p>
                 <p className="mt-1 text-[13.5px] leading-relaxed text-subink">
                   The {selectedDept} timetable has been signed off and forwarded to{" "}
-                  <strong>Prof. E. Bassey</strong> for school-level approval.
+                  <strong>{deanName}</strong> for school-level approval.
                 </p>
                 <div className="mt-3 flex items-center gap-2">
                   <Pill tone="good">
@@ -238,7 +316,7 @@ export default function HODReview(props?: {
               <CardHead
                 icon={<Send size={16} />}
                 title={`Incoming submission: ${selectedDept}`}
-                sub={`${department.level} · First Semester 2026/27`}
+                sub={`${department.level} · Academic period unavailable`}
                 action={
                   <Pill tone="warn">
                     <Clock size={11} /> Awaiting HOD review
@@ -278,6 +356,8 @@ export default function HODReview(props?: {
                 ))}
               </div>
             </Card>
+
+            <ReviewRequirements department={selectedDept} />
 
             {/* Conflicts banner */}
             {conflicts.length > 0 ? (
@@ -401,29 +481,31 @@ export default function HODReview(props?: {
                       className="w-full resize-none rounded-xl border border-line bg-panel px-3.5 py-2.5 text-[13px] text-ink placeholder:text-muted focus:border-brand focus:outline-none"
                     />
                     <Button
-                      className="w-full bg-bad hover:bg-red-700"
-                      onClick={handleReturn}
-                      disabled={!returnNote.trim()}
+                      className="w-full bg-bad hover:bg-red-700 cursor-pointer"
+                      onClick={() => setConfirmAction("return")}
+                      disabled={!returnNote.trim() || isProcessing}
                     >
-                      <RotateCcw size={13} /> Confirm Return to {deptTO}
+                      {isProcessing ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />} Confirm Return to {deptTO}
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full"
+                      className="w-full cursor-pointer"
                       onClick={() => setMode("idle")}
+                      disabled={isProcessing}
                     >
                       Cancel
                     </Button>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2.5">
-                    <Button className="w-full" onClick={handleApprove}>
-                      <CheckCircle2 size={15} /> Approve & forward to Dean
+                    <Button className="w-full cursor-pointer" onClick={() => setConfirmAction("approve")} disabled={isProcessing}>
+                      {isProcessing ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Approve & forward to Dean
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full"
+                      className="w-full cursor-pointer"
                       onClick={() => setMode("returning")}
+                      disabled={isProcessing}
                     >
                       <RotateCcw size={13} /> Return to Dept T.O
                     </Button>
@@ -436,7 +518,7 @@ export default function HODReview(props?: {
               <CardHead title="Approval routing" sub="Governance lifecycle" />
               <div className="space-y-2 px-5 pb-5 text-[13px]">
                 {[
-                  ["Approve", "Forwarded to Prof. E. Bassey (Dean) for school sign-off", "good"],
+                  ["Approve", `Forwarded to ${deanName} (Dean) for school sign-off`, "good"],
                   ["Return", `Draft returned to ${deptTO} for adjustments`, "bad"],
                 ].map(([a, b, tone]) => (
                   <div key={a} className="rounded-xl border border-line bg-panel px-4 py-3">
@@ -449,6 +531,36 @@ export default function HODReview(props?: {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modals for HOD Decisions */}
+      <ConfirmationModal
+        isOpen={confirmAction === "approve"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleApprove}
+        isLoading={isProcessing}
+        title={`Approve ${selectedDept} Timetable`}
+        description={`Are you sure you want to approve this timetable? As Head of Department, your sign-off forwards the schedule to ${deanName} (Dean) for school approval.`}
+        confirmText="Approve & Forward"
+        variant="primary"
+      />
+
+      <ConfirmationModal
+        isOpen={confirmAction === "return"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleReturn}
+        isLoading={isProcessing}
+        title={`Return ${selectedDept} Timetable`}
+        description={`Are you sure you want to return this draft to ${deptTO}? The Departmental T.O will be notified to adjust the schedule based on your feedback.`}
+        confirmText="Confirm Return"
+        variant="destructive"
+      >
+        {returnNote.trim() && (
+          <div className="rounded-xl border border-line bg-panel p-3 text-[13px] text-subink">
+            <p className="font-semibold text-muted text-[11px] uppercase tracking-[0.06em] mb-1">Return note</p>
+            <p className="italic">{returnNote}</p>
+          </div>
+        )}
+      </ConfirmationModal>
     </div>
   );
 }

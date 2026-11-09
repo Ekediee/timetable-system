@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/lib/AppContext";
+import App from "@/App";
 
 export const metadata: Metadata = {
   title: "BU Pulse",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppProvider>{children}</AppProvider>
+        <AppProvider>
+          <App>{children}</App>
+        </AppProvider>
       </body>
     </html>
   );

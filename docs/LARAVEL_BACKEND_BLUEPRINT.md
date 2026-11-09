@@ -274,7 +274,7 @@ When running `php artisan db:seed`, the backend will populate:
 1. **Initial Accounts**:
    * `y.onome@bupulse.edu` — Departmental T.O (Computer Science)
    * `a.olumide@bupulse.edu` — Head of Department (HOD)
-   * `e.bassey@bupulse.edu` — Dean (School of Computing & Engineering)
+   * `e.bassey@bupulse.edu` — Dean (School of Computing)
    * `m.danladi@bupulse.edu` — Academic Planning T.O
 2. **Initial Constraint Categories**:
    * `study_leave` — Study Leave (Violet tone, requires substitute flag)

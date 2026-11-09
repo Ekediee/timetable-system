@@ -1,35 +1,76 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { BarChart2, CalendarDays, Building2, TrendingUp } from "lucide-react";
-import { Card, CardHead, Pill } from "../components/ui";
-import { type DeptSubmission } from "../lib/data";
+import { Card, CardHead, Pill, Skeleton, AnalyticsSkeleton, DataUnavailableState } from "../components/ui";
+import { type DeptSubmission, slots as SLOTS, days as DAYS, department, isApprovedByDean } from "../lib/data";
 import { useApp } from "../lib/AppContext";
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
-const SLOTS = ["08:00", "10:00", "12:00", "14:00", "16:00"] as const;
 
 export default function AcademicPlanningAnalytics(props?: {
   submissions?: DeptSubmission[];
 }) {
   const context = useApp();
   const submissions = props?.submissions ?? context.deptSubs;
+  const [loading, setLoading] = useState(!context.submissionsLoaded);
+
+  useEffect(() => {
+    if (!context.submissionsLoaded) {
+      setLoading(true);
+      context
+        .refreshSubmissions()
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [context.submissionsLoaded, context.refreshSubmissions]);
+
+  if (loading && !context.submissionsLoaded) {
+    return (
+      <div className="bp-fade flex flex-col gap-5">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <AnalyticsSkeleton />
+      </div>
+    );
+  }
+
   if (!submissions) return null;
 
+  // Academic Planning only calculates analytics on timetables signed off by the Dean
+  const deanApprovedSubs = submissions.filter((s) =>
+    isApprovedByDean(s.rawStatus || s.status),
+  );
+
+  if (deanApprovedSubs.length === 0 && !context.isLoadingBackend && !loading) {
+    return (
+      <DataUnavailableState
+        tone="neutral"
+        title="No Dean-approved timetables yet"
+        description="Analytics and scheduling metrics are computed exclusively on department timetables approved and submitted by School Deans. As Deans sign off on department schedules, analytics will appear here."
+      />
+    );
+  }
+
   const pipeline = {
-    published: submissions.filter((s) => s.status === "published").length,
-    approved: submissions.filter((s) => s.status === "approved").length,
-    pending: submissions.filter((s) => s.status === "pending").length,
-    returned: submissions.filter((s) => s.status === "returned").length,
-    total: submissions.length,
+    published: deanApprovedSubs.filter((s) => s.status === "published").length,
+    approved: deanApprovedSubs.filter((s) => s.status === "approved").length,
+    pending: deanApprovedSubs.filter((s) => s.status === "pending").length,
+    returned: deanApprovedSubs.filter((s) => s.status === "returned").length,
+    total: deanApprovedSubs.length,
   };
 
-  const activeSubs = submissions.filter((s) => s.status !== "returned");
-  const allSessions = activeSubs.flatMap((sub) => sub.sessions);
+  const activeSubs = deanApprovedSubs.filter((s) => s.status !== "returned");
+  const allSessions = activeSubs.flatMap((sub) => sub.sessions || []);
 
   // Venue utilization
   const venueMap = new Map<string, number>();
   for (const sess of allSessions) {
-    venueMap.set(sess.venue, (venueMap.get(sess.venue) ?? 0) + 1);
+    if (sess.venue) {
+      venueMap.set(sess.venue, (venueMap.get(sess.venue) ?? 0) + 1);
+    }
   }
   const topVenues = Array.from(venueMap.entries())
     .sort((a, b) => b[1] - a[1])
@@ -43,16 +84,16 @@ export default function AcademicPlanningAnalytics(props?: {
     for (const slot of SLOTS) heat[day][slot] = 0;
   }
   for (const sess of allSessions) {
-    if (heat[sess.day]?.[sess.slot] !== undefined) {
+    if (heat[sess.day] && typeof heat[sess.day][sess.slot] === "number") {
       heat[sess.day][sess.slot]++;
     }
   }
   const maxHeat = Math.max(
-    ...DAYS.flatMap((d) => SLOTS.map((s) => heat[d][s])),
+    ...DAYS.flatMap((d) => SLOTS.map((s) => heat[d][s] || 0)),
     1,
   );
 
-  const schools = Array.from(new Set(submissions.map((s) => s.school)));
+  const schools = Array.from(new Set(deanApprovedSubs.map((s) => s.school).filter(Boolean)));
 
   return (
     <div className="bp-fade grid grid-cols-1 gap-5 xl:grid-cols-3">
@@ -64,7 +105,7 @@ export default function AcademicPlanningAnalytics(props?: {
           <CardHead
             icon={<TrendingUp size={16} />}
             title="Submission pipeline"
-            sub="First Semester 2025/26 — all departments"
+            sub={`${department.semester} ${department.session} — all departments`}
           />
           <div className="px-5 pb-5">
             {/* Segmented progress bar */}
@@ -72,25 +113,33 @@ export default function AcademicPlanningAnalytics(props?: {
               {pipeline.published > 0 && (
                 <div
                   className="h-full bg-brand"
-                  style={{ width: `${(pipeline.published / pipeline.total) * 100}%` }}
+                  style={{
+                    width: `${pipeline.total > 0 ? (pipeline.published / pipeline.total) * 100 : 0}%`,
+                  }}
                 />
               )}
               {pipeline.approved > 0 && (
                 <div
                   className="h-full bg-good"
-                  style={{ width: `${(pipeline.approved / pipeline.total) * 100}%` }}
+                  style={{
+                    width: `${pipeline.total > 0 ? (pipeline.approved / pipeline.total) * 100 : 0}%`,
+                  }}
                 />
               )}
               {pipeline.pending > 0 && (
                 <div
                   className="h-full bg-warn"
-                  style={{ width: `${(pipeline.pending / pipeline.total) * 100}%` }}
+                  style={{
+                    width: `${pipeline.total > 0 ? (pipeline.pending / pipeline.total) * 100 : 0}%`,
+                  }}
                 />
               )}
               {pipeline.returned > 0 && (
                 <div
                   className="h-full bg-bad/50"
-                  style={{ width: `${(pipeline.returned / pipeline.total) * 100}%` }}
+                  style={{
+                    width: `${pipeline.total > 0 ? (pipeline.returned / pipeline.total) * 100 : 0}%`,
+                  }}
                 />
               )}
             </div>
@@ -163,11 +212,19 @@ export default function AcademicPlanningAnalytics(props?: {
           />
           <div className="px-5 pb-5">
             <div className="overflow-x-auto">
-              <table className="w-full text-center">
+              <table className="w-full table-fixed min-w-[360px] text-center">
+                <colgroup>
+                  <col className="w-14" />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th className="pb-3 pr-3 text-right text-[11.5px] font-semibold text-muted/0">
-                      —
+                    <th className="w-14 pb-3 pr-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-muted/50">
+                      Time
                     </th>
                     {DAYS.map((d) => (
                       <th
@@ -182,11 +239,11 @@ export default function AcademicPlanningAnalytics(props?: {
                 <tbody>
                   {SLOTS.map((slot) => (
                     <tr key={slot}>
-                      <td className="py-1 pr-3 text-right text-[11.5px] font-medium text-muted">
+                      <td className="w-14 py-1 pr-2.5 text-right font-mono text-[11px] font-semibold text-muted">
                         {slot}
                       </td>
                       {DAYS.map((day) => {
-                        const count = heat[day][slot];
+                        const count = heat[day]?.[slot] || 0;
                         const intensity = count / maxHeat;
                         return (
                           <td key={day} className="p-1">
@@ -233,7 +290,7 @@ export default function AcademicPlanningAnalytics(props?: {
           />
           <div className="px-5 pb-5 space-y-5">
             {schools.map((school) => {
-              const s = submissions.filter((sub) => sub.school === school);
+              const s = deanApprovedSubs.filter((sub) => sub.school === school);
               const pub = s.filter((sub) => sub.status === "published").length;
               const appr = s.filter((sub) => sub.status === "approved").length;
               const pend = s.filter((sub) => sub.status === "pending").length;
@@ -270,7 +327,7 @@ export default function AcademicPlanningAnalytics(props?: {
         <Card>
           <CardHead title="Department status" sub="All submissions at a glance" />
           <div className="divide-y divide-line-soft pb-2">
-            {submissions.map((sub) => (
+            {deanApprovedSubs.map((sub) => (
               <div
                 key={sub.id}
                 className="flex items-center justify-between gap-3 px-5 py-3"
