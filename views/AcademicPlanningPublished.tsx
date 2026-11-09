@@ -117,7 +117,7 @@ export default function AcademicPlanningPublished(props?: {
         const { sub } = confirmPublish;
         const at = stamp();
         await workflowApi.publish(sub.department, CURRENT_SEMESTER, CURRENT_SESSION);
-        const res = await context.updateTimetableStatus("Published", undefined, sub.department);
+        const res = await context.updateTimetableStatus("Published", undefined, sub.department, { skipBackendApi: true });
         if (!res.success) {
           return;
         }
@@ -127,12 +127,6 @@ export default function AcademicPlanningPublished(props?: {
             s.id === sub.id ? { ...s, status: "published" as const, publishedAt: at } : s,
           ),
         );
-        onAuditEntry({
-          action: "published",
-          department: sub.department,
-          school: sub.school,
-          level: sub.level || "All Levels",
-        });
         toast.success(`${sub.department} timetable published to master schedule.`);
         await context.refreshWorkflowAndAudit();
       } else if (confirmPublish.type === "all") {
@@ -145,19 +139,13 @@ export default function AcademicPlanningPublished(props?: {
         for (const s of toPublish) {
           try {
             await workflowApi.publish(s.department, CURRENT_SEMESTER, CURRENT_SESSION);
-            const res = await context.updateTimetableStatus("Published", undefined, s.department);
+            const res = await context.updateTimetableStatus("Published", undefined, s.department, { skipBackendApi: true });
             if (!res.success) {
               failedDepts.push(s.department);
               continue;
             }
 
             succeededIds.add(s.id);
-            onAuditEntry({
-              action: "published",
-              department: s.department,
-              school: s.school,
-              level: s.level || "All Levels",
-            });
           } catch (err) {
             console.warn(`Publish all failed for ${s.department}:`, err);
             failedDepts.push(s.department);

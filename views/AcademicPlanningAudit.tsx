@@ -13,7 +13,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { Card, CardHead, Pill, DataUnavailableState, Skeleton, CardSkeleton, TableSkeleton, TimelineSkeleton } from "../components/ui";
-import { type AuditEntry, type DeptSubmission, department, isApprovedByDean } from "../lib/data";
+import { type AuditEntry, type DeptSubmission, department, isApprovedByDean, deduplicateAuditEntries } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 
 type AuditFilter = "all" | "approved" | "returned" | "published";
@@ -86,7 +86,7 @@ export default function AcademicPlanningAudit(props?: {
 }) {
   const context = useApp();
   const submissions = props?.submissions ?? context.deptSubs;
-  const auditEntries = props?.auditEntries ?? context.auditEntries;
+  const auditEntries = deduplicateAuditEntries(props?.auditEntries ?? context.auditEntries);
   const [filter, setFilter] = useState<AuditFilter>("all");
   const [loading, setLoading] = useState(!context.auditLogsLoaded);
 

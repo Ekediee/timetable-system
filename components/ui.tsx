@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, Loader2 } from "lucide-react";
 
 export function Card({
   children,
@@ -274,9 +274,10 @@ export function CustomSelect({
         <span className="min-w-0 truncate">
           {selectedOption?.props.children ?? selectedValue}
         </span>
-        <span className={`custom-select-chevron ${open ? "rotate-180" : ""}`}>
-          ⌄
-        </span>
+        <ChevronDown
+          size={14}
+          className={`custom-select-chevron text-muted transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       {open && (
         <div
@@ -295,7 +296,7 @@ export function CustomSelect({
                 role="option"
                 aria-selected={isSelected}
                 disabled={option.props.disabled}
-                className={`custom-select-option flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] transition ${
+                className={`custom-select-option flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] transition ${
                   isSelected ? "font-semibold text-brand-ink" : "text-ink"
                 } ${isHighlighted ? "bg-brand-soft" : "hover:bg-panel"} ${
                   option.props.disabled

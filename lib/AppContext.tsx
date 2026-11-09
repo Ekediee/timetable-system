@@ -33,6 +33,8 @@ import {
   setLiveDepartmentRegistry,
   isApprovedByHOD,
   isApprovedByDean,
+  deduplicateTimeline,
+  deduplicateAuditEntries,
 } from "./data";
 import { generateTimetable } from "./engine";
 import {
@@ -135,6 +137,7 @@ interface AppContextType {
     newStatus: Status,
     comment?: string,
     department?: string,
+    options?: { skipBackendApi?: boolean },
   ) => Promise<{ success: boolean; error?: string }>;
   timeLockConfig: DynamicTimeLockConfig;
   setTimeLockConfig: React.Dispatch<
@@ -1018,7 +1021,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             });
           }
           if (data.timeline) {
-            setLocalTimeline(data.timeline);
+            setLocalTimeline(deduplicateTimeline(data.timeline));
           }
         } else if (data.role === "hod") {
           if (data.department) {
@@ -1044,7 +1047,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             });
           }
           if (data.timeline) {
-            setLocalTimeline(data.timeline);
+            setLocalTimeline(deduplicateTimeline(data.timeline));
           }
         } else if (data.role === "dean") {
           if (Array.isArray(data.departments)) {
@@ -1139,7 +1142,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       actor: currentUser?.name || "M. Danladi",
       at: nowLabel(),
     };
-    setAuditEntries((prev) => [entry, ...prev]);
+    setAuditEntries((prev) => deduplicateAuditEntries([entry, ...prev]));
   }
 
   const getDepartmentTimetable = useCallback((dept: string) => {
@@ -1317,11 +1320,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 return false;
               });
             }
-            setAuditEntries(result);
-            auditEntriesRef.current = result;
+            const cleaned = deduplicateAuditEntries(result);
+            setAuditEntries(cleaned);
+            auditEntriesRef.current = cleaned;
             setAuditLogsLoaded(true);
             auditLogsLoadedRef.current = true;
-            return result;
+            return cleaned;
           }
           setAuditLogsLoaded(true);
           auditLogsLoadedRef.current = true;
@@ -1502,7 +1506,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         setLocalSessions(targetSessions);
         setStatus(targetStatus);
-        setLocalTimeline(targetTimeline);
+        setLocalTimeline(deduplicateTimeline(targetTimeline));
 
         updateStore(deptName, {
           department: deptName,
@@ -1668,6 +1672,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       newStatus: Status,
       comment?: string,
       department?: string,
+      options?: { skipBackendApi?: boolean },
     ): Promise<{ success: boolean; error?: string }> => {
       const targetDept =
         department || currentUser?.department || currentProgram;
@@ -1791,7 +1796,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
           return step;
         });
-        return [...updated, newStep];
+        return deduplicateTimeline([...updated, newStep]);
       });
 
       // Update multi-department store
@@ -1804,7 +1809,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           existing?.sessions ||
           (targetDept === currentProgram ? localSessions : []),
         timeline: existing?.timeline
-          ? [...existing.timeline, newStep]
+          ? deduplicateTimeline([...existing.timeline, newStep])
           : [newStep],
         updatedAt: new Date().toISOString(),
       };
@@ -1849,31 +1854,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }, 50);
 
       try {
-        await timetableApi.updateStatus(
-          targetDept,
-          newStatus,
-          comment,
-          CURRENT_SEMESTER,
-          CURRENT_SESSION
-        );
-        const tlRes = await workflowApi.getTimeline(targetDept);
-        if (tlRes && Array.isArray(tlRes.timeline)) {
-          setLocalTimeline(tlRes.timeline);
+        if (!options?.skipBackendApi) {
+          await timetableApi.updateStatus(
+            targetDept,
+            newStatus,
+            comment,
+            CURRENT_SEMESTER,
+            CURRENT_SESSION
+          );
         }
 
-        // Add audit log on SUCCESS
-        addAuditEntry({
-          action:
-            newStatus === "Published"
-              ? "published"
-              : comment
-                ? "returned"
-                : "approved",
-          department: targetDept,
-          school: currentSchool,
-          level: "All Levels",
-          note: comment || `Status updated to ${newStatus}`,
-        });
+        const tlRes = await workflowApi.getTimeline(targetDept);
+        if (tlRes && Array.isArray(tlRes.timeline)) {
+          setLocalTimeline(deduplicateTimeline(tlRes.timeline));
+        }
+
+        if (!options?.skipBackendApi) {
+          // Add audit log on SUCCESS
+          addAuditEntry({
+            action:
+              newStatus === "Published"
+                ? "published"
+                : comment
+                  ? "returned"
+                  : "approved",
+            department: targetDept,
+            school: currentSchool,
+            level: "All Levels",
+            note: comment || `Status updated to ${newStatus}`,
+          });
+        }
 
         return { success: true };
       } catch (err: any) {

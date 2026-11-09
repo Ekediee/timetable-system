@@ -11,10 +11,16 @@ import {
   Globe,
   Layers,
 } from "lucide-react";
-import { Card, Pill, DataUnavailableState, CardSkeleton, TableSkeleton, Button, CustomSelect } from "../components/ui";
 import {
-  type Allocation,
-} from "../lib/data";
+  Card,
+  Pill,
+  DataUnavailableState,
+  CardSkeleton,
+  TableSkeleton,
+  Button,
+  CustomSelect,
+} from "../components/ui";
+import { type Allocation } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 import { extractSubgroups } from "../lib/engine";
 
@@ -70,7 +76,7 @@ function DetailModal({
     if (!dialogEl) return;
 
     const focusable = dialogEl.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     if (focusable.length > 0) {
       focusable[0].focus();
@@ -81,7 +87,7 @@ function DetailModal({
     const handleTab = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const elements = dialogEl.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       if (elements.length === 0) return;
 
@@ -131,7 +137,10 @@ function DetailModal({
                 </span>
               )}
             </div>
-            <h3 id="alloc-detail-title" className="mt-1 text-[20px] font-bold tracking-[-0.02em] text-ink">
+            <h3
+              id="alloc-detail-title"
+              className="mt-1 text-[20px] font-bold tracking-[-0.02em] text-ink"
+            >
               {alloc.code}
             </h3>
           </div>
@@ -216,9 +225,7 @@ function DetailModal({
 export default function Allocations() {
   const context = useApp();
   const currentProgram =
-    context.currentUser?.department ||
-    context.currentProgram ||
-    "";
+    context.currentUser?.department || context.currentProgram || "";
   const currentAllocations = context.localAllocations || [];
 
   const [loading, setLoading] = useState(
@@ -299,7 +306,10 @@ export default function Allocations() {
     });
   }, [currentAllocations, q, typeFilter, levelFilter, groupFilter]);
 
-  if ((loading || context.isLoadingBackend) && currentAllocations.length === 0) {
+  if (
+    (loading || context.isLoadingBackend) &&
+    currentAllocations.length === 0
+  ) {
     return (
       <div className="space-y-4">
         <CardSkeleton count={4} />
@@ -308,7 +318,11 @@ export default function Allocations() {
     );
   }
 
-  if (!loading && !context.isLoadingBackend && currentAllocations.length === 0) {
+  if (
+    !loading &&
+    !context.isLoadingBackend &&
+    currentAllocations.length === 0
+  ) {
     return (
       <DataUnavailableState
         tone="neutral"
@@ -381,30 +395,32 @@ export default function Allocations() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
           <div className="flex flex-wrap items-center gap-2">
             {/* Level Filter */}
-            <CustomSelect
-              value={levelFilter}
-              onChange={(e) => setLevelFilter(e.target.value as any)}
-              className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
-            >
-              {levelFilters.map((l) => (
-                <option key={l} value={l}>
-                  {l === "All" ? "All Levels" : l}
-                </option>
-              ))}
-            </CustomSelect>
+            <div className="flex flex-row items-center gap-2">
+              <CustomSelect
+                value={levelFilter}
+                onChange={(e) => setLevelFilter(e.target.value as any)}
+                className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+              >
+                {levelFilters.map((l) => (
+                  <option key={l} value={l}>
+                    {l === "All" ? "All Levels" : l}
+                  </option>
+                ))}
+              </CustomSelect>
 
-            {/* Sub-group Filter */}
-            <CustomSelect
-              value={groupFilter}
-              onChange={(e) => setGroupFilter(e.target.value as any)}
-              className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
-            >
-              {groupFilters.map((g) => (
-                <option key={g} value={g}>
-                  {g === "All" ? "All Groups" : g}
-                </option>
-              ))}
-            </CustomSelect>
+              {/* Sub-group Filter */}
+              <CustomSelect
+                value={groupFilter}
+                onChange={(e) => setGroupFilter(e.target.value as any)}
+                className="h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+              >
+                {groupFilters.map((g) => (
+                  <option key={g} value={g}>
+                    {g === "All" ? "All Groups" : g}
+                  </option>
+                ))}
+              </CustomSelect>
+            </div>
 
             {/* Type buttons */}
             <div className="flex gap-1 border-l border-line pl-2">
@@ -450,7 +466,10 @@ export default function Allocations() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto px-2 pb-3" style={{ scrollbarWidth: "thin" }}>
+        <div
+          className="overflow-x-auto px-2 pb-3"
+          style={{ scrollbarWidth: "thin" }}
+        >
           <table className="w-full min-w-[700px] border-collapse text-left">
             <thead>
               <tr className="border-b border-line">
@@ -520,7 +539,10 @@ export default function Allocations() {
                         {a.code}
                       </span>
                       {a.isVirtual && (
-                        <span title="Virtual Course" className="text-violet shrink-0">
+                        <span
+                          title="Virtual Course"
+                          className="text-violet shrink-0"
+                        >
                           <Globe size={11} />
                         </span>
                       )}
@@ -565,7 +587,10 @@ export default function Allocations() {
 
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-12 text-center text-[13px] text-muted">
+                  <td
+                    colSpan={7}
+                    className="px-3 py-12 text-center text-[13px] text-muted"
+                  >
                     No course allocations match your search or active filters.
                   </td>
                 </tr>

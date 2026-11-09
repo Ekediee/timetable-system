@@ -24,6 +24,7 @@ import {
   type Status,
   type Session,
   type TimelineStep,
+  deduplicateTimeline,
 } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 import { workflowApi, timetableApi } from "../lib/api";
@@ -110,8 +111,9 @@ export default function HODReview(props?: {
     liveSessions.length > 0
       ? liveSessions
       : (deptEntry?.sessions ?? (isCurrentDept ? context.localSessions : []));
-  const deptTimeline: TimelineStep[] =
-    selectedTimeline.length > 0 ? selectedTimeline : (deptEntry?.timeline ?? context.localTimeline);
+  const deptTimeline: TimelineStep[] = deduplicateTimeline(
+    selectedTimeline.length > 0 ? selectedTimeline : (deptEntry?.timeline ?? context.localTimeline)
+  );
 
   const conflicts = deptSessions.filter((s) => s.conflict);
   const hasSubmission = deptStatus === "Submitted to HOD";
@@ -139,11 +141,11 @@ export default function HODReview(props?: {
     setIsProcessing(true);
     try {
       await workflowApi.hodApprove(selectedDept, CURRENT_SEMESTER, CURRENT_SESSION);
-      await context.updateTimetableStatus("Submitted to Dean", undefined, selectedDept);
+      await context.updateTimetableStatus("Submitted to Dean", undefined, selectedDept, { skipBackendApi: true });
       setLiveStatus("Submitted to Dean");
       setConfirmAction(null);
       const tlRes = await workflowApi.getTimeline(selectedDept);
-      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(tlRes.timeline);
+      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(deduplicateTimeline(tlRes.timeline));
     } catch (err: any) {
       toast.error(err?.message || "Failed approving submission as HOD.");
     } finally {
@@ -159,13 +161,13 @@ export default function HODReview(props?: {
     setIsProcessing(true);
     try {
       await workflowApi.hodReject(selectedDept, returnNote, CURRENT_SEMESTER, CURRENT_SESSION);
-      await context.updateTimetableStatus("Draft generated", returnNote, selectedDept);
+      await context.updateTimetableStatus("Draft generated", returnNote, selectedDept, { skipBackendApi: true });
       setLiveStatus("Draft generated");
       setMode("idle");
       setReturnNote("");
       setConfirmAction(null);
       const tlRes = await workflowApi.getTimeline(selectedDept);
-      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(tlRes.timeline);
+      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(deduplicateTimeline(tlRes.timeline));
     } catch (err: any) {
       toast.error(err?.message || "Failed returning submission as HOD.");
     } finally {

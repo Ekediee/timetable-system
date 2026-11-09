@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle, Clock, MessageSquare, ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { Card, CardHead, Pill, Button, DataUnavailableState } from "../components/ui";
-import { type Status, type TimelineStep } from "../lib/data";
+import { type Status, type TimelineStep, deduplicateTimeline } from "../lib/data";
 import type { View } from "../components/Sidebar";
 import { useRouter } from "next/navigation";
 import { useApp } from "../lib/AppContext";
@@ -18,7 +18,7 @@ export default function History(props?: {
   const context = useApp();
 
   const status = props?.status ?? context.status;
-  const localTimeline = props?.localTimeline ?? context.localTimeline;
+  const localTimeline = deduplicateTimeline(props?.localTimeline ?? context.localTimeline);
   const activeDept = context.currentProgram || context.currentUser?.department || "";
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -28,7 +28,7 @@ export default function History(props?: {
     try {
       const res = await workflowApi.getTimeline(activeDept);
       if (res && Array.isArray(res.timeline)) {
-        context.setLocalTimeline(res.timeline);
+        context.setLocalTimeline(deduplicateTimeline(res.timeline));
       }
     } catch (err) {
       console.warn("Failed refreshing timeline:", err);

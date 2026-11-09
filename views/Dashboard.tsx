@@ -23,6 +23,7 @@ import {
   type Session,
   type Constraint,
   type TimelineStep,
+  deduplicateTimeline,
 } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 
@@ -65,7 +66,7 @@ export default function Dashboard(props?: {
   const localSessions = props?.localSessions ?? context.localSessions;
   const localConstraints = props?.localConstraints ?? context.localConstraints;
   const constraintsComplete = props?.constraintsComplete ?? context.constraintsComplete;
-  const localTimeline = props?.localTimeline ?? context.localTimeline;
+  const localTimeline = deduplicateTimeline(props?.localTimeline ?? context.localTimeline);
   const allocations = context.localAllocations || [];
   const deptName = context.currentUser?.department || context.currentProgram || department.name;
 

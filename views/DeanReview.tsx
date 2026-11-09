@@ -32,6 +32,7 @@ import {
   type Status,
   type Session,
   type TimelineStep,
+  deduplicateTimeline,
 } from "../lib/data";
 import { useApp } from "../lib/AppContext";
 import { workflowApi } from "../lib/api";
@@ -261,7 +262,7 @@ export default function DeanReview(props?: {
     : [];
 
   const deptTimeline: TimelineStep[] = isHodApproved
-    ? selectedTimeline.length > 0 ? selectedTimeline : (deptEntry?.timeline ?? context.localTimeline)
+    ? deduplicateTimeline(selectedTimeline.length > 0 ? selectedTimeline : (deptEntry?.timeline ?? context.localTimeline))
     : [];
 
   const hasSubmission = deptStatus === "Submitted to Dean";
@@ -282,11 +283,11 @@ export default function DeanReview(props?: {
     setIsProcessing(true);
     try {
       await workflowApi.deanApprove(selectedDept, CURRENT_SEMESTER, CURRENT_SESSION);
-      await context.updateTimetableStatus("Submitted to Acad Pl. T.O", undefined, selectedDept);
+      await context.updateTimetableStatus("Submitted to Acad Pl. T.O", undefined, selectedDept, { skipBackendApi: true });
       setConfirmAction(null);
       await loadLiveSubmissions();
       const tlRes = await workflowApi.getTimeline(selectedDept);
-      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(tlRes.timeline);
+      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(deduplicateTimeline(tlRes.timeline));
     } catch (err: any) {
       toast.error(err?.message || "Failed approving submission as Dean.");
     } finally {
@@ -302,13 +303,13 @@ export default function DeanReview(props?: {
     setIsProcessing(true);
     try {
       await workflowApi.deanReject(selectedDept, returnNote, CURRENT_SEMESTER, CURRENT_SESSION);
-      await context.updateTimetableStatus("Draft generated", returnNote, selectedDept);
+      await context.updateTimetableStatus("Draft generated", returnNote, selectedDept, { skipBackendApi: true });
       setMode("idle");
       setReturnNote("");
       setConfirmAction(null);
       await loadLiveSubmissions();
       const tlRes = await workflowApi.getTimeline(selectedDept);
-      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(tlRes.timeline);
+      if (tlRes && Array.isArray(tlRes.timeline)) setSelectedTimeline(deduplicateTimeline(tlRes.timeline));
     } catch (err: any) {
       toast.error(err?.message || "Failed returning submission as Dean.");
     } finally {

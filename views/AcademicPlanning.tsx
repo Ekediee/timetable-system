@@ -473,13 +473,13 @@ export default function AcademicPlanning(props?: {
 
         if (publish) {
           await workflowApi.academicPlanningApprove(sub.department, true, CURRENT_SEMESTER, CURRENT_SESSION);
-          const res = await context.updateTimetableStatus("Published", undefined, sub.department);
+          const res = await context.updateTimetableStatus("Published", undefined, sub.department, { skipBackendApi: true });
           if (!res.success) {
             return;
           }
         } else {
           await workflowApi.academicPlanningApprove(sub.department, false, CURRENT_SEMESTER, CURRENT_SESSION);
-          const res = await context.updateTimetableStatus("Approved", undefined, sub.department);
+          const res = await context.updateTimetableStatus("Approved", undefined, sub.department, { skipBackendApi: true });
           if (!res.success) {
             return;
           }
@@ -492,12 +492,6 @@ export default function AcademicPlanning(props?: {
               : s,
           ),
         );
-        onAuditEntry({
-          action: publish ? "published" : "approved",
-          department: sub.department,
-          school: sub.school,
-          level: sub.level || "All Levels",
-        });
         setSelectedId(null);
         await context.refreshWorkflowAndAudit();
       } else if (confirmDialog.type === "return") {
@@ -544,6 +538,7 @@ export default function AcademicPlanning(props?: {
               publish ? "Published" : "Approved",
               undefined,
               s.department,
+              { skipBackendApi: true }
             );
             if (!res.success) {
               failedDepts.push(s.department);
@@ -551,12 +546,6 @@ export default function AcademicPlanning(props?: {
             }
 
             succeededIds.add(s.id);
-            onAuditEntry({
-              action: publish ? "published" : "approved",
-              department: s.department,
-              school: s.school,
-              level: s.level || "All Levels",
-            });
           } catch (err: any) {
             console.warn(`Bulk action failed for ${s.department}:`, err);
             failedDepts.push(s.department);

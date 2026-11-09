@@ -542,6 +542,49 @@ export type TimelineStep = {
   comment?: string;
 };
 
+export function deduplicateTimeline(steps: TimelineStep[]): TimelineStep[] {
+  if (!Array.isArray(steps) || steps.length <= 1) return steps || [];
+
+  const result: TimelineStep[] = [];
+  for (let i = 0; i < steps.length; i++) {
+    const current = steps[i];
+    const prev = result[result.length - 1];
+
+    if (prev) {
+      const sameAction =
+        (current.action || "").trim().toLowerCase() ===
+        (prev.action || "").trim().toLowerCase();
+      const sameRole =
+        (current.role || "").trim().toLowerCase() ===
+        (prev.role || "").trim().toLowerCase();
+      const sameActor =
+        (current.actor || "").trim().toLowerCase() ===
+        (prev.actor || "").trim().toLowerCase();
+      const sameState = current.state === prev.state;
+      const sameComment =
+        (current.comment || "").trim() === (prev.comment || "").trim();
+      const sameAt =
+        (current.at || "").trim().toLowerCase() ===
+        (prev.at || "").trim().toLowerCase();
+
+      let closeInTime = sameAt;
+      if (!closeInTime && (current as any).createdAt && (prev as any).createdAt) {
+        const diff = Math.abs(
+          new Date((current as any).createdAt).getTime() -
+            new Date((prev as any).createdAt).getTime(),
+        );
+        if (diff < 120000) closeInTime = true;
+      }
+
+      if (sameAction && sameRole && sameActor && sameState && sameComment && closeInTime) {
+        continue;
+      }
+    }
+    result.push(current);
+  }
+  return result;
+}
+
 export const timeline: TimelineStep[] = [];
 
 export const user = {
@@ -766,6 +809,49 @@ export type AuditEntry = {
   at: string;
   note?: string;
 };
+
+export function deduplicateAuditEntries(entries: AuditEntry[]): AuditEntry[] {
+  if (!Array.isArray(entries) || entries.length <= 1) return entries || [];
+
+  const result: AuditEntry[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    const current = entries[i];
+    const prev = result[result.length - 1];
+
+    if (prev) {
+      const sameAction =
+        (current.action || "").trim().toLowerCase() ===
+        (prev.action || "").trim().toLowerCase();
+      const sameDept =
+        (current.department || "").trim().toLowerCase() ===
+        (prev.department || "").trim().toLowerCase();
+      const sameActor =
+        (current.actor || "").trim().toLowerCase() ===
+        (prev.actor || "").trim().toLowerCase();
+      const sameNote =
+        (current.note || "").trim().toLowerCase() ===
+        (prev.note || "").trim().toLowerCase();
+      const sameAt =
+        (current.at || "").trim().toLowerCase() ===
+        (prev.at || "").trim().toLowerCase();
+
+      let closeInTime = sameAt;
+      if (!closeInTime && (current as any).createdAt && (prev as any).createdAt) {
+        const diff = Math.abs(
+          new Date((current as any).createdAt).getTime() -
+            new Date((prev as any).createdAt).getTime(),
+        );
+        if (diff < 120000) closeInTime = true;
+      }
+
+      if (sameAction && sameDept && sameActor && sameNote && closeInTime) {
+        continue;
+      }
+    }
+    result.push(current);
+  }
+  return result;
+}
 
 export const deptSubmissions: DeptSubmission[] = [];
 
