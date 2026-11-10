@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendBaseUrl } from "@/lib/config";
+import { clearLegacyAuthCookies, extractBearerToken } from "@/lib/serverAuth";
 
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get("bupulse_token")?.value;
+  const token = extractBearerToken(request);
 
-  // Notify backend in background without blocking client cookie clearing
+  // Revoke only this tab's Sanctum token on the backend without blocking response
   if (token) {
     fetch(`${getBackendBaseUrl()}/auth/logout`, {
       method: "POST",
@@ -18,21 +19,5 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const response = NextResponse.json({ success: true });
-  response.cookies.set("bupulse_token", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-  response.cookies.set("bupulse_session", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-
-  return response;
+  return clearLegacyAuthCookies(request, NextResponse.json({ success: true }));
 }

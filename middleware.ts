@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { clearLegacyAuthCookies } from "@/lib/serverAuth";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,37 +14,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const rawToken =
-    request.cookies.get("bupulse_token")?.value?.trim() ||
-    request.cookies.get("bupulse_session")?.value?.trim();
-  const token =
-    rawToken && rawToken !== "deleted" && rawToken !== '""' ? rawToken : null;
-
-  const isLoginPage = pathname === "/login";
-
-  // Explicit logout request always strips cookies and renders /login
-  if (isLoginPage && request.nextUrl.searchParams.has("logout")) {
-    const response = NextResponse.next();
-    response.cookies.set("bupulse_token", "", { maxAge: 0, path: "/" });
-    response.cookies.set("bupulse_session", "", { maxAge: 0, path: "/" });
-    return response;
-  }
-
-  // Redirect unauthenticated requests for protected routes to /login?redirect=...
-  if (!token && !isLoginPage) {
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/") {
-      loginUrl.searchParams.set("redirect", pathname);
-    }
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Redirect authenticated requests away from /login to role-aware root /
-  if (token && isLoginPage) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  return NextResponse.next();
+  // Auth tokens are stored per-tab in sessionStorage so multiple accounts can run
+  // concurrently in separate tabs and closing a tab ends its session automatically.
+  // Clear any legacy shared auth cookies to prevent cross-tab bleed or redirect loops.
+  return clearLegacyAuthCookies(request, NextResponse.next());
 }
 
 export const config = {

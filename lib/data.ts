@@ -31,9 +31,7 @@ export function isApprovedByDean(status: string | undefined | null): boolean {
   if (!status) return false;
   const s = status.trim().toLowerCase();
   return (
-    s === "submitted to acad pl. t.o" ||
-    s === "approved" ||
-    s === "published"
+    s === "submitted to acad pl. t.o" || s === "approved" || s === "published"
   );
 }
 
@@ -568,7 +566,11 @@ export function deduplicateTimeline(steps: TimelineStep[]): TimelineStep[] {
         (prev.at || "").trim().toLowerCase();
 
       let closeInTime = sameAt;
-      if (!closeInTime && (current as any).createdAt && (prev as any).createdAt) {
+      if (
+        !closeInTime &&
+        (current as any).createdAt &&
+        (prev as any).createdAt
+      ) {
         const diff = Math.abs(
           new Date((current as any).createdAt).getTime() -
             new Date((prev as any).createdAt).getTime(),
@@ -576,7 +578,14 @@ export function deduplicateTimeline(steps: TimelineStep[]): TimelineStep[] {
         if (diff < 120000) closeInTime = true;
       }
 
-      if (sameAction && sameRole && sameActor && sameState && sameComment && closeInTime) {
+      if (
+        sameAction &&
+        sameRole &&
+        sameActor &&
+        sameState &&
+        sameComment &&
+        closeInTime
+      ) {
         continue;
       }
     }
@@ -616,7 +625,7 @@ export const accounts: UserAccount[] = [
   {
     id: "yakubu",
     name: "Yakubu Onome",
-    email: "y.onome@bupulse.edu",
+    email: "yakubuo@babcock.edu.ng",
     role: "deptTO",
     roleLabel: "Dept T.O (Computer Science)",
     department: "Computer Science",
@@ -638,7 +647,7 @@ export const accounts: UserAccount[] = [
   {
     id: "olumide",
     name: "Dr. A. Olumide",
-    email: "a.olumide@bupulse.edu",
+    email: "olumidea@babcock.edu.ng",
     role: "hod",
     roleLabel: "Head of Department",
     department: "Computer Science",
@@ -647,11 +656,22 @@ export const accounts: UserAccount[] = [
     initials: "AO",
   },
   {
+    id: "fabumi ",
+    name: "Dr. F. Balogun ",
+    email: "fabumib@babcock.edu.ng ",
+    role: "hod",
+    roleLabel: "Head of Department",
+    department: "Software Engineering",
+    school: "School of Computing",
+    avatarTone: "brand",
+    initials: "FB",
+  },
+  {
     id: "bassey",
     name: "Prof. E. Bassey",
-    email: "e.bassey@bupulse.edu",
+    email: "basseye@babcock.edu.ng",
     role: "dean",
-    roleLabel: "Dean",
+    roleLabel: "Dean(School of Computing)",
     school: "School of Computing",
     avatarTone: "good",
     initials: "EB",
@@ -836,7 +856,11 @@ export function deduplicateAuditEntries(entries: AuditEntry[]): AuditEntry[] {
         (prev.at || "").trim().toLowerCase();
 
       let closeInTime = sameAt;
-      if (!closeInTime && (current as any).createdAt && (prev as any).createdAt) {
+      if (
+        !closeInTime &&
+        (current as any).createdAt &&
+        (prev as any).createdAt
+      ) {
         const diff = Math.abs(
           new Date((current as any).createdAt).getTime() -
             new Date((prev as any).createdAt).getTime(),

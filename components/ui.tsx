@@ -25,7 +25,7 @@ export function CardHead({
 }: {
   icon?: ReactNode;
   title: string;
-  sub?: string;
+  sub?: ReactNode;
   action?: ReactNode;
 }) {
   return (

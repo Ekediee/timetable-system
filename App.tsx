@@ -128,27 +128,42 @@ export default function App({ children }: { children?: ReactNode }) {
 
   // Keep view strictly in sync with user role
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && pathname !== "/login") {
       const allowedViews =
         navByRole[currentUser.role]?.map((item) => item.id) || [];
       if (!allowedViews.includes(view)) {
         handleSetView(defaultViewByRole[currentUser.role]);
       }
     }
-  }, [currentUser, view, handleSetView]);
+  }, [currentUser, pathname, view, handleSetView]);
 
   const sidebarOpen = context.sidebarOpen;
   const setSidebarOpen = context.setSidebarOpen;
   const status = context.status;
+  const [showRestoreEscape, setShowRestoreEscape] = useState(false);
 
   async function handleLogout() {
     await context.handleLogout();
   }
 
+  // Show a fallback action if session restoration takes longer than 4 seconds
+  useEffect(() => {
+    if (!context.isAuthLoading || pathname === "/login") {
+      setShowRestoreEscape(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowRestoreEscape(true), 4000);
+    return () => clearTimeout(timer);
+  }, [context.isAuthLoading, pathname]);
+
   // Redirect to login if unauthenticated once auth check has finished
   useEffect(() => {
     if (!context.isAuthLoading && !currentUser && pathname !== "/login") {
-      router.replace("/login");
+      const target =
+        pathname && pathname !== "/"
+          ? `/login?redirect=${encodeURIComponent(pathname)}`
+          : "/login";
+      router.replace(target);
     }
   }, [context.isAuthLoading, currentUser, pathname, router]);
 
@@ -166,9 +181,21 @@ export default function App({ children }: { children?: ReactNode }) {
   if (context.isAuthLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-canvas">
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 text-center px-4">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
           <p className="text-xs font-semibold text-muted">Loading BU Pulse session…</p>
+          {showRestoreEscape && (
+            <button
+              type="button"
+              onClick={() => {
+                context.cancelAuthRestore();
+                router.replace("/login");
+              }}
+              className="mt-2 rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-semibold text-subink transition hover:border-brand/40 hover:text-brand cursor-pointer"
+            >
+              Taking too long? Return to sign in
+            </button>
+          )}
         </div>
       </div>
     );

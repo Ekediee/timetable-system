@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendBaseUrl } from "@/lib/config";
+import { clearLegacyAuthCookies, extractBearerToken } from "@/lib/serverAuth";
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get("bupulse_token")?.value;
+    const token = extractBearerToken(request);
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Unauthenticated", user: null },
-        { status: 401 },
+      return clearLegacyAuthCookies(
+        request,
+        NextResponse.json(
+          { message: "Unauthenticated", user: null },
+          { status: 401 },
+        ),
       );
     }
 
@@ -23,24 +27,21 @@ export async function GET(request: NextRequest) {
     const data = await backendResponse.json().catch(() => null);
 
     if (!backendResponse.ok) {
-      // Invalid/expired token: clear the cookie
-      const response = NextResponse.json(
-        { message: data?.message || "Session expired", user: null },
-        { status: backendResponse.status || 401 },
+      return clearLegacyAuthCookies(
+        request,
+        NextResponse.json(
+          { message: data?.message || "Session expired", user: null },
+          { status: backendResponse.status || 401 },
+        ),
       );
-      response.cookies.set("bupulse_token", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 0,
-      });
-      return response;
     }
 
-    return NextResponse.json({
-      user: data?.user || null,
-    });
+    return clearLegacyAuthCookies(
+      request,
+      NextResponse.json({
+        user: data?.user || null,
+      }),
+    );
   } catch (error: any) {
     console.error("[auth/me] Proxy error:", error);
     return NextResponse.json(

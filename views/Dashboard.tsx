@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -68,7 +69,10 @@ export default function Dashboard(props?: {
   const constraintsComplete = props?.constraintsComplete ?? context.constraintsComplete;
   const localTimeline = deduplicateTimeline(props?.localTimeline ?? context.localTimeline);
   const allocations = context.localAllocations || [];
+  const venues = context.localVenues || [];
   const deptName = context.currentUser?.department || context.currentProgram || department.name;
+  const hydratedDeptRef = useRef<string | null>(null);
+  const [isHydrating, setIsHydrating] = useState(false);
 
   const isDeptTODashboard = context.dashboardData?.role === "deptTO";
   const deptTOData =
@@ -142,6 +146,34 @@ export default function Dashboard(props?: {
       ? "Step 0 of 4 · Draft in progress"
       : "Step 0 of 4 · Timetable not yet generated";
 
+  useEffect(() => {
+    if (context.currentUser?.role !== "deptTO") return;
+    if (!deptName) return;
+    if (hydratedDeptRef.current === deptName) return;
+
+    const needsHydration =
+      allocations.length === 0 ||
+      venues.length === 0 ||
+      localConstraints.length === 0;
+    if (!needsHydration) return;
+
+    hydratedDeptRef.current = deptName;
+    setIsHydrating(true);
+    Promise.allSettled([
+      context.refreshAllocations(deptName),
+      context.refreshVenues(deptName),
+      context.refreshConstraints(deptName),
+    ]).finally(() => {
+      setIsHydrating(false);
+    });
+  }, [
+    context,
+    deptName,
+    allocations.length,
+    venues.length,
+    localConstraints.length,
+  ]);
+
   if (context.isLoadingBackend && !hasSessions && allocations.length === 0 && !context.dashboardData) {
     return (
       <div className="space-y-4">
@@ -159,7 +191,20 @@ export default function Dashboard(props?: {
           <CardHead
             icon={<CalendarClock size={18} />}
             title="Timetable readiness"
-            sub={`${deptName} · ${department.level} · ${department.semester}`}
+            sub={
+              <span className="flex items-center gap-2">
+                <span>{`${deptName} · ${department.level} · ${department.semester}`}</span>
+                {isHydrating && (
+                  <span className="inline-flex items-center gap-1.5 text-brand">
+                    <span
+                      className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand"
+                      aria-hidden="true"
+                    />
+                    Syncing latest data…
+                  </span>
+                )}
+              </span>
+            }
             action={
               submitted ? (
                 <Pill tone="good">
@@ -404,7 +449,7 @@ export default function Dashboard(props?: {
               ["Venues available", `${(context.localVenues || []).length}`],
               [
                 "Total seat capacity",
-                `${(context.localVenues || []).reduce((a, v) => a + v.capacity, 0)}`,
+                `${venues.reduce((a, v) => a + v.capacity, 0)}`,
               ],
               [
                 "Largest cohort",

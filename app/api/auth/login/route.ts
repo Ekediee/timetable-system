@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendBaseUrl } from "@/lib/config";
+import { clearLegacyAuthCookies } from "@/lib/serverAuth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,22 +40,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Set secure HttpOnly cookie containing the real JWT
+    // Return token for per-tab sessionStorage rather than setting a shared browser cookie,
+    // enabling independent multi-account sessions per tab and auto-logout on tab close.
     const response = NextResponse.json({
       success: true,
+      token,
       user: data.user,
       token_type: data.token_type || "Bearer",
     });
 
-    response.cookies.set("bupulse_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
-
-    return response;
+    return clearLegacyAuthCookies(request, response);
   } catch (error: any) {
     console.error("[auth/login] Proxy error:", error);
     return NextResponse.json(

@@ -51,10 +51,53 @@ import {
   workflowApi,
   venuesApi,
   departmentsApi,
+  getStoredToken,
   setStoredToken,
 } from "./api";
-import { CURRENT_SESSION, CURRENT_SEMESTER } from "./config";
+import { CURRENT_SESSION, CURRENT_SEMESTER, TOKEN_KEY } from "./config";
 import { toast } from "../components/Toast";
+
+const TAB_CACHE_KEYS = [
+  "bupulse_constraint_types",
+  "bupulse_timelock_config",
+  "bupulse_dept_timetables",
+] as const;
+
+function readTabCache(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    localStorage.removeItem(key);
+  } catch {}
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeTabCache(key: string, value: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(key);
+  } catch {}
+  try {
+    if (value === null) {
+      sessionStorage.removeItem(key);
+    } else {
+      sessionStorage.setItem(key, value);
+    }
+  } catch {}
+}
+
+function clearLegacyLocalStorageAuth(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    for (const key of TAB_CACHE_KEYS) {
+      localStorage.removeItem(key);
+    }
+  } catch {}
+}
 
 function nowLabel() {
   const d = new Date();
@@ -111,7 +154,9 @@ interface AppContextType {
   bootstrapDashboard: (
     session?: string,
     semester?: string,
+    options?: { signal?: AbortSignal; timeoutMs?: number },
   ) => Promise<DashboardBootstrapResponse | null>;
+  cancelAuthRestore: () => void;
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   activeRevisionTarget: { code: string; day?: string; slot?: string } | null;
@@ -269,6 +314,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dashboardData, setDashboardData] =
     useState<DashboardBootstrapResponse | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const authRestoreAbortRef = useRef<AbortController | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeRevisionTarget, setActiveRevisionTarget] = useState<{
     code: string;
@@ -315,18 +361,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const next = prev.map((type) =>
             type.id === newId ? savedType : type,
           );
-          if (typeof window !== "undefined") {
-            localStorage.setItem("bupulse_constraint_types", JSON.stringify(next));
-          }
+          writeTabCache("bupulse_constraint_types", JSON.stringify(next));
           return next;
         });
         return true;
       } catch (err) {
         setConstraintTypes((prev) => {
           const next = prev.filter((type) => type.id !== newId);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("bupulse_constraint_types", JSON.stringify(next));
-          }
+          writeTabCache("bupulse_constraint_types", JSON.stringify(next));
           return next;
         });
         setConstraintTypesDirty(previousDirty);
@@ -353,20 +395,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const next = prev.map((type) =>
             type.id === id ? { ...type, ...savedType } : type,
           );
-          if (typeof window !== "undefined") {
-            localStorage.setItem("bupulse_constraint_types", JSON.stringify(next));
-          }
+          writeTabCache("bupulse_constraint_types", JSON.stringify(next));
           return next;
         });
         return true;
       } catch (err) {
         setConstraintTypes(previousTypes);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "bupulse_constraint_types",
-            JSON.stringify(previousTypes),
-          );
-        }
+        writeTabCache(
+          "bupulse_constraint_types",
+          JSON.stringify(previousTypes),
+        );
         setConstraintTypesDirty(previousDirty);
         console.error("Backend constraint type update failed:", err);
         return false;
@@ -386,30 +424,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       try {
         await constraintTypesApi.deleteType(id);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "bupulse_constraint_types",
-            JSON.stringify(previousTypes.filter((type) => type.id !== id)),
-          );
-        }
+        writeTabCache(
+          "bupulse_constraint_types",
+          JSON.stringify(previousTypes.filter((type) => type.id !== id)),
+        );
         return true;
       } catch (err: any) {
         if (err?.status === 404) {
-          if (typeof window !== "undefined") {
-            localStorage.setItem(
-              "bupulse_constraint_types",
-              JSON.stringify(previousTypes.filter((type) => type.id !== id)),
-            );
-          }
+          writeTabCache(
+            "bupulse_constraint_types",
+            JSON.stringify(previousTypes.filter((type) => type.id !== id)),
+          );
           return true;
         }
         setConstraintTypes(previousTypes);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "bupulse_constraint_types",
-            JSON.stringify(previousTypes),
-          );
-        }
+        writeTabCache(
+          "bupulse_constraint_types",
+          JSON.stringify(previousTypes),
+        );
         setConstraintTypesDirty(previousDirty);
         console.error("Backend constraint type delete failed:", err);
         return false;
@@ -438,20 +470,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const next = prev.map((type) =>
             type.id === id ? { ...type, ...savedType, isActive } : type,
           );
-          if (typeof window !== "undefined") {
-            localStorage.setItem("bupulse_constraint_types", JSON.stringify(next));
-          }
+          writeTabCache("bupulse_constraint_types", JSON.stringify(next));
           return next;
         });
         return true;
       } catch (err) {
         setConstraintTypes(previousTypes);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "bupulse_constraint_types",
-            JSON.stringify(previousTypes),
-          );
-        }
+        writeTabCache(
+          "bupulse_constraint_types",
+          JSON.stringify(previousTypes),
+        );
         setConstraintTypesDirty(previousDirty);
         console.error("Backend constraint type toggle failed:", err);
         return false;
@@ -471,12 +499,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const normalized = normalizeLoadedConstraintTypes(ctRes.types);
           setConstraintTypes(normalized);
           setConstraintTypesDirty(false);
-          if (typeof window !== "undefined") {
-            localStorage.setItem(
-              "bupulse_constraint_types",
-              JSON.stringify(normalized),
-            );
-          }
+          writeTabCache(
+            "bupulse_constraint_types",
+            JSON.stringify(normalized),
+          );
           return normalized;
         }
       } catch (err) {
@@ -505,12 +531,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (Array.isArray(results) && results.length > 0) {
         const normalized = normalizeLoadedConstraintTypes(results);
         setConstraintTypes(normalized);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "bupulse_constraint_types",
-            JSON.stringify(normalized),
-          );
-        }
+        writeTabCache(
+          "bupulse_constraint_types",
+          JSON.stringify(normalized),
+        );
       }
       setConstraintTypesDirty(false);
       return true;
@@ -640,20 +664,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const normalized = normalizeLoadedConstraintTypes(data.constraintTypes);
           setConstraintTypes(normalized);
           setConstraintTypesDirty(false);
-          if (typeof window !== "undefined") {
-            try {
-              localStorage.setItem("bupulse_constraint_types", JSON.stringify(normalized));
-            } catch {}
-          }
+          writeTabCache("bupulse_constraint_types", JSON.stringify(normalized));
         }
         if (data.timeLocks && typeof data.timeLocks === "object") {
           const normTimeLocks = normalizeTimeLockConfig(data.timeLocks);
           setTimeLockConfig(normTimeLocks);
-          if (typeof window !== "undefined") {
-            try {
-              localStorage.setItem("bupulse_timelock_config", JSON.stringify(normTimeLocks));
-            } catch {}
-          }
+          writeTabCache("bupulse_timelock_config", JSON.stringify(normTimeLocks));
         }
         if (Array.isArray(data.allocations)) {
           setLocalAllocations(data.allocations);
@@ -689,14 +705,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     (updater: (prev: DynamicTimeLockConfig) => DynamicTimeLockConfig) => {
       setTimeLockConfig((prev) => {
         const next = updater(prev);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem(
-              "bupulse_timelock_config",
-              JSON.stringify(next),
-            );
-          } catch {}
-        }
+        writeTabCache("bupulse_timelock_config", JSON.stringify(next));
 
         // Live persistence to backend
         if (currentUser) {
@@ -913,17 +922,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Hydrate client-persisted preferences from localStorage after initial render
+  // Hydrate per-tab preferences from sessionStorage after initial render
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     try {
-      const storedTypes = localStorage.getItem("bupulse_constraint_types");
+      const storedTypes = readTabCache("bupulse_constraint_types");
       if (storedTypes) {
         const parsed = JSON.parse(storedTypes);
         if (Array.isArray(parsed) && parsed.length > 0) {
           if (parsed.length === 7) {
-            localStorage.removeItem("bupulse_constraint_types");
+            writeTabCache("bupulse_constraint_types", null);
           } else {
             setConstraintTypes(normalizeLoadedConstraintTypes(parsed));
           }
@@ -932,7 +941,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {}
 
     try {
-      const storedTimeLock = localStorage.getItem("bupulse_timelock_config");
+      const storedTimeLock = readTabCache("bupulse_timelock_config");
       if (storedTimeLock) {
         const parsed = JSON.parse(storedTimeLock);
         if (parsed && typeof parsed === "object") {
@@ -942,7 +951,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {}
 
     try {
-      const storedTimetables = localStorage.getItem("bupulse_dept_timetables");
+      const storedTimetables = readTabCache("bupulse_dept_timetables");
       if (storedTimetables) {
         const parsed = JSON.parse(storedTimetables);
         if (parsed && typeof parsed === "object") {
@@ -959,11 +968,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setDeptTimetables((prev) => {
       const next = { ...prev, [dept]: entry };
       deptTimetablesRef.current = next;
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("bupulse_dept_timetables", JSON.stringify(next));
-        } catch {}
-      }
+      writeTabCache("bupulse_dept_timetables", JSON.stringify(next));
       return next;
     });
   }, []);
@@ -972,10 +977,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async (
       session = CURRENT_SESSION,
       semester = CURRENT_SEMESTER,
+      options?: { signal?: AbortSignal; timeoutMs?: number },
     ): Promise<DashboardBootstrapResponse | null> => {
       setIsLoadingBackend(true);
       try {
-        const data = await dashboardApi.getDashboard(session, semester);
+        const data = await dashboardApi.getDashboard(session, semester, options);
         if (!data) return null;
 
         setDashboardData(data);
@@ -1119,6 +1125,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         return data;
       } catch (err: any) {
+        if (
+          options?.signal?.aborted ||
+          err?.name === "AbortError" ||
+          err?.data?.isAborted
+        ) {
+          return null;
+        }
         if (
           err?.status === 401 ||
           err?.message?.toLowerCase().includes("unauthenticated")
@@ -1906,12 +1919,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [currentUser, currentProgram, status, localTimeline, localSessions, deptSubs, updateStore],
   );
 
+  const cancelAuthRestore = useCallback(() => {
+    if (authRestoreAbortRef.current) {
+      authRestoreAbortRef.current.abort();
+      authRestoreAbortRef.current = null;
+    }
+    setStoredToken(null);
+    setCurrentUser(null);
+    setIsAuthLoading(false);
+  }, []);
+
   const handleLogin = useCallback(
     async (account: UserAccount) => {
+      const isSwitchingAccount =
+        currentUserRef.current && currentUserRef.current.id !== account.id;
+
+      if (isSwitchingAccount) {
+        setDashboardData(null);
+        setLocalSessions([]);
+        setLocalConstraints([]);
+        setLocalTimeline([]);
+        setLocalAllocations([]);
+        setLocalVenues([]);
+        setExternalBookings([]);
+        setDeptSubs([]);
+        deptSubsRef.current = [];
+        setDeptTimetables({});
+        deptTimetablesRef.current = {};
+        setSubmissionsLoaded(false);
+        submissionsLoadedRef.current = false;
+        setAuditLogsLoaded(false);
+        auditLogsLoadedRef.current = false;
+        for (const key of TAB_CACHE_KEYS) {
+          writeTabCache(key, null);
+        }
+      }
+
       setCurrentUser(account);
 
       if (account.department) {
         setCurrentProgram(account.department);
+      }
+
+      // Skip backend bootstrap in offline/mock fallback mode when no tab token is stored
+      if (!getStoredToken()) {
+        return;
       }
 
       // Pre-fetch unified dashboard payload before resolving login so all stores
@@ -1927,61 +1979,94 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleLogout = useCallback(async () => {
+    const token = getStoredToken();
+
     if (typeof window !== "undefined") {
       try {
-        localStorage.clear();
+        clearLegacyLocalStorageAuth();
         sessionStorage.clear();
         document.cookie = "bupulse_token=; path=/; max-age=0";
         document.cookie = "bupulse_session=; path=/; max-age=0";
       } catch {}
     }
+
     setStoredToken(null);
     setCurrentUser(null);
     setDashboardData(null);
+    setLocalSessions([]);
+    setLocalConstraints([]);
+    setLocalTimeline([]);
+    setLocalAllocations([]);
+    setLocalVenues([]);
+    setExternalBookings([]);
+    setDeptSubs([]);
+    deptSubsRef.current = [];
+    setDeptTimetables({});
+    deptTimetablesRef.current = {};
     setSubmissionsLoaded(false);
     submissionsLoadedRef.current = false;
     setAuditLogsLoaded(false);
     auditLogsLoadedRef.current = false;
+
     try {
-      await authApi.logout();
+      await authApi.logout(token);
     } catch {}
     if (typeof window !== "undefined") {
       window.location.href = "/login?logout=1";
     }
   }, []);
 
-  // Auto-restore session from backend cookie once on initial app load
+  // Auto-restore session ONLY from the current tab's sessionStorage token on initial load
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    authRestoreAbortRef.current = controller;
 
-    // Skip restore on login route — visitor is explicitly unauthenticated
+    // Clean up any legacy persistent tokens/caches from localStorage
+    clearLegacyLocalStorageAuth();
+
+    // Skip restore on login route or when this tab has no stored token
     const isLoginRoute =
       typeof window !== "undefined" &&
       window.location.pathname.startsWith("/login");
+    const tabToken = getStoredToken();
 
-    if (isLoginRoute) {
+    if (isLoginRoute || !tabToken) {
       setIsAuthLoading(false);
-      return;
+      return () => {
+        active = false;
+        controller.abort();
+      };
     }
 
-    bootstrapDashboard()
+    bootstrapDashboard(CURRENT_SESSION, CURRENT_SEMESTER, {
+      signal: controller.signal,
+      timeoutMs: 20000,
+    })
       .then((data) => {
-        if (!active) return;
+        if (!active || controller.signal.aborted) return;
         if (!data) {
           setStoredToken(null);
+          setCurrentUser(null);
         }
       })
       .catch(() => {
+        if (!active || controller.signal.aborted) return;
         setStoredToken(null);
+        setCurrentUser(null);
       })
       .finally(() => {
         if (active) {
+          if (authRestoreAbortRef.current === controller) {
+            authRestoreAbortRef.current = null;
+          }
           setIsAuthLoading(false);
         }
       });
 
     return () => {
       active = false;
+      controller.abort();
     };
   }, [bootstrapDashboard]);
 
@@ -2020,6 +2105,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         dashboardData,
         setDashboardData,
         bootstrapDashboard,
+        cancelAuthRestore,
         sidebarOpen,
         setSidebarOpen,
         activeRevisionTarget,
@@ -2115,6 +2201,7 @@ export function useApp(): AppContextType {
       dashboardData: null,
       setDashboardData: () => {},
       bootstrapDashboard: async () => null,
+      cancelAuthRestore: () => {},
       sidebarOpen: false,
       setSidebarOpen: () => {},
       activeRevisionTarget: null,

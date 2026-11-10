@@ -50,16 +50,30 @@ export class ApiError extends Error {
 
 export function getStoredToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    if (localStorage.getItem(TOKEN_KEY) !== null) {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {}
+  try {
+    return sessionStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function setStoredToken(token: string | null): void {
   if (typeof window === "undefined") return;
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  } else {
+  try {
     localStorage.removeItem(TOKEN_KEY);
-  }
+  } catch {}
+  try {
+    if (token) {
+      sessionStorage.setItem(TOKEN_KEY, token);
+    } else {
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {}
 }
 
 export type ApiRequestOptions = RequestInit & {
@@ -76,10 +90,16 @@ export async function apiRequest<T = any>(
     ...((options.headers as Record<string, string>) || {}),
   };
 
+  const tabToken = getStoredToken();
+  const hasExplicitAuth = Boolean(headers["Authorization"] || headers["authorization"]);
+  if (tabToken && !hasExplicitAuth && endpoint !== "/api/auth/login") {
+    headers["Authorization"] = `Bearer ${tabToken}`;
+  }
+
   // Route requests:
   // - Absolute URL (starts with http): use as-is
   // - Local API routes (starts with /api/): use directly
-  // - Backend API routes: proxy through /api/backend/... which automatically attaches the HttpOnly cookie
+  // - Backend API routes: proxy through /api/backend/... forwarding the tab's Bearer token
   let url: string;
   if (endpoint.startsWith("http")) {
     url = endpoint;
@@ -158,6 +178,14 @@ export async function apiRequest<T = any>(
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (
+      response.status === 401 &&
+      tabToken &&
+      endpoint !== "/api/auth/login" &&
+      endpoint !== "/api/auth/logout"
+    ) {
+      setStoredToken(null);
+    }
     const errorMsg =
       data?.message ||
       data?.error ||
@@ -194,12 +222,17 @@ export const authApi = {
   async login(email: string, password: string) {
     const res = await apiRequest<{
       success: boolean;
+      token?: string;
       user: AuthUser;
       token_type?: string;
     }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+
+    if (res.token) {
+      setStoredToken(res.token);
+    }
 
     return res;
   },
@@ -210,16 +243,18 @@ export const authApi = {
     }>("/api/auth/me");
   },
 
-  async logout() {
+  async logout(explicitToken?: string | null) {
+    const token = explicitToken ?? getStoredToken();
     if (typeof window !== "undefined") {
       try {
-        localStorage.clear();
+        localStorage.removeItem(TOKEN_KEY);
         sessionStorage.clear();
       } catch {}
     }
     try {
       await apiRequest("/api/auth/logout", {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
     } catch {
       // Ignore network errors on logout
@@ -337,7 +372,7 @@ export const dashboardApi = {
   async getDashboard(
     session?: string,
     semester?: string,
-    options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal; timeoutMs?: number }
   ) {
     const params = new URLSearchParams();
     if (session) params.append("session", session);
@@ -345,6 +380,7 @@ export const dashboardApi = {
     const query = params.toString() ? `?${params.toString()}` : "";
     return apiRequest<DashboardBootstrapResponse>(`/dashboard${query}`, {
       signal: options?.signal,
+      timeoutMs: options?.timeoutMs,
     });
   },
 };

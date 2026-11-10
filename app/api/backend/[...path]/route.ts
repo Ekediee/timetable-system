@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendBaseUrl } from "@/lib/config";
+import { clearLegacyAuthCookies, extractBearerToken } from "@/lib/serverAuth";
 
 async function proxyRequest(
   request: NextRequest,
@@ -11,7 +12,7 @@ async function proxyRequest(
     const search = request.nextUrl.search;
     const targetUrl = `${getBackendBaseUrl()}/${subpath}${search}`;
 
-    const token = request.cookies.get("bupulse_token")?.value;
+    const token = extractBearerToken(request);
 
     const headers: Record<string, string> = {
       Accept: "application/json",
@@ -44,24 +45,13 @@ async function proxyRequest(
       forwardHeaders.set("content-type", respContentType);
     }
 
-    // If backend returns 401 Unauthorized, and token was sent, clear the stale cookie
     const response = new NextResponse(responseBody, {
       status: backendResponse.status,
       statusText: backendResponse.statusText,
       headers: forwardHeaders,
     });
 
-    if (backendResponse.status === 401 && token) {
-      response.cookies.set("bupulse_token", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 0,
-      });
-    }
-
-    return response;
+    return clearLegacyAuthCookies(request, response);
   } catch (error: any) {
     console.error("[api/backend proxy] Error:", error);
     return NextResponse.json(

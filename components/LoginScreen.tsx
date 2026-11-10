@@ -10,7 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { accounts, type UserAccount } from "../lib/data";
-import { authApi } from "../lib/api";
+import { authApi, setStoredToken } from "../lib/api";
 
 const toneClasses: Record<
   string,
@@ -117,6 +117,7 @@ export default function LoginScreen({
       });
     } catch (err: any) {
       console.warn("Quick login live exchange failed, falling back to local:", err);
+      setStoredToken(null);
       await onLogin(account);
     } finally {
       setLoading(false);
