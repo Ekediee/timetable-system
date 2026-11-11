@@ -8,6 +8,7 @@ import {
   Mail,
   AlertCircle,
   Loader2,
+  User,
 } from "lucide-react";
 import { accounts, type UserAccount } from "../lib/data";
 import { authApi, setStoredToken } from "../lib/api";
@@ -280,12 +281,12 @@ export default function LoginScreen({
                     }`}
                   >
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[13px] font-bold ${tone.bg} ${tone.text}`}
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tone.bg} ${tone.text}`}
                     >
                       {isCurrentLoading ? (
                         <Loader2 size={18} className="animate-spin text-brand" />
                       ) : (
-                        account.initials
+                        <User size={18} />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">

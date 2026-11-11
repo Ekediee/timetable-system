@@ -123,13 +123,13 @@ export default function TopBar({
               <div className="flex items-start justify-between gap-3 border-b border-line pb-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-bold ${
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                       currentUser?.avatarTone && toneClasses[currentUser.avatarTone]
                         ? toneClasses[currentUser.avatarTone]
                         : "bg-brand-soft text-brand-ink"
                     }`}
                   >
-                    {currentUser?.initials || <User size={18} />}
+                    <User size={18} />
                   </div>
                   <div className="min-w-0">
                     <p className="flex items-center gap-1 truncate text-[13.5px] font-bold text-ink">

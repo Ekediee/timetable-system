@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   Building2,
   Clock,
@@ -18,13 +18,15 @@ import {
   type Venue,
   isVenueAccessibleToDepartment,
 } from "../lib/data";
+import { findExternalBookingOverlap } from "../lib/engine";
 import { useApp } from "../lib/AppContext";
 
 export default function Venues() {
   const context = useApp();
-  const { localSessions, localVenues, externalBookings, timeLockConfig, currentUser, currentProgram } = context;
+  const { localSessions, localVenues, externalBookings, timeLockConfig, currentUser, currentProgram, refreshVenues, refreshExternalBookings } = context;
 
   const currentDept = currentUser?.department || currentProgram || "";
+  const hydratedExtDeptRef = useRef<string>("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,19 +35,29 @@ export default function Venues() {
     setLoading(true);
     setError(null);
     try {
-      await context.refreshVenues(currentUser?.department || undefined);
+      await Promise.all([
+        refreshVenues(currentUser?.department || undefined),
+        refreshExternalBookings(currentDept || undefined).catch(() => []),
+      ]);
+      hydratedExtDeptRef.current = currentDept;
     } catch (err: any) {
       setError(err?.message || "Failed to load venues from server.");
     } finally {
       setLoading(false);
     }
-  }, [context.refreshVenues, currentUser?.department]);
+  }, [refreshVenues, refreshExternalBookings, currentUser?.department, currentDept]);
 
   useEffect(() => {
     if (!localVenues || localVenues.length === 0) {
       loadVenues();
     }
   }, [localVenues, loadVenues]);
+
+  useEffect(() => {
+    if (!currentDept || hydratedExtDeptRef.current === currentDept) return;
+    hydratedExtDeptRef.current = currentDept;
+    refreshExternalBookings(currentDept).catch(() => {});
+  }, [currentDept, refreshExternalBookings]);
 
   // Filter venues: for a Departmental T.O or HOD, display venues assigned to their department or shared within their parent school
   const venueList = useMemo(() => {
@@ -142,14 +154,10 @@ export default function Venues() {
     day: string,
     slot: string,
   ) {
-    if (!externalBookings || externalBookings.length === 0) return undefined;
-    const slotIdx = slots.indexOf(slot as any);
-    return externalBookings.find((b) => {
-      if (b.venue !== venueName || b.day !== day) return false;
-      const startIdx = slots.indexOf(b.slot as any);
-      const dur = b.duration ?? 1;
-      return slotIdx >= startIdx && slotIdx < startIdx + dur;
-    });
+    return findExternalBookingOverlap(
+      { venue: venueName, day, slot, duration: 1 },
+      externalBookings,
+    );
   }
 
   // Calculate statistics for selected venue using dynamic time lock configuration

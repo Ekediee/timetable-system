@@ -53,6 +53,7 @@ export type Allocation = {
   type: "Core" | "Elective" | "GST";
   group?: string; // "Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "All", or undefined for unified classes
   level?: string; // "100 Level", "200 Level", "300 Level", "400 Level"
+  programme?: string | null; // Optional sub-programme (e.g. "Information Systems", "Technology") or null
   isVirtual?: boolean; // True for online/virtual classes (e.g. GST)
 };
 
@@ -249,6 +250,7 @@ export const slots = [
 
 export type Session = {
   code: string;
+  programme?: string | null;
   lecturer: string;
   venue: string;
   day: (typeof days)[number];
@@ -649,7 +651,7 @@ export const accounts: UserAccount[] = [
     name: "Dr. A. Olumide",
     email: "olumidea@babcock.edu.ng",
     role: "hod",
-    roleLabel: "Head of Department",
+    roleLabel: "Head of Dept (Computer Science)",
     department: "Computer Science",
     school: "School of Computing",
     avatarTone: "brand",
@@ -660,7 +662,7 @@ export const accounts: UserAccount[] = [
     name: "Dr. F. Balogun ",
     email: "fabumib@babcock.edu.ng ",
     role: "hod",
-    roleLabel: "Head of Department",
+    roleLabel: "Head of Dept (Software Eng.)",
     department: "Software Engineering",
     school: "School of Computing",
     avatarTone: "brand",
@@ -788,6 +790,7 @@ export const accounts: UserAccount[] = [
 
 export type SubmissionSession = {
   code: string;
+  programme?: string | null;
   lecturer: string;
   venue: string;
   day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | string;
@@ -1141,3 +1144,69 @@ export interface DepartmentalEvent {
 }
 
 export const initialDepartmentalEvents: DepartmentalEvent[] = [];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROGRAMME FILTER HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const NO_PROGRAMME_FILTER = "__none__";
+
+/** Normalize nullable sub-programme values to trimmed strings or null. */
+export function normalizeProgramme(programme?: string | null): string | null {
+  if (typeof programme !== "string") return null;
+  const trimmed = programme.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/** Extract sorted unique non-empty sub-programme names from allocations or sessions. */
+export function extractProgrammes(
+  items: ReadonlyArray<{ programme?: string | null }>,
+): string[] {
+  const seen = new Set<string>();
+  for (const item of items) {
+    const normalized = normalizeProgramme(item.programme);
+    if (normalized) {
+      seen.add(normalized);
+    }
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b));
+}
+
+/** Build dropdown options for programme filters across timetable views. */
+export function buildProgrammeFilterOptions(
+  items: ReadonlyArray<{ programme?: string | null }>,
+): Array<{ value: string; label: string }> {
+  const programmes = extractProgrammes(items);
+  const options: Array<{ value: string; label: string }> = [
+    { value: "all", label: "All Programmes" },
+    ...programmes.map((p) => ({ value: p, label: p })),
+  ];
+  const hasNullProgramme = items.some(
+    (item) => normalizeProgramme(item.programme) === null,
+  );
+  if (programmes.length > 0 && hasNullProgramme) {
+    options.push({
+      value: NO_PROGRAMME_FILTER,
+      label: "General / Unassigned",
+    });
+  }
+  return options;
+}
+
+/** Test whether an allocation or session programme matches the active filter value. */
+export function matchesProgrammeFilter(
+  programme: string | null | undefined,
+  filter: string,
+): boolean {
+  if (!filter || filter === "all") return true;
+  const normalized = normalizeProgramme(programme);
+  if (filter === NO_PROGRAMME_FILTER) {
+    return normalized === null;
+  }
+  return normalized === filter;
+}
+
+/** Format a nullable programme for badges, tables, and exports. */
+export function formatProgrammeLabel(programme?: string | null): string {
+  return normalizeProgramme(programme) ?? "General";
+}

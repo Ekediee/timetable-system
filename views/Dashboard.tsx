@@ -162,6 +162,7 @@ export default function Dashboard(props?: {
     Promise.allSettled([
       context.refreshAllocations(deptName),
       context.refreshVenues(deptName),
+      context.refreshExternalBookings(deptName),
       context.refreshConstraints(deptName),
     ]).finally(() => {
       setIsHydrating(false);

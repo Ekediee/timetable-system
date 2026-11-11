@@ -38,6 +38,7 @@ import { useApp } from "../lib/AppContext";
 import { workflowApi } from "../lib/api";
 import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
 import ReviewRequirements from "../components/ReviewRequirements";
+import ReviewSessionsCard from "../components/ReviewSessionsCard";
 import { toast } from "../components/Toast";
 
 export default function DeanReview(props?: {
@@ -185,6 +186,11 @@ export default function DeanReview(props?: {
   const [mode, setMode] = useState<"idle" | "returning">("idle");
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"approve" | "return" | null>(null);
+  const [selectedProgramme, setSelectedProgramme] = useState<string>("all");
+
+  useEffect(() => {
+    setSelectedProgramme("all");
+  }, [selectedDept]);
 
   // Ensure selectedDept is in schoolDepartments once loaded
   useEffect(() => {
@@ -402,36 +408,15 @@ export default function DeanReview(props?: {
           </Card>
 
           {/* Sessions summary */}
-          <Card>
-            <CardHead
-              icon={<Building2 size={16} />}
-              title={`Approved sessions (${selectedDept})`}
-              sub={`${deptSessions.length} conflict-free sessions`}
-            />
-            <div className="max-h-[340px] overflow-y-auto px-2 pb-3">
-              <div className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-                <span>Code</span>
-                <span>Lecturer</span>
-                <span>Venue</span>
-                <span>Day / Time</span>
-                <span className="text-right">Status</span>
-              </div>
-              {deptSessions.slice(0, 30).map((s, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-panel/50 text-[12.5px]"
-                >
-                  <span className="font-bold text-ink">{s.code}</span>
-                  <span className="truncate text-muted">{s.lecturer}</span>
-                  <span className="truncate text-subink font-medium">{s.venue}</span>
-                  <span className="text-subink">{s.day} · {s.slot}</span>
-                  <div className="flex justify-end">
-                    <Pill tone="good">OK</Pill>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+          <ReviewSessionsCard
+            title={`Approved sessions (${selectedDept})`}
+            sessions={deptSessions}
+            maxItems={30}
+            maxHeightClass="max-h-[340px]"
+            approvedMode
+            selectedProgramme={selectedProgramme}
+            onProgrammeChange={setSelectedProgramme}
+          />
         </div>
       ) : !hasSubmission ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -520,40 +505,12 @@ export default function DeanReview(props?: {
             </Card>
 
             {/* Session summary list */}
-            <Card>
-              <CardHead
-                icon={<Building2 size={16} />}
-                title="Scheduled sessions"
-                sub={`${deptSessions.length} scheduled sessions`}
-              />
-              <div className="max-h-[460px] overflow-y-auto px-2 pb-3">
-                <div className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-                  <span>Code</span>
-                  <span>Lecturer</span>
-                  <span>Venue</span>
-                  <span>Day / Time</span>
-                  <span className="text-right">Status</span>
-                </div>
-                {deptSessions.map((s, i) => (
-                  <div
-                    key={i}
-                    className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-panel/50 text-[12.5px]"
-                  >
-                    <span className="font-bold text-ink">{s.code}</span>
-                    <span className="truncate text-muted">{s.lecturer}</span>
-                    <span className="truncate text-subink font-medium">{s.venue}</span>
-                    <span className="text-subink">{s.day} · {s.slot}</span>
-                    <div className="flex justify-end">
-                      {s.conflict ? (
-                        <Pill tone="bad">Conflict</Pill>
-                      ) : (
-                        <Pill tone="good">OK</Pill>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <ReviewSessionsCard
+              title="Scheduled sessions"
+              sessions={deptSessions}
+              selectedProgramme={selectedProgramme}
+              onProgrammeChange={setSelectedProgramme}
+            />
           </div>
 
           {/* Right: Dean action */}

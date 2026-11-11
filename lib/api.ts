@@ -443,6 +443,7 @@ export const allocationsApi = {
           allocation.code,
           allocation.level || "",
           allocation.group || "",
+          allocation.programme || "",
           allocation.lecturer,
         ].join("|");
         allocationMap.set(key, allocation);
@@ -503,6 +504,7 @@ export const timetableApi = {
 
     const sanitizedSessions = data.sessions.map((s) => ({
       code: s.code,
+      programme: s.programme ?? null,
       lecturer: s.lecturer,
       venue: s.venue,
       day: s.day,

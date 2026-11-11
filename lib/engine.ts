@@ -10,6 +10,7 @@ import {
   DynamicTimeLockConfig,
   defaultTimeLockConfig,
   ChapelSeminarScheduleItem,
+  normalizeProgramme,
 } from "./data";
 
 export type HardConflictType = "venue" | "capacity" | "lecturer" | "availability";
@@ -42,6 +43,7 @@ export interface DecomposedSession {
   duration: number; // 1 or 2 hours
   group?: string; // "Group A", "Group B", "Group C", "Group D", "All", or undefined for unified classes
   level?: string; // "100 Level", "200 Level", etc.
+  programme?: string | null;
   isVirtual?: boolean; // True for online/virtual classes
   sessionIndex: number; // 0 for primary, 1 for secondary
   totalSessionsForCourse: number;
@@ -94,6 +96,34 @@ export function doGroupsClash(group1?: string, group2?: string): boolean {
   if (g1List.includes("All") || g2List.includes("All")) return true;
 
   return g1List.some((g) => g2List.includes(g));
+}
+
+/**
+ * Checks if two sub-programmes share students within the same department/level.
+ * Main department courses (programme = null) are taken by all sub-programmes, so
+ * null clashes with every sub-programme while distinct sub-programmes do not clash with each other.
+ */
+export function doProgrammesClash(
+  prog1?: string | null,
+  prog2?: string | null
+): boolean {
+  const p1 = normalizeProgramme(prog1);
+  const p2 = normalizeProgramme(prog2);
+  if (!p1 || !p2) return true;
+  return p1.toLowerCase() === p2.toLowerCase();
+}
+
+/**
+ * Checks whether two sessions belong to conflicting student cohorts
+ * (same academic level, overlapping sub-programme, and overlapping sub-group).
+ */
+export function doSessionsCohortClash(
+  a: { level?: string; group?: string; programme?: string | null },
+  b: { level?: string; group?: string; programme?: string | null }
+): boolean {
+  if ((a.level || "") !== (b.level || "")) return false;
+  if (!doProgrammesClash(a.programme, b.programme)) return false;
+  return doGroupsClash(a.group, b.group);
 }
 
 /**
@@ -195,7 +225,7 @@ export function isCitizenshipOrientationCourse(c: {
   lecturer?: string;
   venue?: string;
 }): boolean {
-  const code = (c.code || "").toUpperCase().replace(/\s+/g, "");
+  const code = (c.code || "").toUpperCase().replace(/[\s-]+/g, "");
   const title = (c.title || "").toLowerCase();
   const lecturer = (c.lecturer || "").toLowerCase();
   const venue = (c.venue || "").toLowerCase();
@@ -209,7 +239,7 @@ export function isCitizenshipOrientationCourse(c: {
 
   return (
     code.includes("GEDS001") ||
-    code.includes("GEDS01") ||
+    /(?:^|[^A-Z0-9])GEDS01(?:$|[^0-9])/.test(code) ||
     code.includes("GST011") ||
     code.includes("GTS011") ||
     code.includes("BUGST011") ||
@@ -230,6 +260,36 @@ export function isCitizenshipOrientationCourse(c: {
     title.includes("chapel seminar") ||
     title.includes("citizenship")
   );
+}
+
+/**
+ * Determines whether a course should be scheduled as virtual/online (Virtual / LMS).
+ * All GEDS, GST, and BU-GST courses are virtual, except Chapel Seminars / Citizenship Orientation,
+ * which remain physical in the University Amphitheatre.
+ */
+export function isVirtualGeneralStudiesCourse(c: {
+  code?: string;
+  title?: string;
+  type?: string;
+  lecturer?: string;
+  venue?: string;
+  isVirtual?: boolean;
+}): boolean {
+  if (isCitizenshipOrientationCourse(c)) return false;
+  if (c.isVirtual) return true;
+  if (c.type === "GST") return true;
+  const normalizedCode = (c.code || "").trim().toUpperCase();
+  return /\b(?:BU[-\s]*)?(?:GEDS|GST)(?=[\s-\d]|$)/.test(normalizedCode);
+}
+
+/**
+ * Applies institutional virtual-mode rules to loaded course allocations.
+ */
+export function normalizeAllocationsVirtualMode(allocations: Allocation[]): Allocation[] {
+  return allocations.map((alloc) => ({
+    ...alloc,
+    isVirtual: isVirtualGeneralStudiesCourse(alloc),
+  }));
 }
 
 /**
@@ -254,7 +314,7 @@ export function getCitizenshipOrientationLevel(c: {
     }
   }
 
-  const code = (c.code || "").toUpperCase().replace(/\s+/g, "");
+  const code = (c.code || "").toUpperCase().replace(/[\s-]+/g, "");
   if (
     code.includes("011") ||
     code.includes("GEDS001") ||
@@ -373,6 +433,7 @@ export function decomposeAllocations(
           duration: scheduleItem.duration || 1,
           group: "All",
           level: lvl,
+          programme: null,
           isVirtual: false,
           sessionIndex: 0,
           totalSessionsForCourse: 1,
@@ -388,6 +449,7 @@ export function decomposeAllocations(
     }
 
     const resolvedLevel = deriveCourseLevel(alloc);
+    const resolvedProgramme = normalizeProgramme(alloc.programme);
 
     const base = {
       code: alloc.code,
@@ -398,22 +460,24 @@ export function decomposeAllocations(
       type: alloc.type,
       group: alloc.group,
       level: resolvedLevel,
-      isVirtual: alloc.isVirtual,
+      programme: resolvedProgramme,
+      isVirtual: isVirtualGeneralStudiesCourse(alloc),
     };
 
+    const progTag = resolvedProgramme ? `-${resolvedProgramme.replace(/\s+/g, "")}` : "";
     const grp = alloc.group ? alloc.group.replace(/\s+/g, "").replace(/&/g, "_") : "All";
 
     if (alloc.units === 3) {
       result.push({
         ...base,
-        id: `${alloc.code}-${grp}-s1`,
+        id: `${alloc.code}${progTag}-${grp}-s1`,
         duration: 2,
         sessionIndex: 0,
         totalSessionsForCourse: 2,
       });
       result.push({
         ...base,
-        id: `${alloc.code}-${grp}-s2`,
+        id: `${alloc.code}${progTag}-${grp}-s2`,
         duration: 1,
         sessionIndex: 1,
         totalSessionsForCourse: 2,
@@ -421,14 +485,14 @@ export function decomposeAllocations(
     } else if (alloc.units >= 4) {
       result.push({
         ...base,
-        id: `${alloc.code}-${grp}-s1`,
+        id: `${alloc.code}${progTag}-${grp}-s1`,
         duration: 2,
         sessionIndex: 0,
         totalSessionsForCourse: 2,
       });
       result.push({
         ...base,
-        id: `${alloc.code}-${grp}-s2`,
+        id: `${alloc.code}${progTag}-${grp}-s2`,
         duration: 2,
         sessionIndex: 1,
         totalSessionsForCourse: 2,
@@ -436,7 +500,7 @@ export function decomposeAllocations(
     } else if (alloc.units === 2) {
       result.push({
         ...base,
-        id: `${alloc.code}-${grp}-s1`,
+        id: `${alloc.code}${progTag}-${grp}-s1`,
         duration: 2,
         sessionIndex: 0,
         totalSessionsForCourse: 1,
@@ -444,7 +508,7 @@ export function decomposeAllocations(
     } else {
       result.push({
         ...base,
-        id: `${alloc.code}-${grp}-s1`,
+        id: `${alloc.code}${progTag}-${grp}-s1`,
         duration: 1,
         sessionIndex: 0,
         totalSessionsForCourse: 1,
@@ -677,30 +741,72 @@ export function generateTimetable(
   const violations: ConstraintViolation[] = [];
 
   // Data structure to track occupied slots: occupied[day][slotIndex][venueName] = lecturer / courseCode
+  type CohortSlotEntry = {
+    code: string;
+    level: string;
+    group?: string;
+    programme: string | null;
+  };
   const occupiedVenues: Record<string, Record<number, Record<string, string>>> = {};
   const occupiedLecturers: Record<string, Record<number, Record<string, string>>> = {};
-  const occupiedGroups: Record<string, Record<number, Record<string, string>>> = {};
+  const occupiedCohorts: Record<string, Record<number, CohortSlotEntry[]>> = {};
 
   for (const day of days) {
     occupiedVenues[day] = {};
     occupiedLecturers[day] = {};
-    occupiedGroups[day] = {};
+    occupiedCohorts[day] = {};
     for (let i = 0; i < slots.length; i++) {
       occupiedVenues[day][i] = {};
       occupiedLecturers[day][i] = {};
-      occupiedGroups[day][i] = {};
+      occupiedCohorts[day][i] = [];
     }
   }
 
-  // Pre-occupy slots booked by other departments under the same school
+  const hasCohortClash = (
+    day: (typeof days)[number],
+    startIdx: number,
+    duration: number,
+    candidate: { level?: string; group?: string; programme?: string | null }
+  ): boolean => {
+    for (let d = startIdx; d < startIdx + duration; d++) {
+      const entries = occupiedCohorts[day]?.[d];
+      if (!entries) continue;
+      if (entries.some((entry) => doSessionsCohortClash(entry, candidate))) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const recordCohortOccupancy = (
+    day: (typeof days)[number],
+    startIdx: number,
+    duration: number,
+    entry: CohortSlotEntry
+  ): void => {
+    for (let d = startIdx; d < startIdx + duration; d++) {
+      occupiedCohorts[day]?.[d]?.push(entry);
+    }
+  };
+
+  // Pre-occupy slots booked by other departments across submitted/published timetables
   if (externalBookings && externalBookings.length > 0) {
+    const venueNameByLower = new Map(
+      availableVenues.map((v) => [v.name.trim().toLowerCase(), v.name]),
+    );
     for (const eb of externalBookings) {
-      const slotIdx = slots.indexOf(eb.slot as any);
+      const normalizedSlot = (eb.slot || "").slice(0, 5);
+      const slotIdx = slots.indexOf(normalizedSlot as any);
       if (slotIdx === -1) continue;
       const dur = eb.duration || 1;
+      const rawVenue = (eb.venue || "").trim();
+      const canonicalVenue =
+        rawVenue && rawVenue !== "Virtual / LMS"
+          ? venueNameByLower.get(rawVenue.toLowerCase()) || rawVenue
+          : "";
       for (let d = slotIdx; d < slotIdx + dur && d < slots.length; d++) {
-        if (eb.venue && occupiedVenues[eb.day]?.[d]) {
-          occupiedVenues[eb.day][d][eb.venue] = `[${eb.booked_by_department}] ${eb.course_code}`;
+        if (canonicalVenue && occupiedVenues[eb.day]?.[d]) {
+          occupiedVenues[eb.day][d][canonicalVenue] = `[${eb.booked_by_department}] ${eb.course_code}`;
         }
         if (eb.lecturer && occupiedLecturers[eb.day]?.[d]) {
           occupiedLecturers[eb.day][d][eb.lecturer] = `[${eb.booked_by_department}] ${eb.course_code}`;
@@ -713,16 +819,17 @@ export function generateTimetable(
     opts?.timeLockConfig?.chapelSeminarSchedule ||
     defaultTimeLockConfig.chapelSeminarSchedule;
 
-  // Pre-occupy university-wide Citizenship Orientation & Chapel Seminar slots for all 4 academic levels (if not exempt):
-  // Configured dynamically via timeLockConfig
+  // Pre-occupy university-wide Citizenship Orientation & Chapel Seminar slots for all levels (if not exempt)
   if (!isExempt) {
     for (const [lvl, fixed] of Object.entries(chapelSchedule)) {
       const sIdx = slots.indexOf(fixed.slot as any);
-      if (sIdx !== -1 && occupiedGroups[fixed.day]?.[sIdx]) {
-        occupiedGroups[fixed.day][sIdx][`${lvl}-All`] = "Citizenship Orientation & Chapel Seminar";
-        for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-          occupiedGroups[fixed.day][sIdx][`${lvl}-${g}`] = "Citizenship Orientation & Chapel Seminar";
-        }
+      if (sIdx !== -1 && occupiedCohorts[fixed.day]) {
+        recordCohortOccupancy(fixed.day, sIdx, fixed.duration || 1, {
+          code: "Citizenship Orientation & Chapel Seminar",
+          level: lvl,
+          group: "All",
+          programme: null,
+        });
       }
     }
   }
@@ -730,7 +837,7 @@ export function generateTimetable(
   // Course day tracking to ensure 3-unit multi-sessions are placed on distinct days
   const courseScheduledDays: Record<string, Set<string>> = {};
 
-  // Sort sessions using MRV (Most Constrained Variables first, Chapel Seminar first)
+  // Sort sessions using MRV (Chapel first, then constrained lecturers, longer blocks, shared main-dept courses, larger cohorts)
   const sortedSessions = [...decomposed].sort((a, b) => {
     const aIsChapel = isCitizenshipOrientationCourse(a);
     const bIsChapel = isCitizenshipOrientationCourse(b);
@@ -744,6 +851,13 @@ export function generateTimetable(
     if (aHasConstraint && !bHasConstraint) return -1;
     if (!aHasConstraint && bHasConstraint) return 1;
     if (b.duration !== a.duration) return b.duration - a.duration;
+
+    // Shared main-department courses (programme === null) are taken by every sub-programme
+    // in the level, so placing them before specialized courses avoids squeezing out shared slots.
+    const aIsSharedDept = !normalizeProgramme(a.programme);
+    const bIsSharedDept = !normalizeProgramme(b.programme);
+    if (aIsSharedDept !== bIsSharedDept) return aIsSharedDept ? -1 : 1;
+
     return b.size - a.size;
   });
 
@@ -771,7 +885,7 @@ export function generateTimetable(
       });
     }
 
-    const courseGroupKey = `${item.code}-${item.group || "All"}`;
+    const courseGroupKey = `${item.code}-${normalizeProgramme(item.programme) || "General"}-${item.group || "All"}`;
     if (!courseScheduledDays[courseGroupKey]) {
       courseScheduledDays[courseGroupKey] = new Set();
     }
@@ -799,18 +913,19 @@ export function generateTimetable(
         if (occupiedVenues[fixed.day] && occupiedVenues[fixed.day][d]) {
           occupiedVenues[fixed.day][d][chapelVenue] = item.code;
         }
-        if (occupiedGroups[fixed.day] && occupiedGroups[fixed.day][d]) {
-          occupiedGroups[fixed.day][d][`${fixedLevel}-All`] = item.code;
-          for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-            occupiedGroups[fixed.day][d][`${fixedLevel}-${g}`] = item.code;
-          }
-        }
       }
+      recordCohortOccupancy(fixed.day, slotIdx, dur, {
+        code: item.code,
+        level: fixedLevel,
+        group: item.group || "All",
+        programme: null,
+      });
 
       courseScheduledDays[courseGroupKey].add(fixed.day);
 
       scheduledSessions.push({
         code: item.code,
+        programme: item.programme ?? null,
         lecturer: item.lecturer,
         venue: chapelVenue,
         day: fixed.day,
@@ -885,56 +1000,36 @@ export function generateTimetable(
           }
           if (lecturerClash) continue;
 
-          // 4. Student Group / Cohort non-overlap check
-          const itemLevel = item.level || "200 Level";
-          const itemGroups = extractSubgroups(item.group);
-          const isUnified = itemGroups.includes("All");
-          let groupClash = false;
-          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-            const occ = occupiedGroups[day][d];
-            const allKey = `${itemLevel}-All`;
-            if (occ[allKey]) {
-              groupClash = true;
-              break;
-            }
-            if (isUnified) {
-              // Whole-cohort class: cannot overlap with ANY session of the same level
-              const levelPrefix = `${itemLevel}-`;
-              if (Object.keys(occ).some((k) => k.startsWith(levelPrefix))) {
-                groupClash = true;
-                break;
-              }
-            } else {
-              // Specific sub-group(s): cannot overlap if ANY constituent group is occupied
-              if (itemGroups.some((g) => occ[`${itemLevel}-${g}`])) {
-                groupClash = true;
-                break;
-              }
-            }
+          // 4. Student Cohort / Sub-programme / Sub-group non-overlap check
+          const itemLevel = item.level || deriveCourseLevel(item);
+          const itemProgramme = normalizeProgramme(item.programme);
+          if (
+            hasCohortClash(day, slotIdx, item.duration, {
+              level: itemLevel,
+              group: item.group,
+              programme: itemProgramme,
+            })
+          ) {
+            continue;
           }
-          if (groupClash) continue;
 
           // 5. Virtual venue assignment or candidate physical venue selection
           if (item.isVirtual) {
             for (let d = slotIdx; d < slotIdx + item.duration; d++) {
               occupiedLecturers[day][d][item.lecturer] = item.code;
-              if (isUnified) {
-                occupiedGroups[day][d][`${itemLevel}-All`] = item.code;
-                for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
-                }
-              } else {
-                for (const g of itemGroups) {
-                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
-                }
-                occupiedGroups[day][d][`${itemLevel}-${item.group}`] = item.code;
-              }
             }
+            recordCohortOccupancy(day, slotIdx, item.duration, {
+              code: item.code,
+              level: itemLevel,
+              group: item.group,
+              programme: itemProgramme,
+            });
 
             courseScheduledDays[courseGroupKey].add(day);
 
             scheduledSessions.push({
               code: item.code,
+              programme: item.programme ?? null,
               lecturer: item.lecturer,
               venue: "Virtual / LMS",
               day,
@@ -968,23 +1063,19 @@ export function generateTimetable(
             for (let d = slotIdx; d < slotIdx + item.duration; d++) {
               occupiedVenues[day][d][venue.name] = item.code;
               occupiedLecturers[day][d][item.lecturer] = item.code;
-              if (isUnified) {
-                occupiedGroups[day][d][`${itemLevel}-All`] = item.code;
-                for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
-                }
-              } else {
-                for (const g of itemGroups) {
-                  occupiedGroups[day][d][`${itemLevel}-${g}`] = item.code;
-                }
-                occupiedGroups[day][d][`${itemLevel}-${item.group}`] = item.code;
-              }
             }
+            recordCohortOccupancy(day, slotIdx, item.duration, {
+              code: item.code,
+              level: itemLevel,
+              group: item.group,
+              programme: itemProgramme,
+            });
 
             courseScheduledDays[courseGroupKey].add(day);
 
             scheduledSessions.push({
               code: item.code,
+              programme: item.programme ?? null,
               lecturer: item.lecturer,
               venue: venue.name,
               day,
@@ -1005,9 +1096,8 @@ export function generateTimetable(
     // Fallback: If strict CSP couldn't assign without conflict, assign to best slot preventing lecturer double-booking
     if (!assigned) {
       let fallbackCandidate: { day: (typeof days)[number]; slotIdx: number; venueName: string } | null = null;
-      const itemLevel = item.level || "200 Level";
-      const itemGroups = extractSubgroups(item.group);
-      const isUnified = itemGroups.includes("All");
+      const itemLevel = item.level || deriveCourseLevel(item);
+      const itemProgramme = normalizeProgramme(item.programme);
 
       // Tier 1 Search: Free lecturer + free cohort (only venue is overloaded)
       for (const day of days) {
@@ -1033,27 +1123,16 @@ export function generateTimetable(
           }
           if (lecturerClash) continue;
 
-          // Check cohort collision
-          let cohortClash = false;
-          for (let d = slotIdx; d < slotIdx + item.duration; d++) {
-            const occ = occupiedGroups[day][d];
-            if (occ[`${itemLevel}-All`]) {
-              cohortClash = true;
-              break;
-            }
-            if (isUnified) {
-              if (Object.keys(occ).some((k) => k.startsWith(`${itemLevel}-`))) {
-                cohortClash = true;
-                break;
-              }
-            } else {
-              if (itemGroups.some((g) => occ[`${itemLevel}-${g}`])) {
-                cohortClash = true;
-                break;
-              }
-            }
+          // Check cohort collision (respecting sub-programme vs main department courses)
+          if (
+            hasCohortClash(day, slotIdx, item.duration, {
+              level: itemLevel,
+              group: item.group,
+              programme: itemProgramme,
+            })
+          ) {
+            continue;
           }
-          if (cohortClash) continue;
 
           const v = validVenues.find((ven) => !ven.isVirtual && ven.capacity >= item.size) || validVenues[0];
           fallbackCandidate = {
@@ -1068,6 +1147,7 @@ export function generateTimetable(
       if (fallbackCandidate) {
         scheduledSessions.push({
           code: item.code,
+          programme: item.programme ?? null,
           lecturer: item.lecturer,
           venue: fallbackCandidate.venueName,
           day: fallbackCandidate.day,
@@ -1079,22 +1159,14 @@ export function generateTimetable(
         });
         const assignedDay = fallbackCandidate.day;
         const assignedSlotIdx = fallbackCandidate.slotIdx;
-        const assignedVenue = fallbackCandidate.venueName;
 
+        recordCohortOccupancy(assignedDay, assignedSlotIdx, item.duration, {
+          code: item.code,
+          level: itemLevel,
+          group: item.group,
+          programme: itemProgramme,
+        });
         for (let d = assignedSlotIdx; d < assignedSlotIdx + item.duration; d++) {
-          if (occupiedGroups[assignedDay] && occupiedGroups[assignedDay][d]) {
-            if (isUnified) {
-              occupiedGroups[assignedDay][d][`${itemLevel}-All`] = item.code;
-              for (const g of ["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Direct Entry"]) {
-                occupiedGroups[assignedDay][d][`${itemLevel}-${g}`] = item.code;
-              }
-            } else {
-              for (const g of itemGroups) {
-                occupiedGroups[assignedDay][d][`${itemLevel}-${g}`] = item.code;
-              }
-              occupiedGroups[assignedDay][d][`${itemLevel}-${item.group}`] = item.code;
-            }
-          }
           if (occupiedLecturers[assignedDay] && occupiedLecturers[assignedDay][d]) {
             occupiedLecturers[assignedDay][d][item.lecturer] = item.code;
           }
@@ -1144,6 +1216,58 @@ export interface LiveConflict {
   type: HardConflictType;
   title: string;
   description: string;
+}
+
+/**
+ * Finds the first locked external department booking that overlaps a candidate session's
+ * physical venue, day, and time window (excluding equivalent Chapel Seminar sessions).
+ */
+export function findExternalBookingOverlap(
+  session: {
+    code?: string;
+    venue?: string;
+    day?: string;
+    slot?: string;
+    duration?: number;
+    level?: string;
+    lecturer?: string;
+    isVirtual?: boolean;
+  },
+  externalBookings?: ExternalBooking[]
+): ExternalBooking | undefined {
+  if (!externalBookings || externalBookings.length === 0) return undefined;
+  if (!session.venue || session.isVirtual || session.venue === "Virtual / LMS") {
+    return undefined;
+  }
+
+  const slotIdx = slots.indexOf((session.slot || "").slice(0, 5) as (typeof slots)[number]);
+  if (slotIdx === -1) return undefined;
+
+  const thisEnd = slotIdx + (session.duration ?? 1);
+  const targetVenue = session.venue.trim().toLowerCase();
+  const targetDay = (session.day || "").trim();
+
+  return externalBookings.find((eb) => {
+    if ((eb.venue || "").trim().toLowerCase() !== targetVenue) return false;
+    if ((eb.day || "").trim() !== targetDay) return false;
+    if (
+      session.code &&
+      isEquivalentOrientationSession(session, {
+        code: eb.course_code,
+        day: eb.day,
+        slot: eb.slot,
+        lecturer: eb.lecturer,
+        venue: eb.venue,
+      })
+    ) {
+      return false;
+    }
+
+    const ebStart = slots.indexOf((eb.slot || "").slice(0, 5) as (typeof slots)[number]);
+    if (ebStart === -1) return false;
+    const ebEnd = ebStart + (eb.duration ?? 1);
+    return slotIdx < ebEnd && ebStart < thisEnd;
+  });
 }
 
 /**
@@ -1304,7 +1428,11 @@ export function validateLiveSessions(
 
     // 3. Physical venue capacity check
     if (!conflictType && !s.isVirtual && s.venue !== "Virtual / LMS" && !isOrientation) {
-      const alloc = allAllocations.find((a) => a.code === s.code);
+      const sessionProg = normalizeProgramme(s.programme);
+      const alloc =
+        allAllocations.find(
+          (a) => a.code === s.code && normalizeProgramme(a.programme) === sessionProg
+        ) || allAllocations.find((a) => a.code === s.code);
       const v = allVenues.find((ven) => ven.name === s.venue);
       if (alloc && v && !("isVirtual" in v && v.isVirtual) && alloc.size > v.capacity) {
         conflictType = "capacity";
@@ -1337,29 +1465,11 @@ export function validateLiveSessions(
 
       // Cross-department external venue booking check
       if (!conflictType && externalBookings && externalBookings.length > 0) {
-        for (const eb of externalBookings) {
-          if (eb.venue === s.venue && eb.day === s.day) {
-            if (
-              isEquivalentOrientationSession(s, {
-                code: eb.course_code,
-                day: eb.day,
-                slot: eb.slot,
-                lecturer: eb.lecturer,
-                venue: eb.venue,
-              })
-            )
-              continue;
-            const ebStart = slots.indexOf(eb.slot as any);
-            const ebDur = eb.duration ?? 1;
-            const ebEnd = ebStart + ebDur;
-            const thisEnd = slotIdx + dur;
-            if (slotIdx < ebEnd && ebStart < thisEnd) {
-              conflictType = "venue";
-              conflictTitle = "Room Reserved by Another Department";
-              conflictDesc = `${s.venue} is reserved by ${eb.booked_by_department} for ${eb.course_code} (${eb.lecturer}) on ${s.day} ${eb.slot}.`;
-              break;
-            }
-          }
+        const eb = findExternalBookingOverlap(s, externalBookings);
+        if (eb) {
+          conflictType = "venue";
+          conflictTitle = "Room Reserved by Another Department";
+          conflictDesc = `${s.venue} is reserved by ${eb.booked_by_department} for ${eb.course_code} (${eb.lecturer}) on ${s.day} ${eb.slot}.`;
         }
       }
     }
@@ -1414,17 +1524,15 @@ export function validateLiveSessions(
       }
     }
 
-    // 6. Cohort / Sub-group clash check
+    // 6. Cohort / Sub-programme / Sub-group clash check
     if (!conflictType && s.level) {
       for (let j = 0; j < updatedSessions.length; j++) {
         if (i === j) continue;
         const other = updatedSessions[j];
-        if (other.level === s.level && other.day === s.day) {
+        if (other.day === s.day) {
           // Equivalent orientation sessions share the Amphitheatre without clash
           if (isEquivalentOrientationSession(s, other)) continue;
-          const groupClash = doGroupsClash(s.group, other.group);
-
-          if (groupClash) {
+          if (doSessionsCohortClash(s, other)) {
             const otherStart = slots.indexOf(other.slot as any);
             const otherDur = other.duration ?? 1;
             const otherEnd = otherStart + otherDur;

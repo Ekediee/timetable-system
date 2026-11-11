@@ -163,16 +163,24 @@ export function Select({
   );
 }
 
+export interface CustomSelectProps
+  extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  /** Horizontal menu anchor relative to the trigger when width is auto-sized. */
+  align?: "left" | "right";
+}
+
 export function CustomSelect({
   children,
   className = "",
+  align = "left",
   value,
   onChange,
   disabled,
   id,
   name,
   ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement>) {
+}: CustomSelectProps) {
+  const isFullWidth = /\bw-full\b/.test(className);
   const [open, setOpen] = React.useState(false);
   const [highlightedIndex, setHighlightedIndex] = React.useState(0);
   const rootRef = React.useRef<HTMLDivElement>(null);
@@ -247,7 +255,10 @@ export function CustomSelect({
   }
 
   return (
-    <div ref={rootRef} className="custom-select relative w-full">
+    <div
+      ref={rootRef}
+      className={`custom-select relative ${isFullWidth ? "w-full" : "w-auto max-w-full shrink-0"}`}
+    >
       <select
         {...props}
         id={id}
@@ -283,7 +294,11 @@ export function CustomSelect({
         <div
           id={id ? `${id}-options` : undefined}
           role="listbox"
-          className="custom-select-menu absolute left-0 right-0 top-[calc(100%+0.45rem)] z-[70] max-h-64 overflow-y-auto p-1.5"
+          className={`custom-select-menu absolute top-[calc(100%+0.45rem)] z-[70] max-h-64 overflow-y-auto p-1.5 ${
+            isFullWidth
+              ? "left-0 right-0"
+              : `${align === "right" ? "right-0" : "left-0"} min-w-full w-max max-w-[min(320px,85vw)]`
+          }`}
         >
           {options.map((option, index) => {
             const optionValue = String(option.props.value ?? "");

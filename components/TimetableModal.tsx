@@ -27,13 +27,21 @@ import {
   type Session,
   slots as defaultSlots,
   days as defaultDays,
+  buildProgrammeFilterOptions,
+  formatProgrammeLabel,
+  matchesProgrammeFilter,
+  NO_PROGRAMME_FILTER,
 } from "../lib/data";
 import { extractSubgroups } from "../lib/engine";
 import { exportToCsv, printTimetablePdf } from "../lib/export";
 import { Pill, Button, CustomSelect } from "./ui";
+import ProgrammeFilterSelect from "./ProgrammeFilterSelect";
 
 const DAYS = defaultDays;
 const SLOTS = defaultSlots;
+
+const FILTER_SELECT_CLASS =
+  "h-8.5 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition";
 
 const conflictLabel: Record<string, string> = {
   venue: "Room Double-Booked",
@@ -53,17 +61,33 @@ function getConflictLabel(conflict: any): string {
 export function exportTimetable(
   sub: DeptSubmission,
   format: "csv" | "pdf" = "csv",
+  programmeFilter: string = "all",
 ) {
+  const sessions =
+    programmeFilter === "all"
+      ? sub.sessions
+      : sub.sessions.filter((s) =>
+          matchesProgrammeFilter(s.programme, programmeFilter),
+        );
+  const programmeLabel =
+    programmeFilter === "all"
+      ? undefined
+      : programmeFilter === NO_PROGRAMME_FILTER
+        ? "General / Unassigned"
+        : programmeFilter;
+
   if (format === "csv") {
-    exportToCsv(sub.sessions, {
+    exportToCsv(sessions, {
       department: sub.department,
+      programme: programmeLabel,
       level: sub.level,
       semester: sub.semester,
       status: sub.status,
     });
   } else {
-    printTimetablePdf(sub.sessions, {
+    printTimetablePdf(sessions, {
       department: sub.department,
+      programme: programmeLabel,
       level: sub.level,
       semester: sub.semester,
       status: sub.status,
@@ -113,12 +137,17 @@ export default function TimetableModal({
     "normal",
   );
 
+  const [selectedProgramme, setSelectedProgramme] = useState<string>("all");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [selectedLecturer, setSelectedLecturer] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
   const [selectedDay, setSelectedDay] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
+
+  useEffect(() => {
+    setSelectedProgramme("all");
+  }, [sub.id]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -208,6 +237,11 @@ export default function TimetableModal({
     return Array.from(set).sort();
   }, [rawSessions]);
 
+  const programmeOptions = useMemo(
+    () => buildProgrammeFilterOptions(rawSessions),
+    [rawSessions],
+  );
+
   const allGroups = useMemo(() => {
     const set = new Set<string>();
     rawSessions.forEach((s) => {
@@ -221,6 +255,10 @@ export default function TimetableModal({
   // Filtered Sessions
   const filteredSessions = useMemo(() => {
     return rawSessions.filter((s) => {
+      if (!matchesProgrammeFilter(s.programme, selectedProgramme)) {
+        return false;
+      }
+
       if (selectedLevel !== "all") {
         const sLevel = (s.level || "").toLowerCase();
         const target = selectedLevel.toLowerCase();
@@ -249,12 +287,14 @@ export default function TimetableModal({
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         const code = (s.code || "").toLowerCase();
+        const prog = (s.programme || "").toLowerCase();
         const lec = (s.lecturer || "").toLowerCase();
         const ven = (s.venue || "").toLowerCase();
         const grp = (s.group || "").toLowerCase();
         const lvl = (s.level || "").toLowerCase();
         if (
           !code.includes(q) &&
+          !prog.includes(q) &&
           !lec.includes(q) &&
           !ven.includes(q) &&
           !grp.includes(q) &&
@@ -268,6 +308,7 @@ export default function TimetableModal({
     });
   }, [
     rawSessions,
+    selectedProgramme,
     selectedLevel,
     selectedGroup,
     selectedLecturer,
@@ -277,6 +318,7 @@ export default function TimetableModal({
   ]);
 
   const isFilteringActive =
+    selectedProgramme !== "all" ||
     selectedLevel !== "all" ||
     selectedGroup !== "all" ||
     selectedLecturer !== "all" ||
@@ -285,6 +327,7 @@ export default function TimetableModal({
     search.trim() !== "";
 
   function resetFilters() {
+    setSelectedProgramme("all");
     setSelectedLevel("all");
     setSelectedGroup("all");
     setSelectedLecturer("all");
@@ -363,7 +406,7 @@ export default function TimetableModal({
                 <div className="dropdown-surface absolute right-0 z-50 mt-1 w-44 py-1">
                   <button
                     onClick={() => {
-                      exportTimetable(sub, "csv");
+                      exportTimetable(sub, "csv", selectedProgramme);
                       setShowExportMenu(false);
                     }}
                     className="dropdown-item flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-ink transition cursor-pointer"
@@ -373,7 +416,7 @@ export default function TimetableModal({
                   </button>
                   <button
                     onClick={() => {
-                      exportTimetable(sub, "pdf");
+                      exportTimetable(sub, "pdf", selectedProgramme);
                       setShowExportMenu(false);
                     }}
                     className="dropdown-item flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-ink transition cursor-pointer"
@@ -503,15 +546,21 @@ export default function TimetableModal({
             </div>
           </div>
 
-          {/* Sub-Filters: Level, Group, Lecturer, Course, Day */}
+          {/* Sub-Filters: Programme, Level, Group, Lecturer, Course, Day */}
           <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <ProgrammeFilterSelect
+                value={selectedProgramme}
+                onChange={setSelectedProgramme}
+                options={programmeOptions}
+                className={FILTER_SELECT_CLASS}
+              />
               {perspective === "cohort" && (
                 <>
                   <CustomSelect
                     value={selectedLevel}
                     onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="h-8 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                    className={FILTER_SELECT_CLASS}
                   >
                     <option value="all">All Levels</option>
                     {allLevels.length > 0
@@ -536,7 +585,7 @@ export default function TimetableModal({
                   <CustomSelect
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
-                    className="h-8 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                    className={FILTER_SELECT_CLASS}
                   >
                     <option value="all">All Sub-groups</option>
                     {allGroups.map((g) => (
@@ -550,13 +599,13 @@ export default function TimetableModal({
 
               {perspective === "lecturer" && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11.5px] font-medium text-muted">
+                  <span className="text-[11.5px] font-medium text-muted shrink-0">
                     Lecturer:
                   </span>
                   <CustomSelect
                     value={selectedLecturer}
                     onChange={(e) => setSelectedLecturer(e.target.value)}
-                    className="h-8 max-w-[240px] rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                    className={`max-w-[240px] ${FILTER_SELECT_CLASS}`}
                   >
                     <option value="all">
                       All Department Lecturers ({allLecturers.length})
@@ -572,13 +621,13 @@ export default function TimetableModal({
 
               {perspective === "course" && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11.5px] font-medium text-muted">
+                  <span className="text-[11.5px] font-medium text-muted shrink-0">
                     Course:
                   </span>
                   <CustomSelect
                     value={selectedCourse}
                     onChange={(e) => setSelectedCourse(e.target.value)}
-                    className="h-8 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                    className={FILTER_SELECT_CLASS}
                   >
                     <option value="all">
                       All Courses ({allCourseCodes.length})
@@ -595,7 +644,7 @@ export default function TimetableModal({
               <CustomSelect
                 value={selectedDay}
                 onChange={(e) => setSelectedDay(e.target.value)}
-                className="h-8 rounded-xl border border-line bg-card px-3 text-[12px] font-medium text-subink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
+                className={FILTER_SELECT_CLASS}
               >
                 <option value="all">All Days</option>
                 {DAYS.map((d) => (
@@ -608,14 +657,14 @@ export default function TimetableModal({
               {isFilteringActive && (
                 <button
                   onClick={resetFilters}
-                  className="flex items-center gap-1 rounded-lg border border-line bg-panel px-2 py-1 text-[11px] font-semibold text-muted hover:text-ink transition cursor-pointer"
+                  className="flex h-8.5 items-center gap-1 rounded-xl border border-line bg-panel px-2.5 text-[11.5px] font-semibold text-muted hover:text-ink transition cursor-pointer shrink-0"
                 >
                   <RotateCcw size={11} /> Reset filters
                 </button>
               )}
             </div>
 
-            <p className="text-[11.5px] text-muted">
+            <p className="text-[11.5px] text-muted shrink-0">
               Showing <b className="text-ink">{filteredSessions.length}</b> of{" "}
               {rawSessions.length} sessions
             </p>
@@ -723,6 +772,15 @@ export default function TimetableModal({
                                   </span>
                                 )}
 
+                                {it.programme && (
+                                  <p
+                                    title={it.programme}
+                                    className="mt-0.5 truncate text-[10px] font-semibold text-brand-ink/80"
+                                  >
+                                    {it.programme}
+                                  </p>
+                                )}
+
                                 {!isCompact && (
                                   <div className="mt-1 flex items-center gap-1 text-[11px] text-muted">
                                     <Building2
@@ -766,6 +824,7 @@ export default function TimetableModal({
                   <tr className="border-b border-line bg-panel/60 text-[11px] font-bold uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">Day & Time</th>
                     <th className="px-4 py-3">Level & Group</th>
+                    <th className="px-4 py-3">Programme</th>
                     <th className="px-4 py-3">Course Code</th>
                     <th className="px-4 py-3">Lecturer</th>
                     <th className="px-4 py-3">Venue</th>
@@ -795,6 +854,9 @@ export default function TimetableModal({
                               {s.group || "All"}
                             </span>
                           </div>
+                        </td>
+                        <td className="px-4 py-2.5 text-[12px] font-medium text-subink">
+                          {formatProgrammeLabel(s.programme)}
                         </td>
                         <td className="px-4 py-2.5 font-bold text-brand">
                           {s.code}

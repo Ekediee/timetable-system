@@ -22,6 +22,7 @@ import {
   BarChart2,
   X,
   ShieldCheck,
+  User,
 } from "lucide-react";
 import { type UserAccount, type UserRole } from "../lib/data";
 
@@ -202,14 +203,14 @@ export default function Sidebar({
         <div className="border-t border-line">
           <div className="flex items-center gap-3 px-4 py-3.5">
             <div
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full
                 ${currentUser.avatarTone === "violet" ? "bg-violet-soft text-violet" : ""}
                 ${currentUser.avatarTone === "brand" ? "bg-brand-soft text-brand-ink" : ""}
                 ${currentUser.avatarTone === "good" ? "bg-good-soft text-good" : ""}
                 ${currentUser.avatarTone === "warn" ? "bg-warn-soft text-warn" : ""}
               `}
             >
-              {currentUser.initials}
+              <User size={16} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-1 truncate text-[13px] font-semibold text-ink">

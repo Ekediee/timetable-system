@@ -38,7 +38,6 @@ import {
   Trash2,
   CalendarDays,
   PartyPopper,
-  Settings2,
   ToggleLeft,
   ToggleRight,
   Info,
@@ -57,6 +56,10 @@ import {
   slots,
   defaultTimeLockConfig,
   isVenueAccessibleToDepartment,
+  buildProgrammeFilterOptions,
+  formatProgrammeLabel,
+  matchesProgrammeFilter,
+  NO_PROGRAMME_FILTER,
   type Session,
   type Status,
   type TimelineStep,
@@ -70,6 +73,8 @@ import {
   isLecturerAvailableForSlot,
   extractSubgroups,
   isCitizenshipOrientationCourse,
+  doSessionsCohortClash,
+  findExternalBookingOverlap,
   type LiveConflict,
 } from "../lib/engine";
 import { workflowApi } from "../lib/api";
@@ -77,9 +82,10 @@ import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
 import type { View } from "../components/Sidebar";
 import { useRouter } from "next/navigation";
 import { useApp } from "../lib/AppContext";
-import { exportToCsv, printTimetablePdf } from "../lib/export";
+import { exportTimetable } from "../lib/export";
 import type { EngineWorkerResponse } from "../lib/engine.worker";
 import TimetableGrid from "../components/TimetableGrid";
+import ProgrammeFilterSelect from "../components/ProgrammeFilterSelect";
 
 const conflictLabel: Record<string, string> = {
   venue: "Room Double-Booked",
@@ -199,7 +205,6 @@ export default function Generate(props?: {
     }
     return raw;
   }, [context.localVenues, context.currentUser?.role, currentDept]);
-  const isAcadPlanningTO = context.currentUser?.role === "acadPlanningTO";
 
   // Screen flow: "snapshot" (Constraints & Setup screen) -> "generated" (Current Timetable screen)
   // By default, current timetable is the main screen if sessions exist; otherwise show constraints screen
@@ -215,11 +220,16 @@ export default function Generate(props?: {
   >("cohort");
 
   // Filter States
+  const [selectedProgramme, setSelectedProgramme] = useState<string>("all");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [selectedLecturer, setSelectedLecturer] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
   const [courseSearch, setCourseSearch] = useState<string>("");
+
+  useEffect(() => {
+    setSelectedProgramme("all");
+  }, [currentDept]);
 
   // Mode: Cards vs Calendar Grid vs Table List
   const [mode, setMode] = useState<"cards" | "grid" | "list">("grid");
@@ -296,6 +306,9 @@ export default function Generate(props?: {
     };
   }, [hasPendingEdits]);
 
+  const extHydratedDeptRef = useRef<string>("");
+  const generationRunIdRef = useRef<number>(0);
+
   useEffect(() => {
     if (
       context.currentUser?.department &&
@@ -310,6 +323,13 @@ export default function Generate(props?: {
     context.isLoadingBackend,
     context.refreshAllocations,
   ]);
+
+  useEffect(() => {
+    const activeDept = context.currentUser?.department || context.currentProgram || "";
+    if (!activeDept || extHydratedDeptRef.current === activeDept) return;
+    extHydratedDeptRef.current = activeDept;
+    context.refreshExternalBookings(activeDept).catch(() => {});
+  }, [context.currentUser?.department, context.currentProgram, context.refreshExternalBookings]);
   const [highlightCell, setHighlightCell] = useState<{
     day: string;
     slot: string;
@@ -444,9 +464,15 @@ export default function Generate(props?: {
     return Array.from(set).sort();
   }, [allocations]);
 
+  const programmeOptions = useMemo(
+    () => buildProgrammeFilterOptions([...allocations, ...validatedSessions]),
+    [allocations, validatedSessions],
+  );
+
   // Filtered Sessions for Cohort view
   const cohortFilteredSessions = useMemo(() => {
     return validatedSessions.filter((s) => {
+      if (!matchesProgrammeFilter(s.programme, selectedProgramme)) return false;
       if (selectedLevel !== "all" && s.level && s.level !== selectedLevel)
         return false;
       if (selectedGroup !== "all") {
@@ -457,16 +483,17 @@ export default function Generate(props?: {
       }
       return true;
     });
-  }, [validatedSessions, selectedLevel, selectedGroup]);
+  }, [validatedSessions, selectedProgramme, selectedLevel, selectedGroup]);
 
   // Filtered Sessions for Lecturer view
   const lecturerFilteredSessions = useMemo(() => {
     return validatedSessions.filter((s) => {
+      if (!matchesProgrammeFilter(s.programme, selectedProgramme)) return false;
       if (selectedLecturer !== "all" && s.lecturer !== selectedLecturer)
         return false;
       return true;
     });
-  }, [validatedSessions, selectedLecturer]);
+  }, [validatedSessions, selectedProgramme, selectedLecturer]);
 
   useEffect(() => {
     if (tableContainerRef.current) {
@@ -477,18 +504,20 @@ export default function Generate(props?: {
   // Filtered Course allocations for Course view
   const courseFilteredAllocations = useMemo(() => {
     return allocations.filter((a) => {
+      if (!matchesProgrammeFilter(a.programme, selectedProgramme)) return false;
       if (selectedCourse !== "all" && a.code !== selectedCourse) return false;
       if (courseSearch.trim()) {
         const q = courseSearch.toLowerCase();
         return (
           a.code.toLowerCase().includes(q) ||
           a.title.toLowerCase().includes(q) ||
-          a.lecturer.toLowerCase().includes(q)
+          a.lecturer.toLowerCase().includes(q) ||
+          (a.programme || "").toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [allocations, selectedCourse, courseSearch]);
+  }, [allocations, selectedProgramme, selectedCourse, courseSearch]);
 
   // Highly optimized O(1) Grid Cell Lookup
   const cellMap = useMemo(() => {
@@ -536,11 +565,13 @@ export default function Generate(props?: {
     const targetSession = localSessions[editingSessionIndex];
     if (!targetSession) return { hasConflict: false, message: "" };
 
+    const selectedVenueObj = venues.find((v) => v.name === editVenue);
     const hypothetical: Session = {
       ...targetSession,
       day: editDay,
       slot: editSlot,
       venue: editVenue,
+      isVirtual: editVenue === "Virtual / LMS" || Boolean(selectedVenueObj?.isVirtual),
     };
 
     const copy = [...localSessions];
@@ -588,6 +619,7 @@ export default function Generate(props?: {
   // ACTIONS
   // ───────────────────────────────────────────────────────────────────────────
   function handleCancelGeneration() {
+    generationRunIdRef.current += 1;
     if (workerRef.current) {
       workerRef.current.terminate();
       workerRef.current = null;
@@ -598,12 +630,26 @@ export default function Generate(props?: {
     setTimeout(() => setToastMessage(null), 3500);
   }
 
-  function startEngineGeneration(isInitial: boolean) {
+  async function startEngineGeneration(isInitial: boolean) {
+    const runId = ++generationRunIdRef.current;
     setIsRegenerating(true);
     setHighlightCell(null);
     setGenerationProgress({
+      stage: "Checking locked external venue bookings...",
+      percent: 5,
+    });
+
+    const activeDept = context.currentProgram || context.currentUser?.department || "";
+    const latestExternalBookings = await context.refreshExternalBookings(
+      activeDept || undefined,
+    );
+    if (generationRunIdRef.current !== runId) {
+      return;
+    }
+
+    setGenerationProgress({
       stage: "Initializing timetable engine...",
-      percent: 0,
+      percent: 10,
     });
 
     const onGenerationComplete = (sessions: Session[]) => {
@@ -636,7 +682,7 @@ export default function Generate(props?: {
             context.localConstraints,
             context.currentProgram,
             {
-              externalBookings: context.externalBookings,
+              externalBookings: latestExternalBookings,
               timeLockConfig: context.timeLockConfig,
               onProgress: (p) => setGenerationProgress(p),
             }
@@ -697,7 +743,7 @@ export default function Generate(props?: {
             activeConstraints: context.localConstraints,
             departmentName: context.currentProgram,
             options: {
-              externalBookings: context.externalBookings,
+              externalBookings: latestExternalBookings,
               timeLockConfig: context.timeLockConfig,
             },
           },
@@ -758,11 +804,13 @@ export default function Generate(props?: {
     if (editingSessionIndex === null) return;
     const copy = [...localSessions];
     const s = copy[editingSessionIndex];
+    const selectedVenueObj = venues.find((v) => v.name === editVenue);
     copy[editingSessionIndex] = {
       ...s,
       day: editDay,
       slot: editSlot,
       venue: editVenue,
+      isVirtual: editVenue === "Virtual / LMS" || Boolean(selectedVenueObj?.isVirtual),
     };
     setHasPendingEdits(true);
     setLocalSessions(copy);
@@ -918,6 +966,28 @@ export default function Generate(props?: {
         };
       }
 
+      // 6b. Check locked external venue bookings (submitted/published by other departments)
+      const extVenueLock = findExternalBookingOverlap(
+        {
+          code: session.code,
+          venue: session.venue,
+          day: targetDay,
+          slot: targetSlot,
+          duration: session.duration ?? 1,
+          level: session.level,
+          lecturer: session.lecturer,
+          isVirtual: session.isVirtual,
+        },
+        context.externalBookings,
+      );
+      if (extVenueLock) {
+        return {
+          allowed: true,
+          status: "warning",
+          reason: `${session.venue} locked by ${extVenueLock.booked_by_department} (${extVenueLock.course_code})`,
+        };
+      }
+
       // 7. Check existing sessions in target slot
       const targetSessions = cell(targetDay, targetSlot).filter(
         (s) =>
@@ -931,14 +1001,8 @@ export default function Generate(props?: {
 
       if (targetSessions.length > 0) {
         // Find existing session of the same cohort (eligible for smart SWAP)
-        const sameCohortSession = targetSessions.find(
-          (s) =>
-            (s.level === session.level || (!s.level && !session.level)) &&
-            (s.group === session.group ||
-              !s.group ||
-              !session.group ||
-              s.group === "All" ||
-              session.group === "All")
+        const sameCohortSession = targetSessions.find((s) =>
+          doSessionsCohortClash(s, session),
         );
 
         if (sameCohortSession) {
@@ -973,7 +1037,7 @@ export default function Generate(props?: {
         reason: "Available & clash-free",
       };
     },
-    [context.timeLockConfig, localConstraints, cell]
+    [context.timeLockConfig, context.externalBookings, localConstraints, cell]
   );
 
   // Precomputed feasibility for the current hover target (computed ONCE per target change)
@@ -1393,6 +1457,28 @@ export default function Generate(props?: {
     }
     setIsSubmittingToHod(true);
     try {
+      // Re-verify against latest locked external venue bookings right before HOD submission
+      const latestExt = await context.refreshExternalBookings(activeDept);
+      const freshValidation = validateLiveSessions(
+        localSessions,
+        allocations,
+        venues,
+        localConstraints,
+        latestExt,
+        {
+          departmentName: activeDept,
+          timeLockConfig: context.timeLockConfig,
+        },
+      );
+      if (freshValidation.conflicts.length > 0) {
+        const firstConflict = freshValidation.conflicts[0];
+        setSubmitModal(false);
+        setHighlightCell({ day: firstConflict.day, slot: firstConflict.slot });
+        setToastMessage(`Cannot submit to HOD: ${firstConflict.description}`);
+        setTimeout(() => setToastMessage(null), 6000);
+        return;
+      }
+
       // Persist the latest sessions as a draft. The workflow endpoint below
       // is the single operation that submits to HOD.
       await context.saveTimetableDraft("Draft generated", localSessions, activeDept);
@@ -1438,11 +1524,28 @@ export default function Generate(props?: {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // SCREEN 1: PRE-GENERATION SNAPSHOT SCREEN
+  // SCREEN 1: PRE-GENERATION SNAPSHOT SCREEN (CONCISE READINESS PREVIEW)
   // ───────────────────────────────────────────────────────────────────────────
   if (screenMode === "snapshot") {
+    const timeLocks = context.timeLockConfig || defaultTimeLockConfig;
+    const opWin = timeLocks.operatingWindow || defaultTimeLockConfig.operatingWindow;
+    const lunch = timeLocks.lunchBreak || defaultTimeLockConfig.lunchBreak;
+    const enabledClosings = (timeLocks.earlyClosings || []).filter((c) => c.enabled);
+    const customLocks = timeLocks.customTimeLocks || [];
+    const constraintKinds = Array.from(new Set(localConstraints.map((c) => c.kind)));
+
+    const chapelLevels = (["100 Level", "200 Level", "300 Level", "400 Level"] as const).map(
+      (lvl, index) => {
+        const item = timeLocks.chapelSeminarSchedule?.[lvl];
+        const fallbackDays = ["Mon", "Tue", "Wed", "Thu"] as const;
+        const day = item?.day || fallbackDays[index];
+        const slot = item?.slot ? item.slot.slice(0, 5) : "09:00";
+        return { lvl, short: lvl.replace(" Level", "L"), day, slot };
+      },
+    );
+
     return (
-      <div className="bp-fade flex flex-col gap-6">
+      <div className="bp-fade flex flex-col gap-5">
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -1456,17 +1559,24 @@ export default function Generate(props?: {
               </button>
             )}
             <div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-[20px] font-bold tracking-tight text-ink">
-                  Timetable Rules & Guidelines
+                  Generation Readiness
                 </h2>
-                <Pill tone="brand">Department Guidelines</Pill>
+                <Pill tone={constraintsComplete ? "good" : "neutral"}>
+                  {constraintsComplete ? "Constraints Complete" : "Rules Preview"}
+                </Pill>
               </div>
-              <p className="mt-1 text-[13.5px] text-muted">
-                University hours, break periods, weekly class hours, and lecturer preferences for {context.currentProgram}.
+              <p className="mt-1 text-[13px] text-muted">
+                Essential inputs and active schedule rules for{" "}
+                <span className="font-semibold text-subink">
+                  {context.currentProgram || currentDept}
+                </span>
+                .
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-2.5">
             {localSessions.length > 0 && (
               <Button
@@ -1479,11 +1589,12 @@ export default function Generate(props?: {
             <Button onClick={handleProceedToGenerate} disabled={isRegenerating}>
               {isRegenerating ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" /> Generating Timetable…
+                  <Loader2 size={16} className="animate-spin" /> Generating…
                 </>
               ) : (
                 <>
-                  <Sparkles size={16} /> {localSessions.length > 0 ? "Regenerate Timetable" : "Generate Timetable"}
+                  <Sparkles size={16} />{" "}
+                  {localSessions.length > 0 ? "Regenerate Timetable" : "Generate Timetable"}
                 </>
               )}
             </Button>
@@ -1501,7 +1612,8 @@ export default function Generate(props?: {
                     Building Conflict-Free Timetable…
                   </p>
                   <p className="text-[13px] text-muted leading-relaxed">
-                    {generationProgress?.stage || `Reviewing ${venues.length} teaching venues, ${allocations.length} course allocations, and lecturer teaching preferences.`}
+                    {generationProgress?.stage ||
+                      `Checking ${venues.length} venues, ${allocations.length} courses, and ${localConstraints.length} lecturer rules.`}
                   </p>
                   {generationProgress && (
                     <div className="mt-2 space-y-1.5">
@@ -1531,799 +1643,246 @@ export default function Generate(props?: {
           </Card>
         )}
 
-        {/* High-Level Constraint Metrics Row */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-line bg-card p-4 shadow-2xs">
-            <div className="flex items-center justify-between text-muted">
-              <span className="text-[11.5px] font-bold uppercase tracking-wider">Campus Hours</span>
-              <Clock size={15} className="text-amber-500" />
-            </div>
-            <p className="mt-2 text-[20px] font-bold text-ink">4 Rules Active</p>
-            <p className="text-[11.5px] text-muted">Lunch break & early closing days</p>
-          </div>
-          <div className="rounded-2xl border border-line bg-card p-4 shadow-2xs">
-            <div className="flex items-center justify-between text-muted">
-              <span className="text-[11.5px] font-bold uppercase tracking-wider">Course Duration</span>
-              <Layers size={15} className="text-brand" />
-            </div>
-            <p className="mt-2 text-[20px] font-bold text-ink">Standard Split</p>
-            <p className="text-[11.5px] text-muted">Weekly hours & class day spacing</p>
-          </div>
-          <div className="rounded-2xl border border-line bg-card p-4 shadow-2xs">
-            <div className="flex items-center justify-between text-muted">
-              <span className="text-[11.5px] font-bold uppercase tracking-wider">Lecturer Times</span>
-              <Users size={15} className="text-violet" />
-            </div>
-            <p className="mt-2 text-[20px] font-bold text-ink">{localConstraints.length} Preferences</p>
-            <p className="text-[11.5px] text-muted">Approved leave & teaching days</p>
-          </div>
-          <div className="rounded-2xl border border-line bg-card p-4 shadow-2xs">
-            <div className="flex items-center justify-between text-muted">
-              <span className="text-[11.5px] font-bold uppercase tracking-wider">Teaching Venues</span>
-              <Building2 size={15} className="text-emerald-500" />
-            </div>
-            <p className="mt-2 text-[20px] font-bold text-ink">{venues.length} Rooms</p>
-            <p className="text-[11.5px] text-muted">{totalCapacity} total seat capacity</p>
-          </div>
-        </div>
-
-        {/* Section 1: University Hours & Mandatory Breaks (Institutional Locked Times) */}
-        <Card className="flex flex-col overflow-hidden">
-          <CardHead
-            icon={<Clock size={17} />}
-            title="University Hours & Mandatory Breaks (Institutional Policy)"
-            sub="Standard Babcock University institutional hours and locked break periods configured on the backend administration panel."
-            action={
-              <Pill tone="neutral">
-                <Lock size={12} className="inline mr-1" /> Backend Configured
-              </Pill>
-            }
-          />
-          <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 bg-panel/30">
-            {/* Lunch */}
-            <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10.5px] font-bold text-amber-600 uppercase tracking-wide">
-                    Daily Break
-                  </span>
-                  <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10.5px] font-bold text-amber-700">
-                    {context.timeLockConfig.lunchBreak.enabled ? "Active" : "Disabled"}
-                  </span>
-                </div>
-                <h4 className="mt-2 text-[14px] font-bold text-ink">University Lunch Break</h4>
-                <p className="mt-1 text-[12px] text-muted leading-relaxed">
-                  Locked daily period where no lectures or practicals may take place. 2-hour classes cannot start right before this hour.
-                </p>
-              </div>
-              <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
-                <span className="font-semibold text-muted">Break Hour:</span>
-                <span className="font-bold text-amber-800">
-                  {context.timeLockConfig.lunchBreak.slot} – {getEndSlot(context.timeLockConfig.lunchBreak.slot, context.timeLockConfig.lunchBreak.duration)}
-                </span>
-              </div>
-            </div>
-
-            {/* Wednesday */}
-            {(() => {
-              const wedClosing = context.timeLockConfig.earlyClosings.find((c) => c.day === "Wed");
-              return (
-                <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10.5px] font-bold text-blue-600 uppercase tracking-wide">
-                        Wednesday
-                      </span>
-                      <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10.5px] font-bold text-blue-700">
-                        {wedClosing?.enabled ? "Active" : "Disabled"}
-                      </span>
-                    </div>
-                    <h4 className="mt-2 text-[14px] font-bold text-ink">Midweek Fellowship Closing</h4>
-                    <p className="mt-1 text-[12px] text-muted leading-relaxed">
-                      Lectures conclude early on Wednesdays for student fellowship, chapel life, and sports.
-                    </p>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
-                    <span className="font-semibold text-muted">Concludes by:</span>
-                    <span className="font-bold text-blue-800">
-                      {wedClosing?.cutoffSlot || "17:00"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Friday */}
-            {(() => {
-              const friClosing = context.timeLockConfig.earlyClosings.find((c) => c.day === "Fri");
-              return (
-                <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="rounded bg-violet-500/10 px-2 py-0.5 text-[10.5px] font-bold text-violet uppercase tracking-wide">
-                        Friday
-                      </span>
-                      <span className="rounded bg-violet-soft px-2 py-0.5 text-[10.5px] font-bold text-violet">
-                        {friClosing?.enabled ? "Active" : "Disabled"}
-                      </span>
-                    </div>
-                    <h4 className="mt-2 text-[14px] font-bold text-ink">Friday Sabbath Closing</h4>
-                    <p className="mt-1 text-[12px] text-muted leading-relaxed">
-                      Academic activities conclude early on Fridays in preparation for the Sabbath and weekend transition.
-                    </p>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px]">
-                    <span className="font-semibold text-muted">Concludes by:</span>
-                    <span className="font-bold text-violet">
-                      {friClosing?.cutoffSlot || "13:00"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Daily Band: Standard Teaching Hours (Configured on Backend) */}
-            <div className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10.5px] font-bold text-emerald-600 uppercase tracking-wide">
-                    Mon – Thu
-                  </span>
-                  <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10.5px] font-bold text-emerald-800">
-                    {context.timeLockConfig.operatingWindow.startSlot} – {context.timeLockConfig.operatingWindow.endSlot}
-                  </span>
-                </div>
-                <h4 className="mt-2 text-[14px] font-bold text-ink">Standard Teaching Hours</h4>
-                <p className="mt-1 text-[12px] text-muted leading-relaxed">
-                  Daily university operating window. Regular class lectures and practicals are scheduled within these approved hours.
-                </p>
-              </div>
-              <div className="mt-3 border-t border-line/60 pt-2">
-                <div className="flex items-center justify-between text-[11px] mb-1.5">
-                  <span className="font-semibold text-muted">Operating Band:</span>
-                  <span className="font-mono text-[10.5px] font-bold text-emerald-700">
-                    {context.timeLockConfig.operatingWindow.startSlot} – {context.timeLockConfig.operatingWindow.endSlot}
-                  </span>
-                </div>
-                <p className="text-[10.5px] text-muted leading-tight">
-                  Locked institutional policy configured on the backend administration panel.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-line bg-card/60 px-5 py-2.5 text-[12px] text-muted flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Lock size={13} className="text-muted shrink-0" />
-              <span>
-                <strong>Locked Institutional Policy:</strong> University operational hours and locked break periods are configured on the backend administration panel.
-              </span>
-            </div>
-            <span className="rounded bg-panel px-2 py-0.5 text-[10.5px] font-semibold text-subink border border-line">
-              Backend Admin Configured
-            </span>
-          </div>
-        </Card>
-
-        {/* Section 2: Schoolwide Chapel Seminar & Citizenship Orientation Schedule */}
-        <Card className="flex flex-col">
-          <CardHead
-            icon={<ShieldCheck size={17} />}
-            title="University Chapel Seminar & Orientation Schedule"
-            sub="Mandatory weekly seminar attended together by all departments in the University Amphitheatre"
-            action={
-              isAcadPlanningTO ? (
-                <Pill tone="brand">
-                  <Settings2 size={11} className="inline mr-1" /> Editable by Acad Planning
-                </Pill>
-              ) : (
-                <Pill tone="good">Schoolwide Attendance</Pill>
-              )
-            }
-          />
-          <div className="p-5 space-y-4">
-            <div className="rounded-xl border border-line bg-brand-soft/20 p-3.5 text-[12.5px] text-subink flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white font-bold text-[11px]">
-                  ✓
-                </span>
-                <span>
-                  <strong>University Amphitheatre (Capacity: 2,500)</strong> · Coordinator: <strong>Pastor Chilaka Uzoma</strong>. All departments for each academic level attend together without clashing.
-                </span>
-              </div>
-              <Pill tone="neutral">All Students in Level</Pill>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-              {(["100 Level", "200 Level", "300 Level", "400 Level"] as const).map((lvl, index) => {
-                const colors = ["bg-brand", "bg-blue-500", "bg-violet", "bg-emerald-500"];
-                const textColors = ["text-brand", "text-blue-600", "text-violet", "text-emerald-600"];
-                const item = context.timeLockConfig?.chapelSeminarSchedule?.[lvl];
-
-                // Normalization helpers so options always match without blank select displays
-                const rawDay = item?.day;
-                const dayMap: Record<string, (typeof days)[number]> = {
-                  mon: "Mon", monday: "Mon",
-                  tue: "Tue", tuesday: "Tue",
-                  wed: "Wed", wednesday: "Wed",
-                  thu: "Thu", thursday: "Thu",
-                  fri: "Fri", friday: "Fri",
-                };
-                const fallbackDay = index === 0 ? "Mon" : index === 1 ? "Tue" : index === 2 ? "Wed" : "Thu";
-                const activeDay = (rawDay ? dayMap[rawDay.trim().toLowerCase()] || rawDay : fallbackDay) as (typeof days)[number];
-
-                const rawSlot = item?.slot;
-                const cleanSlot = rawSlot
-                  ? (rawSlot.trim().length === 4 && rawSlot.trim()[1] === ":" ? `0${rawSlot.trim()}` : rawSlot.trim().slice(0, 5))
-                  : "09:00";
-                const activeSlot = (slots.includes(cleanSlot as any) ? cleanSlot : "09:00") as (typeof slots)[number];
-
-                return (
-                  <div key={lvl} className="rounded-xl border border-line bg-card p-4 relative flex flex-col justify-between min-w-0 shadow-2xs">
-                    <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl ${colors[index]}`} />
-                    <div className="min-w-0">
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <span className="text-[13px] font-bold text-ink shrink-0">{lvl}</span>
-                        <span className={`rounded bg-panel px-2 py-0.5 text-[11px] font-bold shrink-0 ${textColors[index]}`}>
-                          {activeDay} {activeSlot}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-[12.5px] font-bold text-ink truncate">{item?.code || "BU-GST Seminar"}</p>
-                      <p className="text-[11.5px] text-muted line-clamp-1">{item?.title || "Chapel Seminar"}</p>
-                      <div className="mt-3 space-y-1 text-[11px] text-subink pt-2 border-t border-line">
-                        <p className="truncate">📍 {item?.venue || "University Amphitheatre"}</p>
-                        <p className="truncate">👤 {item?.lecturer || "Pastor Chilaka Uzoma"}</p>
-                        <p className="truncate">👥 All {lvl} Students</p>
-                      </div>
-                    </div>
-                    {isAcadPlanningTO ? (
-                      <div className="mt-4 pt-3 border-t border-line/60 min-w-0">
-                        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-muted mb-1.5 min-w-0">
-                          <span className="shrink-0">Adjust Window:</span>
-                          <span className="font-mono text-[10.5px] font-bold text-ink shrink-0">
-                            {activeDay} · {activeSlot}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div className="min-w-0">
-                            <label className="block text-[9.5px] font-bold uppercase tracking-wider text-muted mb-1 truncate">
-                              Day
-                            </label>
-                            <CustomSelect
-                              value={activeDay}
-                              onChange={(e) => context.updateChapelSlot(lvl, e.target.value as any, activeSlot)}
-                              className="h-8.5 w-full min-w-0 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
-                            >
-                              {["Mon", "Tue", "Wed", "Thu", "Fri"].map((d) => (
-                                <option key={d} value={d}>
-                                  {d}
-                                </option>
-                              ))}
-                            </CustomSelect>
-                          </div>
-                          <div className="min-w-0">
-                            <label className="block text-[9.5px] font-bold uppercase tracking-wider text-muted mb-1 truncate">
-                              Time Slot
-                            </label>
-                            <CustomSelect
-                              value={activeSlot}
-                              onChange={(e) => context.updateChapelSlot(lvl, activeDay, e.target.value as any)}
-                              className="h-8.5 w-full min-w-0 rounded-xl border border-line bg-card px-3 text-[12px] font-semibold text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
-                            >
-                              {slots
-                                .filter((s) => s !== "17:00")
-                                .map((s) => (
-                                  <option key={s} value={s}>
-                                    {s}
-                                  </option>
-                                ))}
-                            </CustomSelect>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mt-3 pt-2 border-t border-line/60 flex items-center justify-between text-[11px] text-muted">
-                        <span>Chapel Window:</span>
-                        <span className="font-bold text-ink">
-                          {activeDay} at {activeSlot}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-[12px] text-muted">
-              <div className="rounded-xl border border-line bg-panel/50 p-3">
-                <span className="font-semibold text-subink">✨ Automatically Scheduled:</span> The system automatically ensures chapel seminar appears on every active level's timetable.
-              </div>
-              <div className="rounded-xl border border-line bg-panel/50 p-3">
-                <span className="font-semibold text-subink">🛡️ Preceding Hour Rule:</span> 2-hour classes for that level cannot start directly before chapel to prevent class overlap.
-              </div>
-              <div className="rounded-xl border border-line bg-panel/50 p-3">
-                <span className="font-semibold text-subink">🤝 Shared Venue:</span> All departments attend together in the Amphitheatre without creating room or lecturer clashes.
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Section 2B: Departmental Locked Periods & Custom Blackouts */}
-        <Card className="flex flex-col">
-          <CardHead
-            icon={<Lock size={17} />}
-            title="Departmental Locked Periods & Assemblies"
-            sub="Recurring time windows reserved exclusively for departmental meetings, student assemblies, or faculty seminars"
-            action={
-              <Button variant="outline" onClick={() => setShowLockModal(true)}>
-                <Plus size={14} /> Add Locked Period
-              </Button>
-            }
-          />
-          <div className="p-5">
-            {context.timeLockConfig.customTimeLocks.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-line p-6 text-center text-muted">
-                <Lock size={22} className="mx-auto mb-2 text-muted/50" />
-                <p className="text-[13px] font-semibold text-subink">No custom locked periods set</p>
-                <p className="text-[12px] text-muted mt-0.5">
-                  You can lock recurring time blocks for {context.currentProgram} (such as weekly mentorship hour or department meeting).
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {context.timeLockConfig.customTimeLocks.map((lock) => (
-                  <div key={lock.id} className="rounded-xl border border-line bg-card p-3.5 flex flex-col justify-between shadow-2xs">
-                    <div>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[13px] font-bold text-ink">{lock.title}</span>
-                        <button
-                          onClick={() => context.toggleCustomTimeLock(lock.id)}
-                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase cursor-pointer transition ${
-                            lock.enabled ? "bg-good-soft text-good hover:bg-good-soft/80" : "bg-panel text-muted hover:bg-line"
-                          }`}
-                        >
-                          {lock.enabled ? "Active" : "Off"}
-                        </button>
-                      </div>
-                      <p className="text-[12px] text-muted mt-1 leading-relaxed">
-                        {lock.reason || "Reserved time period"}
-                      </p>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-[11px] text-subink">
-                      <span>
-                        <strong>{lock.day}</strong> at <strong>{lock.slot}</strong> ({lock.duration}h) · {lock.level || "All"}
-                      </span>
-                      <button
-                        onClick={() => context.deleteCustomTimeLock(lock.id)}
-                        className="text-muted hover:text-bad transition cursor-pointer p-1"
-                        title="Remove locked period"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Section 2C: Departmental Events & Activities (Semester-Specific Milestones) */}
-        <Card className="flex flex-col">
-          <CardHead
-            icon={<PartyPopper size={17} />}
-            title={`Departmental Events & Activities — ${context.currentProgram}`}
-            sub="Milestone events such as Departmental Week, Tech Expo, Hackathon, and Symposium. Adding events provides clear planning without disrupting your semester-wide lecture timetable."
-            action={
-              <Button onClick={() => setShowEventModal(true)}>
-                <Plus size={14} /> Add Departmental Event
-              </Button>
-            }
-          />
-          <div className="p-5 space-y-4">
-            <div className="rounded-xl border border-line bg-panel/50 p-3.5 text-[12.5px] text-subink flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white font-bold text-[11px]">
-                  ℹ
-                </span>
-                <span>
-                  <strong>Calendar Milestones Notice:</strong> Departmental events occur during specific weeks or dates of the semester. They provide visibility for students and faculty while leaving your semester-wide lecture timetable fully intact.
-                </span>
-              </div>
-              <Pill tone="brand">{currentDeptEvents.length} Events Registered</Pill>
-            </div>
-
-            {currentDeptEvents.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-line p-8 text-center text-muted">
-                <PartyPopper size={28} className="mx-auto mb-2 text-muted/50" />
-                <p className="text-[14px] font-bold text-ink">No departmental events scheduled yet</p>
-                <p className="text-[12.5px] text-muted mt-1 max-w-md mx-auto">
-                  Add semester milestones like NACOS/ACES Departmental Week, freshers welcome fellowship, or annual project symposium.
-                </p>
-                <Button onClick={() => setShowEventModal(true)} className="mt-4">
-                  <Plus size={14} /> Add First Event
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {currentDeptEvents.map((evt) => (
-                  <div
-                    key={evt.id}
-                    className="rounded-xl border border-line bg-card p-4 flex flex-col justify-between shadow-2xs relative overflow-hidden"
-                  >
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-brand" />
-                    <div>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="rounded bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">
-                          {evt.category}
-                        </span>
-                        <span className="text-[11.5px] font-semibold text-muted bg-panel px-2 py-0.5 rounded border border-line">
-                          {evt.week}
-                        </span>
-                      </div>
-                      <h4 className="mt-2 text-[15px] font-bold text-ink">{evt.title}</h4>
-                      <p className="mt-1 text-[12.5px] text-muted leading-relaxed">
-                        {evt.description}
-                      </p>
-                      {evt.advisoryNote && (
-                        <div className="mt-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 text-[11px] text-amber-800">
-                          <strong>Advisory:</strong> {evt.advisoryNote}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-line flex items-center justify-between text-[11.5px] text-subink">
-                      <div className="space-y-0.5">
-                        <p>📍 {evt.venue || "Campus / Departmental Hall"}</p>
-                        <p>👥 {evt.level || "All Levels"} · ⏱ {evt.timeRange || evt.day || "Scheduled Time"}</p>
-                      </div>
-                      <button
-                        onClick={() => context.deleteDepartmentalEvent(evt.id)}
-                        className="rounded-lg p-1.5 text-muted hover:bg-panel hover:text-bad transition cursor-pointer"
-                        title="Delete event"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Section 3: Course Credit Hours & Class Spacing */}
-        <Card className="flex flex-col">
-          <CardHead
-            icon={<Layers size={17} />}
-            title="Course Credit Hours & Class Spacing Guidelines"
-            sub="How weekly teaching hours are divided and scheduled across weekdays"
-            action={<Pill tone="neutral">Class Guidelines</Pill>}
-          />
-          <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-3 bg-panel/30">
-            {/* Unit split */}
-            <div className="rounded-xl border border-line bg-card p-4 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="rounded bg-brand-soft px-2 py-0.5 text-[10.5px] font-bold text-brand uppercase">
-                  Class Duration
-                </span>
-                <span className="text-[11px] text-muted font-semibold">Weekly Hours</span>
-              </div>
-              <h4 className="text-[14px] font-bold text-ink">Hours per Course</h4>
-              <ul className="space-y-1.5 text-[12px] text-muted">
-                <li className="flex items-center justify-between">
-                  <span>1-Unit Course:</span>
-                  <strong className="text-subink">1 class of 1 hour per week</strong>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span>2-Unit Course:</span>
-                  <strong className="text-subink">1 class of 2 hours per week</strong>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span>3-Unit Course:</span>
-                  <strong className="text-subink">1× 2h + 1× 1h (on separate days)</strong>
-                </li>
-                <li className="flex items-center justify-between">
-                  <span>4-Unit Course:</span>
-                  <strong className="text-subink">2 classes of 2 hours each</strong>
-                </li>
-              </ul>
-            </div>
-
-            {/* Day separation */}
-            <div className="rounded-xl border border-line bg-card p-4 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="rounded bg-brand-soft px-2 py-0.5 text-[10.5px] font-bold text-brand uppercase">
-                  Day Spacing
-                </span>
-                <span className="text-[11px] text-muted font-semibold">Avoid Fatigue</span>
-              </div>
-              <h4 className="text-[14px] font-bold text-ink">Class Day Spacing</h4>
-              <p className="text-[12px] text-muted leading-relaxed">
-                Courses that meet more than once a week are scheduled on <strong className="text-subink">separate calendar days</strong> so students are not overwhelmed on a single day.
-              </p>
-              <div className="pt-2 border-t border-line text-[11.5px] text-subink">
-                <strong>Standard 2-Hour Blocks:</strong> 8:00–10:00 AM, 10:00–12:00 PM, 2:00–4:00 PM, 4:00–6:00 PM.
-              </div>
-            </div>
-
-            {/* Groups */}
-            <div className="rounded-xl border border-line bg-card p-4 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="rounded bg-brand-soft px-2 py-0.5 text-[10.5px] font-bold text-brand uppercase">
-                  Student Groups
-                </span>
-                <span className="text-[11px] text-muted font-semibold">Keep Groups</span>
-              </div>
-              <h4 className="text-[14px] font-bold text-ink">Class Groups & Cohorts</h4>
-              <p className="text-[12px] text-muted leading-relaxed">
-                Official departmental class groups (<code className="text-[11px] bg-panel px-1 rounded text-ink">Group A</code>, <code className="text-[11px] bg-panel px-1 rounded text-ink">Group B</code>) are scheduled independently without combined groupings.
-              </p>
-              <div className="pt-2 border-t border-line text-[11.5px] text-subink">
-                Different groups taking different courses can meet at the same time in separate classrooms.
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Section 4: Resource & Faculty Availability Snapshots Grid */}
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          {/* Snapshot 1: Venue Availability */}
+        {/* Core Inputs Summary: Venues, Allocations, Lecturer Rules */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Venues */}
           <Card className="flex flex-col">
             <CardHead
               icon={<Building2 size={17} />}
-              title="Venue Availability"
-              sub={`${venues.length} rooms mapped · ${totalCapacity} total capacity`}
-              action={<Pill tone="brand">{venues.length} Venues</Pill>}
+              title="Venues"
+              sub={`${venues.length} rooms · ${totalCapacity.toLocaleString()} seats`}
+              action={<Pill tone="brand">{venues.length}</Pill>}
             />
-            <div className="flex-1 space-y-3 px-5 pb-5">
-              <div className="grid grid-cols-2 gap-2 rounded-xl bg-panel/70 p-3 text-center">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase text-muted">
-                    Total Seats
-                  </p>
-                  <p className="text-[17px] font-bold text-ink">
-                    {totalCapacity}
-                  </p>
+            <div className="flex-1 space-y-1.5 px-5 pb-4">
+              {venues.slice(0, 3).map((v) => (
+                <div
+                  key={v.name}
+                  className="flex items-center justify-between rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12.5px]"
+                >
+                  <span className="font-semibold text-ink truncate pr-2">{v.name}</span>
+                  <span className="shrink-0 text-[11.5px] text-muted">{v.capacity} seats</span>
                 </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase text-muted">
-                    Operating Band
-                  </p>
-                  <p className="text-[13px] font-semibold text-subink mt-0.5">
-                    07:00 – 18:00
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted">
-                Mapped Department Venues (Sample)
-              </p>
-              <div className="space-y-2">
-                {venues.slice(0, 5).map((v) => (
-                  <div
-                    key={v.name}
-                    className="flex items-center justify-between rounded-xl border border-line bg-card px-3.5 py-2 text-[12.5px]"
-                  >
-                    <div className="min-w-0 flex-1 pr-2">
-                      <p className="font-semibold text-ink truncate">
-                        {v.name}
-                      </p>
-                      <p className="text-[11px] text-muted truncate">
-                        {v.block}
-                      </p>
-                    </div>
-                    <Pill tone="neutral">{v.capacity} seats</Pill>
-                  </div>
-                ))}
-              </div>
-
-              {venues.length > 5 && (
-                <p className="text-[11.5px] text-center text-muted">
-                  + {venues.length - 5} more mapped departmental venues
+              ))}
+              {venues.length > 3 && (
+                <p className="pt-1 text-[11.5px] text-muted">
+                  + {venues.length - 3} more rooms
                 </p>
               )}
-
-              <div className="rounded-xl border border-line bg-panel/50 p-2.5 text-[11.5px] text-muted">
-                <span className="font-semibold text-subink">
-                  Space Sharing:
-                </span>{" "}
-                External bookings from other submitted school departments are reserved automatically.
-              </div>
+              {venues.length === 0 && (
+                <p className="text-[12.5px] text-muted py-2">No venues mapped yet.</p>
+              )}
             </div>
-
-            <div className="border-t border-line px-5 py-3.5">
+            <div className="border-t border-line px-5 py-3">
               <button
                 onClick={() => navigateToView("venues", "/venues")}
-                className="flex items-center gap-1.5 text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
+                className="text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
               >
-                Review Room Schedules →
+                Review Venues →
               </button>
             </div>
           </Card>
 
-          {/* Snapshot 2: Course Allocations */}
+          {/* Course Allocations */}
           <Card className="flex flex-col">
             <CardHead
               icon={<BookOpen size={17} />}
-              title="Course Allocations"
-              sub={`${allocations.length} courses · ${totalUnits} total units`}
-              action={<Pill tone="neutral">100L – 400L</Pill>}
+              title="Allocations"
+              sub={`${allocations.length} courses · ${totalUnits} units`}
+              action={<Pill tone="neutral">{allocations.length}</Pill>}
             />
-            <div className="flex-1 space-y-3 px-5 pb-5">
-              <div className="grid grid-cols-2 gap-2 rounded-xl bg-panel/70 p-3 text-center">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase text-muted">
-                    Allocations
-                  </p>
-                  <p className="text-[17px] font-bold text-ink">
-                    {allocations.length}
-                  </p>
+            <div className="flex-1 space-y-1.5 px-5 pb-4">
+              {allocations.slice(0, 3).map((a, i) => (
+                <div
+                  key={`${a.code}-${a.group ?? ""}-${i}`}
+                  className="flex items-center justify-between rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12.5px]"
+                >
+                  <span className="font-semibold text-ink truncate pr-2">
+                    {a.code}
+                    <span className="ml-1.5 font-normal text-muted">· {a.lecturer}</span>
+                  </span>
+                  <span className="shrink-0 text-[11.5px] font-medium text-subink">{a.units}u</span>
                 </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase text-muted">
-                    Total Units
-                  </p>
-                  <p className="text-[17px] font-bold text-brand">
-                    {totalUnits}
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted">
-                Department Courses (Sample)
-              </p>
-              <div className="space-y-2">
-                {allocations.slice(0, 5).map((a, i) => (
-                  <div
-                    key={`${a.code}-${a.group ?? ""}-${i}`}
-                    className="flex items-center justify-between rounded-xl border border-line bg-card px-3.5 py-2 text-[12.5px]"
-                  >
-                    <div className="min-w-0 flex-1 pr-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-ink">{a.code}</span>
-                        {a.isVirtual && (
-                          <span className="flex items-center gap-0.5 rounded bg-violet-soft px-1 py-0.2 text-[9.5px] font-semibold text-violet">
-                            <Globe size={9} /> Virtual
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted truncate">
-                        {a.lecturer}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[11.5px] font-semibold text-subink">
-                        {a.units}u
-                      </span>
-                      <p className="text-[10px] text-muted">
-                        {a.group ?? "Unified"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {allocations.length > 5 && (
-                <p className="text-[11.5px] text-center text-muted">
-                  + {allocations.length - 5} more allocated courses across
-                  levels
+              ))}
+              {allocations.length > 3 && (
+                <p className="pt-1 text-[11.5px] text-muted">
+                  + {allocations.length - 3} more courses
                 </p>
               )}
+              {allocations.length === 0 && (
+                <p className="text-[12.5px] text-muted py-2">No allocations loaded.</p>
+              )}
             </div>
-
-            <div className="border-t border-line px-5 py-3.5">
+            <div className="border-t border-line px-5 py-3">
               <button
                 onClick={() => navigateToView("allocations", "/allocations")}
-                className="flex items-center gap-1.5 text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
+                className="text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
               >
-                Review Course Allocations →
+                Review Allocations →
               </button>
             </div>
           </Card>
 
-          {/* Snapshot 3: Active Constraints */}
+          {/* Lecturer Rules */}
           <Card className="flex flex-col">
             <CardHead
               icon={<Users size={17} />}
-              title="Lecturer Scheduling Rules"
-              sub={`${localConstraints.length} rules active`}
-              action={<Pill tone="warn">{localConstraints.length} Active</Pill>}
+              title="Lecturer Rules"
+              sub={`${localConstraints.length} active constraint${localConstraints.length === 1 ? "" : "s"}`}
+              action={<Pill tone={localConstraints.length > 0 ? "warn" : "neutral"}>{localConstraints.length}</Pill>}
             />
-            <div className="flex-1 space-y-3 px-5 pb-5">
-              <div className="flex flex-wrap gap-2 rounded-xl bg-panel/70 p-3 text-center">
-                {Array.from(new Set(localConstraints.map((c) => c.kind))).slice(0, 4).map((kind) => (
-                  <div key={kind} className="flex-1 min-w-[70px]">
-                    <p className="text-[10px] font-semibold uppercase text-muted truncate" title={kind}>
-                      {kind}
-                    </p>
-                    <p className="text-[15px] font-bold text-ink">
-                      {localConstraints.filter((c) => c.kind === kind).length}
-                    </p>
-                  </div>
-                ))}
-                {localConstraints.length === 0 && (
-                  <div className="flex-1 text-center py-1 text-[12px] text-muted">
-                    No active rules recorded
-                  </div>
-                )}
-              </div>
-
-              <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted">
-                Rules Enforced
-              </p>
-              <div className="space-y-2">
-                {localConstraints.map((c) => (
+            <div className="flex-1 space-y-2 px-5 pb-4">
+              {constraintKinds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {constraintKinds.map((kind) => (
+                    <span
+                      key={kind}
+                      className="rounded-md bg-panel px-2 py-1 text-[11px] font-semibold text-subink border border-line"
+                    >
+                      {kind}: {localConstraints.filter((c) => c.kind === kind).length}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                {localConstraints.slice(0, 3).map((c) => (
                   <div
                     key={c.id}
-                    className="flex items-center justify-between rounded-xl border border-line bg-card px-3.5 py-2 text-[12.5px]"
+                    className="flex items-center justify-between rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12.5px]"
                   >
-                    <div className="min-w-0 flex-1 pr-2">
-                      <p className="font-semibold text-ink truncate">
-                        {c.lecturer}
-                      </p>
-                      <p className="text-[11px] text-muted truncate">
-                        {c.detail}
-                      </p>
-                    </div>
-                    <Pill tone="warn">{c.kind}</Pill>
+                    <span className="font-semibold text-ink truncate pr-2">{c.lecturer}</span>
+                    <span className="shrink-0 text-[11px] font-semibold text-warn">{c.kind}</span>
                   </div>
                 ))}
+                {localConstraints.length > 3 && (
+                  <p className="pt-0.5 text-[11.5px] text-muted">
+                    + {localConstraints.length - 3} more rules
+                  </p>
+                )}
+                {localConstraints.length === 0 && (
+                  <p className="text-[12.5px] text-muted py-2">No lecturer rules set.</p>
+                )}
               </div>
             </div>
-
-            <div className="border-t border-line px-5 py-3.5">
+            <div className="border-t border-line px-5 py-3">
               <button
                 onClick={() => navigateToView("constraints", "/constraints")}
-                className="flex items-center gap-1.5 text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
+                className="text-[12.5px] font-semibold text-brand hover:underline cursor-pointer"
               >
-                Review Scheduling Rules →
+                Manage Constraints →
               </button>
             </div>
           </Card>
         </div>
 
-        {/* Bottom Readiness & Action Banner */}
-        <Card className="border-brand/30 bg-gradient-to-r from-brand-soft/40 via-card to-card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-5">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-sm shrink-0">
-                <Sparkles size={22} />
-              </div>
-              <div>
-                <h3 className="text-[16px] font-bold text-ink">
-                  Ready to Build Department Timetable
-                </h3>
-                <p className="mt-0.5 text-[13px] text-muted">
-                  All university hours, chapel periods, course hours, and lecturer teaching preferences will be used to create a conflict-free timetable for {context.currentProgram}.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              {localSessions.length > 0 && (
+        {/* Compact Schedule Rules & Locks */}
+        <Card className="flex flex-col overflow-hidden">
+          <CardHead
+            icon={<Clock size={17} />}
+            title="Active Schedule Rules"
+            sub="Institutional hours, chapel windows, and custom time locks"
+            action={
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setScreenMode("generated")}
+                  className="px-3 py-1.5 text-[12px]"
+                  onClick={() => setShowEventsDrawer(true)}
                 >
-                  <ArrowLeft size={16} /> Back to Timetable
+                  <CalendarDays size={13} /> Events ({currentDeptEvents.length})
                 </Button>
-              )}
-              <Button
-                className="px-5 py-3 text-[14px]"
-                onClick={handleProceedToGenerate}
-                disabled={isRegenerating}
-              >
-                {isRegenerating ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" /> Building Schedule…
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={18} /> {localSessions.length > 0 ? "Regenerate Timetable" : "Generate Timetable"}{" "}
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </Button>
+                <Button
+                  variant="outline"
+                  className="px-3 py-1.5 text-[12px]"
+                  onClick={() => setShowLockModal(true)}
+                >
+                  <Plus size={13} /> Lock Period
+                </Button>
+              </div>
+            }
+          />
+
+          <div className="grid grid-cols-1 gap-3 border-t border-line bg-panel/30 px-5 py-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-line bg-card px-3.5 py-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Teaching Hours
+              </p>
+              <p className="mt-1 text-[13.5px] font-bold text-ink">
+                {opWin.startSlot} – {opWin.endSlot}
+              </p>
             </div>
+
+            <div className="rounded-xl border border-line bg-card px-3.5 py-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Lunch Break
+              </p>
+              <p className="mt-1 text-[13.5px] font-bold text-ink">
+                {lunch.enabled
+                  ? `${lunch.slot} – ${getEndSlot(lunch.slot, lunch.duration)}`
+                  : "Disabled"}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-line bg-card px-3.5 py-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Early Closing
+              </p>
+              <p className="mt-1 text-[13.5px] font-bold text-ink truncate">
+                {enabledClosings.length > 0
+                  ? enabledClosings.map((c) => `${c.day} ${c.cutoffSlot}`).join(" · ")
+                  : "None"}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-line bg-card px-3.5 py-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Chapel Windows
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5 text-[11.5px] font-semibold text-subink">
+                {chapelLevels.map((c) => (
+                  <span key={c.lvl} className="rounded bg-panel px-1.5 py-0.5 border border-line">
+                    {c.short} {c.day} {c.slot}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Custom Departmental Locks Row */}
+          <div className="border-t border-line px-5 py-3.5 flex flex-wrap items-center gap-2">
+            <span className="text-[12px] font-semibold text-muted mr-1">
+              Custom Locks ({customLocks.length}):
+            </span>
+            {customLocks.length === 0 ? (
+              <span className="text-[12px] text-muted">None configured</span>
+            ) : (
+              customLocks.map((lock) => (
+                <div
+                  key={lock.id}
+                  className="inline-flex items-center gap-2 rounded-lg border border-line bg-panel/60 px-2.5 py-1 text-[12px]"
+                >
+                  <span className={`font-semibold ${lock.enabled ? "text-ink" : "text-muted line-through"}`}>
+                    {lock.title}
+                  </span>
+                  <span className="text-[11px] text-muted">
+                    {lock.day} {lock.slot} ({lock.duration}h)
+                  </span>
+                  <button
+                    onClick={() => context.toggleCustomTimeLock(lock.id)}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase cursor-pointer ${
+                      lock.enabled ? "bg-good-soft text-good" : "bg-line text-muted"
+                    }`}
+                  >
+                    {lock.enabled ? "On" : "Off"}
+                  </button>
+                  <button
+                    onClick={() => context.deleteCustomTimeLock(lock.id)}
+                    className="text-muted hover:text-bad cursor-pointer"
+                    title="Remove locked period"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </div>
@@ -2475,36 +2034,40 @@ export default function Generate(props?: {
 
             {showExportMenu && (
               <div className="dropdown-surface absolute right-0 z-50 mt-2 w-52 space-y-0.5 p-1.5">
-                <button
-                  onClick={() => {
-                    exportToCsv(localSessions, {
-                      department: currentDept,
-                      level: selectedLevel !== "all" ? selectedLevel : undefined,
-                      semester: "First Semester",
-                      status,
-                    });
-                    setShowExportMenu(false);
-                  }}
-                  className="dropdown-item flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] font-medium text-ink transition-colors cursor-pointer"
-                >
-                  <FileSpreadsheet size={15} className="text-good" />
-                  <span>Download CSV (.csv)</span>
-                </button>
-                <button
-                  onClick={() => {
-                    printTimetablePdf(localSessions, {
-                      department: currentDept,
-                      level: selectedLevel !== "all" ? selectedLevel : undefined,
-                      semester: "First Semester",
-                      status,
-                    });
-                    setShowExportMenu(false);
-                  }}
-                  className="dropdown-item flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] font-medium text-ink transition-colors cursor-pointer"
-                >
-                  <Printer size={15} className="text-brand" />
-                  <span>Print / Save PDF</span>
-                </button>
+                {([
+                  { format: "csv", label: "Download CSV (.csv)", Icon: FileSpreadsheet, iconClass: "text-good" },
+                  { format: "pdf", label: "Print / Save PDF", Icon: Printer, iconClass: "text-brand" },
+                ] as const).map(({ format, label, Icon, iconClass }) => (
+                  <button
+                    key={format}
+                    onClick={() => {
+                      const exportSessions =
+                        selectedProgramme === "all"
+                          ? localSessions
+                          : localSessions.filter((s) =>
+                              matchesProgrammeFilter(s.programme, selectedProgramme),
+                            );
+                      const programmeMeta =
+                        selectedProgramme === "all"
+                          ? undefined
+                          : selectedProgramme === NO_PROGRAMME_FILTER
+                            ? "General / Unassigned"
+                            : selectedProgramme;
+                      exportTimetable(format, exportSessions, {
+                        department: currentDept,
+                        programme: programmeMeta,
+                        level: selectedLevel !== "all" ? selectedLevel : undefined,
+                        semester: "First Semester",
+                        status,
+                      });
+                      setShowExportMenu(false);
+                    }}
+                    className="dropdown-item flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] font-medium text-ink transition-colors cursor-pointer"
+                  >
+                    <Icon size={15} className={iconClass} />
+                    <span>{label}</span>
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -2609,9 +2172,14 @@ export default function Generate(props?: {
       {/* Sub-toolbar: Perspective-specific filters */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2.5">
+          <ProgrammeFilterSelect
+            value={selectedProgramme}
+            onChange={setSelectedProgramme}
+            options={programmeOptions}
+          />
           {/* Cohort Perspective Filters */}
           {perspective === "cohort" && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <CustomSelect
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
@@ -2993,12 +2561,21 @@ export default function Generate(props?: {
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {allLecturers.map((lecName) => {
-                  const lecSessions = validatedSessions.filter(
+                  const lecSessions = lecturerFilteredSessions.filter(
                     (s) => s.lecturer === lecName,
                   );
                   const lecAllocations = allocations.filter(
-                    (a) => a.lecturer === lecName,
+                    (a) =>
+                      a.lecturer === lecName &&
+                      matchesProgrammeFilter(a.programme, selectedProgramme),
                   );
+                  if (
+                    selectedProgramme !== "all" &&
+                    lecSessions.length === 0 &&
+                    lecAllocations.length === 0
+                  ) {
+                    return null;
+                  }
                   const lecConstraints = localConstraints.filter(
                     (c) => c.lecturer === lecName,
                   );
@@ -3118,6 +2695,11 @@ export default function Generate(props?: {
                                             {ls.group}
                                           </span>
                                         )}
+                                        {ls.programme && (
+                                          <span className="rounded border border-line bg-panel px-1.5 py-0.2 text-[10px] font-semibold text-subink">
+                                            {ls.programme}
+                                          </span>
+                                        )}
                                         <span className="text-[12px] font-medium text-subink">
                                           {ls.day} at {ls.slot}
                                           {ls.duration && ls.duration > 1
@@ -3203,10 +2785,11 @@ export default function Generate(props?: {
                 />
               ) : (
                 <div className="overflow-x-auto px-2 py-2" style={{ scrollbarWidth: "thin" }}>
-                  <div className="min-w-[680px]">
-                    <div className="grid grid-cols-[100px_1fr_140px_120px_90px_80px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line">
+                  <div className="min-w-[780px]">
+                    <div className="grid grid-cols-[100px_130px_1fr_140px_120px_90px_80px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line">
                       {[
                         "Code",
+                        "Programme",
                         "Lecturer",
                         "Venue",
                         "Day / Time",
@@ -3236,7 +2819,7 @@ export default function Generate(props?: {
                       return (
                         <div
                           key={i}
-                          className="grid grid-cols-[100px_1fr_140px_120px_90px_80px] items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] transition hover:bg-panel border-b border-line-soft last:border-0"
+                          className="grid grid-cols-[100px_130px_1fr_140px_120px_90px_80px] items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] transition hover:bg-panel border-b border-line-soft last:border-0"
                         >
                           <div>
                             <span className="font-bold text-ink">{s.code}</span>
@@ -3251,6 +2834,12 @@ export default function Generate(props?: {
                               </span>
                             )}
                           </div>
+                          <span
+                            title={formatProgrammeLabel(s.programme)}
+                            className="truncate text-[12px] font-medium text-subink"
+                          >
+                            {formatProgrammeLabel(s.programme)}
+                          </span>
                           <span className="truncate text-muted">
                             {s.lecturer}
                           </span>
@@ -3299,6 +2888,9 @@ export default function Generate(props?: {
               const matchedSessions = validatedSessions.filter(
                 (s) =>
                   s.code === alloc.code &&
+                  (!alloc.programme ||
+                    !s.programme ||
+                    s.programme === alloc.programme) &&
                   (!alloc.group ||
                     !s.group ||
                     s.group === alloc.group ||
@@ -3312,7 +2904,7 @@ export default function Generate(props?: {
 
               return (
                 <Card
-                  key={`${alloc.code}-${alloc.group ?? "unified"}-${alloc.lecturer}-${idx}`}
+                  key={`${alloc.code}-${alloc.programme ?? "general"}-${alloc.group ?? "unified"}-${alloc.lecturer}-${idx}`}
                   className={`flex flex-col border transition ${
                     hasConflict
                       ? "border-bad/40 bg-bad-soft/10"
@@ -3324,7 +2916,7 @@ export default function Generate(props?: {
                     title={`${alloc.code} · ${alloc.title}`}
                     sub={`${alloc.lecturer} · ${alloc.level ?? "200 Level"} · ${
                       alloc.group ?? "Unified Cohort"
-                    }`}
+                    }${alloc.programme ? ` · ${alloc.programme}` : ""}`}
                     action={
                       <div className="flex items-center gap-1.5">
                         <Pill
@@ -3561,14 +3153,36 @@ export default function Generate(props?: {
                   onChange={(e) => setEditVenue(e.target.value)}
                   className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-[13px] font-medium text-ink shadow-2xs hover:border-subink/30 focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition"
                 >
-                  {venues.map((v) => (
-                    <option key={v.name} value={v.name}>
-                      {v.name} — {v.capacity} seats{" "}
-                      {v.isVirtual
-                        ? "[Online / LMS]"
-                        : `(${v.spaceType ?? "shared"})`}
-                    </option>
-                  ))}
+                  {!venues.some((v) => v.name === "Virtual / LMS" || v.isVirtual) && (
+                    <option value="Virtual / LMS">Virtual / LMS [Online / LMS]</option>
+                  )}
+                  {venues.map((v) => {
+                    const editingSession = localSessions[editingSessionIndex];
+                    const extBooking = findExternalBookingOverlap(
+                      {
+                        code: editingSession?.code,
+                        venue: v.name,
+                        day: editDay,
+                        slot: editSlot,
+                        duration: editingSession?.duration ?? 1,
+                        level: editingSession?.level,
+                        lecturer: editingSession?.lecturer,
+                        isVirtual: v.isVirtual,
+                      },
+                      context.externalBookings,
+                    );
+                    return (
+                      <option key={v.name} value={v.name}>
+                        {v.name} — {v.capacity} seats{" "}
+                        {v.isVirtual
+                          ? "[Online / LMS]"
+                          : `(${v.spaceType ?? "shared"})`}
+                        {extBooking
+                          ? ` — Reserved (${extBooking.booked_by_department}: ${extBooking.course_code})`
+                          : ""}
+                      </option>
+                    );
+                  })}
                 </CustomSelect>
               </div>
 
@@ -3647,6 +3261,7 @@ export default function Generate(props?: {
                 ["Lecturer", cellDetail.lecturer],
                 ["Venue", cellDetail.venue],
                 ["Level", cellDetail.level ?? "200 Level"],
+                ["Programme", formatProgrammeLabel(cellDetail.programme)],
                 ["Group", cellDetail.group ?? "All Groups"],
                 ["Day", cellDetail.day],
                 ["Time", cellDetail.slot],

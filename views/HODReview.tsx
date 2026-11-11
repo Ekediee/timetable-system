@@ -9,7 +9,6 @@ import {
   RotateCcw,
   X,
   BookOpen,
-  Building2,
   Users,
   MessageSquare,
   ShieldCheck,
@@ -30,6 +29,7 @@ import { useApp } from "../lib/AppContext";
 import { workflowApi, timetableApi } from "../lib/api";
 import { CURRENT_SESSION, CURRENT_SEMESTER } from "../lib/config";
 import ReviewRequirements from "../components/ReviewRequirements";
+import ReviewSessionsCard from "../components/ReviewSessionsCard";
 import { toast } from "../components/Toast";
 
 export default function HODReview(props?: {
@@ -247,41 +247,13 @@ export default function HODReview(props?: {
           </Card>
 
           {/* Quick preview of approved schedule */}
-          <Card>
-            <CardHead
-              icon={<Building2 size={16} />}
-              title={`Approved sessions (${selectedDept})`}
-              sub={`${deptSessions.length} conflict-free sessions`}
-            />
-            <div className="max-h-[340px] overflow-y-auto px-2 pb-3">
-              <div className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-                <span>Code</span>
-                <span>Lecturer</span>
-                <span>Venue</span>
-                <span>Day / Time</span>
-                <span className="text-right">Status</span>
-              </div>
-              {deptSessions.slice(0, 30).map((s, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-panel/50 text-[12.5px]"
-                >
-                  <span className="font-bold text-ink">{s.code}</span>
-                  <span className="truncate text-muted">{s.lecturer}</span>
-                  <span className="truncate text-subink font-medium">{s.venue}</span>
-                  <span className="text-subink">{s.day} · {s.slot}</span>
-                  <div className="flex justify-end">
-                    <Pill tone="good">OK</Pill>
-                  </div>
-                </div>
-              ))}
-              {deptSessions.length > 30 && (
-                <p className="pt-2 text-center text-[12px] text-muted">
-                  + {deptSessions.length - 30} more scheduled sessions
-                </p>
-              )}
-            </div>
-          </Card>
+          <ReviewSessionsCard
+            title={`Approved sessions (${selectedDept})`}
+            sessions={deptSessions}
+            maxItems={30}
+            maxHeightClass="max-h-[340px]"
+            approvedMode
+          />
         </div>
       ) : !hasSubmission ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -402,40 +374,10 @@ export default function HODReview(props?: {
             )}
 
             {/* Session list */}
-            <Card>
-              <CardHead
-                icon={<Building2 size={16} />}
-                title="Scheduled sessions"
-                sub={`${deptSessions.length} scheduled sessions`}
-              />
-              <div className="max-h-[460px] overflow-y-auto px-2 pb-3">
-                <div className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 px-3 pb-2 pt-1 border-b border-line text-[11px] font-semibold uppercase tracking-[0.07em] text-muted">
-                  <span>Code</span>
-                  <span>Lecturer</span>
-                  <span>Venue</span>
-                  <span>Day / Time</span>
-                  <span className="text-right">Status</span>
-                </div>
-                {deptSessions.map((s, i) => (
-                  <div
-                    key={i}
-                    className="grid grid-cols-[88px_1fr_140px_108px_90px] items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-panel/50 text-[12.5px]"
-                  >
-                    <span className="font-bold text-ink">{s.code}</span>
-                    <span className="truncate text-muted">{s.lecturer}</span>
-                    <span className="truncate text-subink font-medium">{s.venue}</span>
-                    <span className="text-subink">{s.day} · {s.slot}</span>
-                    <div className="flex justify-end">
-                      {s.conflict ? (
-                        <Pill tone="bad">Conflict</Pill>
-                      ) : (
-                        <Pill tone="good">OK</Pill>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <ReviewSessionsCard
+              title="Scheduled sessions"
+              sessions={deptSessions}
+            />
           </div>
 
           {/* Right: decision and approval actions */}

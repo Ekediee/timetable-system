@@ -716,6 +716,14 @@ export default function TimetableGrid({
                               <p className="truncate text-[9px] text-subink font-medium leading-tight">
                                 {it.venue}
                               </p>
+                              {it.programme && (
+                                <p
+                                  title={it.programme}
+                                  className="truncate text-[8px] font-semibold text-subink/80 leading-tight mt-0.5"
+                                >
+                                  {it.programme}
+                                </p>
+                              )}
                               {/* In Cohort perspective OR when viewing All Lecturers: display lecturer name with badge */}
                               {(perspective === "cohort" ||
                                 (perspective === "lecturer" &&

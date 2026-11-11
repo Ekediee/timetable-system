@@ -36,7 +36,10 @@ import {
   deduplicateTimeline,
   deduplicateAuditEntries,
 } from "./data";
-import { generateTimetable } from "./engine";
+import {
+  generateTimetable,
+  normalizeAllocationsVirtualMode,
+} from "./engine";
 import {
   authApi,
   dashboardApi,
@@ -246,6 +249,10 @@ interface AppContextType {
   backendError: string | null;
   setBackendError: React.Dispatch<React.SetStateAction<string | null>>;
   refreshVenues: (department?: string) => Promise<Venue[]>;
+  refreshExternalBookings: (
+    department?: string,
+    options?: { signal?: AbortSignal },
+  ) => Promise<ExternalBooking[]>;
   refreshConstraints: (department?: string) => Promise<Constraint[]>;
   refreshAllocations: (department?: string) => Promise<Allocation[]>;
   bootstrapConstraints: (
@@ -292,6 +299,35 @@ function computeExternalBookings(
   }
 
   return result;
+}
+
+function mergeExternalBookings(
+  deptName: string,
+  timetablesMap: Record<string, DeptTimetableEntry>,
+  backendBookings: ExternalBooking[],
+): ExternalBooking[] {
+  const normalizedTarget = deptName.trim().toLowerCase();
+  const localExt = deptName
+    ? computeExternalBookings(deptName, timetablesMap)
+    : [];
+  const bookingMap = new Map<string, ExternalBooking>();
+
+  // Prefer backend bookings first so persisted submitted+ locks take priority over stale memory
+  for (const b of [...backendBookings, ...localExt]) {
+    if (
+      normalizedTarget &&
+      b.booked_by_department?.trim().toLowerCase() === normalizedTarget
+    ) {
+      continue;
+    }
+    const slotKey = (b.slot || "").slice(0, 5);
+    const key = `${(b.venue || "").trim().toLowerCase()}_${b.day}_${slotKey}_${(b.booked_by_department || "").trim().toLowerCase()}`;
+    if (!bookingMap.has(key)) {
+      bookingMap.set(key, b);
+    }
+  }
+
+  return Array.from(bookingMap.values());
 }
 
 function normalizeLoadedConstraintTypes(
@@ -553,6 +589,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [backendError, setBackendError] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [currentProgram, setCurrentProgram] = useState<string>("");
+  const currentProgramRef = useRef<string>(currentProgram);
+  currentProgramRef.current = currentProgram;
   const [localTimeline, setLocalTimeline] = useState<TimelineStep[]>([]);
   const [deptSubs, setDeptSubs] = useState<DeptSubmission[]>([]);
   const deptSubsRef = useRef<DeptSubmission[]>(deptSubs);
@@ -586,6 +624,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       throw err;
     }
   }, []);
+
+  const refreshExternalBookings = useCallback(
+    async (
+      department?: string,
+      options?: { signal?: AbortSignal },
+    ): Promise<ExternalBooking[]> => {
+      const dept =
+        department ||
+        currentProgramRef.current ||
+        currentUserRef.current?.department ||
+        "";
+      try {
+        // Omit school filter so shared cross-school venues lock across all departments
+        const extRes = await timetableApi.getExternalBookings(
+          dept || undefined,
+          undefined,
+          CURRENT_SEMESTER,
+          CURRENT_SESSION,
+          options,
+        );
+        if (options?.signal?.aborted) return [];
+        const backendExt = Array.isArray(extRes?.bookings)
+          ? extRes.bookings
+          : [];
+        const merged = mergeExternalBookings(
+          dept,
+          deptTimetablesRef.current,
+          backendExt,
+        );
+        setExternalBookings(merged);
+        return merged;
+      } catch (err: any) {
+        if (
+          options?.signal?.aborted ||
+          err?.name === "AbortError" ||
+          err?.data?.isAborted
+        ) {
+          return [];
+        }
+        console.warn("Failed refreshing external bookings:", err);
+        const fallback = dept
+          ? computeExternalBookings(dept, deptTimetablesRef.current)
+          : [];
+        setExternalBookings(fallback);
+        return fallback;
+      }
+    },
+    [],
+  );
 
   const refreshConstraints = useCallback(
     async (department?: string) => {
@@ -625,8 +712,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           CURRENT_SESSION,
         );
         if (res && Array.isArray(res.allocations)) {
-          setLocalAllocations(res.allocations);
-          return res.allocations;
+          const normalized = normalizeAllocationsVirtualMode(res.allocations);
+          setLocalAllocations(normalized);
+          return normalized;
         }
         return [];
       } catch (err) {
@@ -672,7 +760,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           writeTabCache("bupulse_timelock_config", JSON.stringify(normTimeLocks));
         }
         if (Array.isArray(data.allocations)) {
-          setLocalAllocations(data.allocations);
+          setLocalAllocations(normalizeAllocationsVirtualMode(data.allocations));
         }
 
         return data;
@@ -1123,6 +1211,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
+        if (data.role === "deptTO" || data.role === "hod") {
+          const resolvedDept = (data as { department?: string }).department;
+          if (resolvedDept) {
+            await refreshExternalBookings(resolvedDept, {
+              signal: options?.signal,
+            });
+          }
+        }
+
         return data;
       } catch (err: any) {
         if (
@@ -1145,7 +1242,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setIsLoadingBackend(false);
       }
     },
-    [updateStore],
+    [updateStore, refreshExternalBookings],
   );
 
   function addAuditEntry(partial: Omit<AuditEntry, "id" | "actor" | "at">) {
@@ -1411,7 +1508,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (signal.aborted) return;
           if (cBoot) {
             if (Array.isArray(cBoot.allocations)) {
-              setLocalAllocations(cBoot.allocations);
+              setLocalAllocations(normalizeAllocationsVirtualMode(cBoot.allocations));
             }
             if (Array.isArray(cBoot.constraints)) {
               setLocalConstraints(cBoot.constraints);
@@ -1446,39 +1543,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
         if (signal.aborted) return;
 
-        // 2. Compute external bookings from local store + backend
-        const localExt = computeExternalBookings(
-          deptName,
-          deptTimetablesRef.current,
-        );
-        let backendExt: ExternalBooking[] = [];
-        try {
-          const extRes = await timetableApi.getExternalBookings(
-            deptName,
-            school,
-            CURRENT_SEMESTER,
-            CURRENT_SESSION,
-            { signal }
-          );
-          if (signal.aborted) return;
-          if (extRes && extRes.bookings) {
-            backendExt = extRes.bookings;
-          }
-        } catch (err: any) {
-          if (signal.aborted || err?.name === "AbortError" || err?.data?.isAborted) return;
-        }
+        // 2. Fetch external bookings from backend + merge submitted/published store state
+        await refreshExternalBookings(deptName, { signal });
         if (signal.aborted) return;
-
-        // Deduplicate bookings
-        const bookingMap = new Map<string, ExternalBooking>();
-        for (const b of [...localExt, ...backendExt]) {
-          const key = `${b.venue}_${b.day}_${b.slot}`;
-          if (!bookingMap.has(key)) {
-            bookingMap.set(key, b);
-          }
-        }
-        const activeExtBookings = Array.from(bookingMap.values());
-        setExternalBookings(activeExtBookings);
 
         // 3. Load timetable sessions, status and review timeline
         let targetSessions: Session[] = [];
@@ -1608,10 +1675,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               courses: targetSessions.length,
               sessions: targetSessions.map((ts) => ({
                 code: ts.code,
+                programme: ts.programme ?? null,
                 lecturer: ts.lecturer,
                 venue: ts.venue,
                 day: ts.day as any,
                 slot: ts.slot as any,
+                duration: ts.duration,
+                level: ts.level,
+                group: ts.group,
+                isVirtual: ts.isVirtual,
                 conflict: !!ts.conflict,
               })),
             };
@@ -2155,6 +2227,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         backendError,
         setBackendError,
         refreshVenues,
+        refreshExternalBookings,
         refreshConstraints,
         refreshAllocations,
         bootstrapConstraints,
@@ -2251,6 +2324,7 @@ export function useApp(): AppContextType {
       backendError: null,
       setBackendError: () => {},
       refreshVenues: async () => [],
+      refreshExternalBookings: async () => [],
       refreshConstraints: async () => [],
       refreshAllocations: async () => [],
       bootstrapConstraints: async () => null,

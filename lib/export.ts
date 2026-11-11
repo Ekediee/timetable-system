@@ -2,6 +2,7 @@ export interface ExportableSession {
   day: string;
   slot: string;
   code: string;
+  programme?: string | null;
   lecturer: string;
   venue: string;
   duration?: number;
@@ -14,6 +15,7 @@ export interface ExportableSession {
 
 export interface TimetableExportMeta {
   department?: string;
+  programme?: string;
   level?: string;
   semester?: string;
   session?: string;
@@ -37,6 +39,7 @@ export function exportToCsv(
     "Time Slot",
     "Duration (Hours)",
     "Course Code",
+    "Programme",
     "Lecturer",
     "Venue",
     "Level",
@@ -57,6 +60,7 @@ export function exportToCsv(
       escapeCsv(s.slot),
       escapeCsv(s.duration ?? 1),
       escapeCsv(s.code),
+      escapeCsv(s.programme || "General / Shared"),
       escapeCsv(s.lecturer),
       escapeCsv(s.venue),
       escapeCsv(s.level ?? ""),
@@ -116,6 +120,7 @@ export function printTimetablePdf(
       <td style="padding: 8px 10px; font-weight: 600;">${s.day}</td>
       <td style="padding: 8px 10px;">${s.slot} (${s.duration ?? 1}h)</td>
       <td style="padding: 8px 10px; font-weight: 700; color: #1e3a8a;">${s.code}</td>
+      <td style="padding: 8px 10px;">${s.programme || "General / Shared"}</td>
       <td style="padding: 8px 10px;">${s.lecturer}</td>
       <td style="padding: 8px 10px;">${s.venue}</td>
       <td style="padding: 8px 10px;">${s.level ?? levelName}</td>
@@ -192,7 +197,7 @@ export function printTimetablePdf(
         <div class="header">
           <div>
             <h1 class="title">Babcock University — Timetable Schedule</h1>
-            <p class="meta"><b>Department:</b> ${deptName} &nbsp;|&nbsp; <b>Level:</b> ${levelName} &nbsp;|&nbsp; <b>Semester:</b> ${semesterName} (${sessionName})</p>
+            <p class="meta"><b>Department:</b> ${deptName}${meta.programme ? ` &nbsp;|&nbsp; <b>Programme:</b> ${meta.programme}` : ""} &nbsp;|&nbsp; <b>Level:</b> ${levelName} &nbsp;|&nbsp; <b>Semester:</b> ${semesterName} (${sessionName})</p>
           </div>
           <div style="text-align: right;">
             ${statusName ? `<span style="font-size: 12px; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 9999px; font-weight: 600;">${statusName}</span>` : ""}
@@ -205,6 +210,7 @@ export function printTimetablePdf(
               <th>Day</th>
               <th>Time</th>
               <th>Course</th>
+              <th>Programme</th>
               <th>Lecturer</th>
               <th>Venue</th>
               <th>Level</th>
@@ -213,7 +219,7 @@ export function printTimetablePdf(
             </tr>
           </thead>
           <tbody>
-            ${rowsHtml || '<tr><td colspan="8" style="text-align:center; padding: 24px; color: #9ca3af;">No sessions found</td></tr>'}
+            ${rowsHtml || '<tr><td colspan="9" style="text-align:center; padding: 24px; color: #9ca3af;">No sessions found</td></tr>'}
           </tbody>
         </table>
         <div class="footer">
